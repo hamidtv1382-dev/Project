@@ -1,0 +1,143 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Dashboard.MapViewModel
+
+<div class="world-map-container">
+    <div class="map-controls">
+        <div class="form-group">
+            <label for="map-date-range">بازه زمانی:</label>
+            <div class="input-group">
+                <input type="date" id="map-start-date" class="form-control" />
+                <span class="input-group-text">تا</span>
+                <input type="date" id="map-end-date" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="map-call-type">نوع تماس:</label>
+            <select id="map-call-type" class="form-control">
+                <option value="">همه</option>
+                @foreach (var type in ViewBag.CallTypes)
+                {
+                    <option value="@type.TypeID">@type.TypeName</option>
+                }
+            </select>
+        </div>
+        <button id="update-map" class="btn btn-primary">به‌روزرسانی</button>
+    </div>
+    <div id="world-map" style="height: 500px;"></div>
+    <div class="map-legend">
+        <h5>تعداد تماس‌ها</h5>
+        <div class="legend-items">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #ffeda0;"></div>
+                <span>0 - 100</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #fed976;"></div>
+                <span>100 - 500</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #feb24c;"></div>
+                <span>500 - 1000</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #fd8d3c;"></div>
+                <span>1000 - 5000</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #fc4e2a;"></div>
+                <span>5000 - 10000</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #e31a1c;"></div>
+                <span>10000 - 50000</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #b10026;"></div>
+                <span>50000+</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="~/lib/leaflet/dist/leaflet.css" />
+    <script>
+        // نقشه جهان
+        const map = L.map('world-map').setView([30, 0], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // داده‌های نقشه
+        const mapData = @Html.Raw(Json.Serialize(Model.Points));
+
+        // تابع برای تعیین رنگ بر اساس تعداد تماس‌ها
+        function getColor(callCount) {
+            return callCount > 50000 ? '#b10026' :
+                   callCount > 10000 ? '#e31a1c' :
+                   callCount > 5000 ? '#fc4e2a' :
+                   callCount > 1000 ? '#fd8d3c' :
+                   callCount > 500 ? '#feb24c' :
+                   callCount > 100 ? '#fed976' :
+                   '#ffeda0';
+        }
+
+        // تابع برای تعیین شعاع بر اساس تعداد تماس‌ها
+        function getRadius(callCount) {
+            return Math.sqrt(callCount) * 1000;
+        }
+
+        // افزودن نقاط به نقشه
+        mapData.forEach(point => {
+            L.circle([point.Lat, point.Lng], {
+                color: getColor(point.CallCount),
+                fillColor: getColor(point.CallCount),
+                fillOpacity: 0.7,
+                radius: getRadius(point.CallCount)
+            }).addTo(map)
+            .bindPopup(`<strong>${point.CountryName}</strong><br>تعداد تماس‌ها: ${point.CallCount}`);
+        });
+
+        // رویداد به‌روزرسانی نقشه
+        document.getElementById('update-map').addEventListener('click', function() {
+            const startDate = document.getElementById('map-start-date').value;
+            const endDate = document.getElementById('map-end-date').value;
+            const callType = document.getElementById('map-call-type').value;
+
+            // ارسال درخواست به سرور برای دریافت داده‌های جدید
+            fetch('/Analytics/UpdateMapData', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    startDate: startDate,
+                    endDate: endDate,
+                    callType: callType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // حذف نقاط فعلی
+                map.eachLayer(layer => {
+                    if (layer instanceof L.Circle) {
+                        map.removeLayer(layer);
+                    }
+                });
+
+                // افزودن نقاط جدید
+                data.forEach(point => {
+                    L.circle([point.Lat, point.Lng], {
+                        color: getColor(point.CallCount),
+                        fillColor: getColor(point.CallCount),
+                        fillOpacity: 0.7,
+                        radius: getRadius(point.CallCount)
+                    }).addTo(map)
+                    .bindPopup(`<strong>${point.CountryName}</strong><br>تعداد تماس‌ها: ${point.CallCount}`);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+}

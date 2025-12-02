@@ -1,0 +1,15 @@
+﻿@{
+    ViewData["Title"] = "خطای سرور";
+}
+
+<div class="error-page">
+    <div class="error-code">500</div>
+    <div class="error-message">خطای داخلی سرور</div>
+    <div class="error-description">
+        متأسفانه در پردازش درخواست شما مشکلی پیش آمده است. لطفاً چند لحظه دیگر مجدداً تلاش کنید یا با مدیر سیستم تماس بگیرید.
+    </div>
+    <div class="error-actions">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">بازگشت به صفحه اصلی</a>
+        <button onclick="location.reload()" class="btn btn-secondary">تلاش مجدد</button>
+    </div>
+</div>

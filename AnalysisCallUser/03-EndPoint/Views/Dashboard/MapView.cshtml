@@ -1,0 +1,427 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Dashboard.MapViewModel
+
+@{
+    ViewData["Title"] = "نمای نقشه";
+}
+
+<div class="map-view-container">
+    <div class="page-header">
+        <h3>نمای نقشه تماس‌ها</h3>
+        <div class="page-actions">
+            <button id="fullscreen-toggle" class="btn btn-outline-secondary">
+                <i class="fas fa-expand"></i> تمام صفحه
+            </button>
+        </div>
+    </div>
+
+    <div class="map-controls">
+        <div class="form-group">
+            <label for="map-date-range">بازه زمانی:</label>
+            <div class="input-group">
+                <input type="date" id="map-start-date" class="form-control" />
+                <span class="input-group-text">تا</span>
+                <input type="date" id="map-end-date" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="map-call-type">نوع تماس:</label>
+            <select id="map-call-type" class="form-control">
+                <option value="">همه</option>
+                @foreach (var type in ViewBag.CallTypes)
+                {
+                    <option value="@type.TypeID">@type.TypeName</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="map-visualization">نوع نمایش:</label>
+            <select id="map-visualization" class="form-control">
+                <option value="heat">نقشه حرارتی</option>
+                <option value="bubble">حباب</option>
+                <option value="cluster">خوشه</option>
+            </select>
+        </div>
+        <button id="update-map" class="btn btn-primary">به‌روزرسانی</button>
+        <button id="export-map" class="btn btn-success">
+            <i class="fas fa-download"></i> خروجی
+        </button>
+    </div>
+
+    <div id="world-map" class="world-map"></div>
+
+    <div class="map-legend">
+        <h5>تعداد تماس‌ها</h5>
+        <div class="legend-items">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #ffeda0;"></div>
+                <span>0 - 100</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #fed976;"></div>
+                <span>100 - 500</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #feb24c;"></div>
+                <span>500 - 1000</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #fd8d3c;"></div>
+                <span>1000 - 5000</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #fc4e2a;"></div>
+                <span>5000 - 10000</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #e31a1c;"></div>
+                <span>10000 - 50000</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #b10026;"></div>
+                <span>50000+</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="map-stats">
+        <div class="stat-item">
+            <span class="stat-label">کل تماس‌ها:</span>
+            <span class="stat-value" id="total-calls">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">کشورهای فعال:</span>
+            <span class="stat-value" id="active-countries">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">بیشترین تماس:</span>
+            <span class="stat-value" id="top-country">-</span>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="country-details-modal" tabindex="-1" role="dialog" aria-labelledby="countryDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="countryDetailsModalLabel">جزئیات کشور</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="country-details-content">
+                    <!-- جزئیات کشور به صورت داینامیک اضافه می‌شود -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                <button type="button" id="analyze-country" class="btn btn-primary">تحلیل کشور</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="~/lib/leaflet/dist/leaflet.css" />
+    <script src="~/lib/leaflet.heat/dist/leaflet-heat.js"></script>
+    <script src="~/lib/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="~/lib/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="~/lib/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <script src="~/lib/html2canvas/html2canvas.min.js"></script>
+    <script>
+        // نقشه جهان
+        const map = L.map('world-map').setView([30, 0], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // داده‌های نقشه
+        const mapData = @Html.Raw(Json.Serialize(Model.Points));
+        let currentLayer;
+
+        // تابع برای تعیین رنگ بر اساس تعداد تماس‌ها
+        function getColor(callCount) {
+            return callCount > 50000 ? '#b10026' :
+                   callCount > 10000 ? '#e31a1c' :
+                   callCount > 5000 ? '#fc4e2a' :
+                   callCount > 1000 ? '#fd8d3c' :
+                   callCount > 500 ? '#feb24c' :
+                   callCount > 100 ? '#fed976' :
+                   '#ffeda0';
+        }
+
+        // تابع برای تعیین شعاع بر اساس تعداد تماس‌ها
+        function getRadius(callCount) {
+            return Math.sqrt(callCount) * 1000;
+        }
+
+        // تابع برای به‌روزرسانی آمار نقشه
+        function updateMapStats(data) {
+            const totalCalls = data.reduce((sum, point) => sum + point.CallCount, 0);
+            const activeCountries = data.length;
+            const topCountry = data.reduce((max, point) => point.CallCount > max.CallCount ? point : max, data[0]);
+
+            document.getElementById('total-calls').textContent = totalCalls.toLocaleString();
+            document.getElementById('active-countries').textContent = activeCountries;
+            document.getElementById('top-country').textContent = topCountry ? topCountry.CountryName : '-';
+        }
+
+        // تابع برای نمایش نقشه به صورت حباب
+        function showBubbleMap(data) {
+            // حذف لایه فعلی
+            if (currentLayer) {
+                map.removeLayer(currentLayer);
+            }
+
+            // ایجاد لایه جدید
+            currentLayer = L.layerGroup();
+
+            // افزودن نقاط به نقشه
+            data.forEach(point => {
+                L.circle([point.Lat, point.Lng], {
+                    color: getColor(point.CallCount),
+                    fillColor: getColor(point.CallCount),
+                    fillOpacity: 0.7,
+                    radius: getRadius(point.CallCount)
+                }).addTo(currentLayer)
+                .bindPopup(`<strong>${point.CountryName}</strong><br>تعداد تماس‌ها: ${point.CallCount}`)
+                .on('click', function() {
+                    // نمایش جزئیات کشور در مودال
+                    document.getElementById('country-details-content').innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th width="40%">کشور:</th>
+                                        <td>${point.CountryName}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>مختصات:</th>
+                                        <td>${point.Lat}, ${point.Lng}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th width="40%">تعداد تماس‌ها:</th>
+                                        <td>${point.CallCount.toLocaleString()}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>درصد از کل:</th>
+                                        <td>${((point.CallCount / data.reduce((sum, p) => sum + p.CallCount, 0)) * 100).toFixed(2)}%</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+
+                    $('#country-details-modal').modal('show');
+                });
+            });
+
+            // افزودن لایه به نقشه
+            currentLayer.addTo(map);
+
+            // به‌روزرسانی آمار
+            updateMapStats(data);
+        }
+
+        // تابع برای نمایش نقشه حرارتی
+        function showHeatMap(data) {
+            // حذف لایه فعلی
+            if (currentLayer) {
+                map.removeLayer(currentLayer);
+            }
+
+            // تبدیل داده‌ها به فرمت مناسب برای نقشه حرارتی
+            const heatData = data.map(point => [point.Lat, point.Lng, point.CallCount]);
+
+            // ایجاد لایه جدید
+            currentLayer = L.heatLayer(heatData, {
+                radius: 25,
+                blur: 15,
+                maxZoom: 17,
+                max: Math.max(...data.map(point => point.CallCount))
+            });
+
+            // افزودن لایه به نقشه
+            currentLayer.addTo(map);
+
+            // به‌روزرسانی آمار
+            updateMapStats(data);
+        }
+
+        // تابع برای نمایش نقشه خوشه‌ای
+        function showClusterMap(data) {
+            // حذف لایه فعلی
+            if (currentLayer) {
+                map.removeLayer(currentLayer);
+            }
+
+            // ایجاد مارکرها
+            const markers = data.map(point => {
+                const marker = L.marker([point.Lat, point.Lng]);
+                marker.bindPopup(`<strong>${point.CountryName}</strong><br>تعداد تماس‌ها: ${point.CallCount}`);
+                return marker;
+            });
+
+            // ایجاد لایه جدید
+            currentLayer = L.markerClusterGroup({
+                iconCreateFunction: function(cluster) {
+                    const count = cluster.getChildCount();
+                    let size = 'small';
+                    let className = 'marker-cluster-';
+
+                    if (count < 10) {
+                        className += 'small';
+                    } else if (count < 100) {
+                        className += 'medium';
+                    } else {
+                        className += 'large';
+                    }
+
+                    return L.divIcon({
+                        html: '<div><span>' + count + '</span></div>',
+                        className: 'marker-cluster ' + className,
+                        iconSize: new L.Point(40, 40)
+                    });
+                }
+            });
+
+            // افزودن مارکرها به لایه
+            markers.forEach(marker => currentLayer.addLayer(marker));
+
+            // افزودن لایه به نقشه
+            currentLayer.addTo(map);
+
+            // به‌روزرسانی آمار
+            updateMapStats(data);
+        }
+
+        // نمایش اولیه نقشه به صورت حباب
+        showBubbleMap(mapData);
+
+        // رویداد به‌روزرسانی نقشه
+        document.getElementById('update-map').addEventListener('click', function() {
+            const startDate = document.getElementById('map-start-date').value;
+            const endDate = document.getElementById('map-end-date').value;
+            const callType = document.getElementById('map-call-type').value;
+            const visualization = document.getElementById('map-visualization').value;
+
+            // نمایش لودینگ
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال به‌روزرسانی...';
+            this.disabled = true;
+
+            // ارسال درخواست به سرور برای دریافت داده‌های جدید
+            fetch('/Dashboard/UpdateMapData', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    startDate: startDate,
+                    endDate: endDate,
+                    callType: callType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // نمایش نقشه بر اساس نوع نمایش انتخاب شده
+                switch (visualization) {
+                    case 'heat':
+                        showHeatMap(data);
+                        break;
+                    case 'cluster':
+                        showClusterMap(data);
+                        break;
+                    default:
+                        showBubbleMap(data);
+                }
+
+                // بازگرداندن دکمه به حالت اولیه
+                this.innerHTML = 'به‌روزرسانی';
+                this.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // بازگرداندن دکمه به حالت اولیه
+                this.innerHTML = 'به‌روزرسانی';
+                this.disabled = false;
+
+                // نمایش پیام خطا
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show';
+                alert.innerHTML = `
+                    خطا در به‌روزرسانی نقشه
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                `;
+                document.querySelector('.page-header').after(alert);
+            });
+        });
+
+        // رویداد تغییر نوع نمایش
+        document.getElementById('map-visualization').addEventListener('change', function() {
+            const visualization = this.value;
+
+            switch (visualization) {
+                case 'heat':
+                    showHeatMap(mapData);
+                    break;
+                case 'cluster':
+                    showClusterMap(mapData);
+                    break;
+                default:
+                    showBubbleMap(mapData);
+            }
+        });
+
+        // رویداد خروجی نقشه
+        document.getElementById('export-map').addEventListener('click', function() {
+            html2canvas(document.getElementById('world-map')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'map-view.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        });
+
+        // رویداد تمام صفحه
+        document.getElementById('fullscreen-toggle').addEventListener('click', function() {
+            const elem = document.getElementById('world-map');
+
+            if (!document.fullscreenElement) {
+                elem.requestFullscreen().then(() => {
+                    this.innerHTML = '<i class="fas fa-compress"></i> خروج از تمام صفحه';
+                    // به‌روزرسانی اندازه نقشه پس از ورود به حالت تمام صفحه
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 500);
+                }).catch(err => {
+                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    this.innerHTML = '<i class="fas fa-expand"></i> تمام صفحه';
+                    // به‌روزرسانی اندازه نقشه پس از خروج از حالت تمام صفحه
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 500);
+                });
+            }
+        });
+
+        // رویداد تحلیل کشور
+        document.getElementById('analyze-country').addEventListener('click', function() {
+            const countryName = document.querySelector('#country-details-content table tr td').textContent;
+
+            // انتقال به صفحه تحلیل کشور
+            window.location.href = '/Analytics/GeographicAnalysis?country=' + encodeURIComponent(countryName);
+        });
+    </script>
+}

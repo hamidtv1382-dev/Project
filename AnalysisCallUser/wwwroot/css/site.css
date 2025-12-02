@@ -1,0 +1,213 @@
+@charset "UTF-8";
+
+:root {
+    /* ========== Core Palette & Brand Colors ========== */
+    --primary-color: #4a6cf7;
+    --primary-hover: #3451d4;
+    --primary-light: #e8efff;
+    --secondary-color: #6c757d;
+    --accent-color: #17a2b8;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    /* ========== Semantic Colors ========== */
+    --body-bg: #f8f9fa;
+    --content-bg: #ffffff;
+    --card-bg: #ffffff;
+    --header-bg: #ffffff;
+    --footer-bg: #f1f3f5;
+    --sidebar-bg: #ffffff;
+    --border-color: #dee2e6;
+    --divider-color: #e9ecef;
+    /* ========== Text Colors ========== */
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-muted: #adb5bd;
+    --text-inverse: #ffffff;
+    --text-link: var(--primary-color);
+    --text-link-hover: var(--primary-hover);
+    /* ========== Component Specific Colors ========== */
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+    --input-focus-border: var(--primary-color);
+    --input-focus-shadow: 0 0 0 0.2rem rgba(74, 108, 247, 0.25);
+    --button-text: #ffffff;
+    --button-disabled-bg: #e9ecef;
+    --button-disabled-text: #6c757d;
+    /* ========== Shadows & Effects ========== */
+    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --header-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --sidebar-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    /* ========== Fonts & Typography ========== */
+    --font-family-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-family-monospace: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    --font-size-base: 0.9rem;
+    --font-size-lg: 1.125rem;
+    --font-size-sm: 0.875rem;
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --line-height-base: 1.5;
+    --line-height-sm: 1.25;
+    /* ========== Spacing & Layout ========== */
+    --border-radius: 0.375rem;
+    --border-radius-lg: 0.5rem;
+    --border-radius-sm: 0.25rem;
+    --sidebar-width: 280px;
+    --header-height: 65px;
+    --footer-height: 60px;
+}
+
+/* ========== Global Body & Layout Reset ========== */
+body {
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-base);
+    color: var(--text-primary);
+    background-color: var(--body-bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========== Main Layout Structure ========== */
+.main-content {
+    padding-top: var(--header-height);
+    min-height: 100vh;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-width);
+    background-color: var(--sidebar-bg);
+    box-shadow: var(--sidebar-shadow);
+    z-index: 1030;
+    transition: transform 0.3s ease-in-out;
+}
+
+    .sidebar.collapsed {
+        transform: translateX(-100%);
+    }
+
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    background-color: var(--header-bg);
+    box-shadow: var(--header-shadow);
+    z-index: 1020;
+}
+
+.main-footer {
+    background-color: var(--footer-bg);
+    padding: 1rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.content-wrapper {
+    margin-left: var(--sidebar-width);
+    padding: 2rem;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+    .content-wrapper.full-width {
+        margin-left: 0;
+    }
+
+/* ========== Card Component ========== */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: var(--content-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.25rem;
+    font-weight: var(--font-weight-semibold);
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+/* ========== Button Component ========== */
+.btn {
+    font-weight: var(--font-weight-medium);
+    text-transform: none;
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--button-text);
+}
+
+    .btn-primary:hover {
+        background-color: var(--primary-hover);
+        border-color: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+    }
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: var(--button-text);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+    .btn-outline-primary:hover {
+        color: var(--button-text);
+        background-color: var(--primary-color);
+    }
+
+/* ========== Form Component ========== */
+.form-control {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+    color: var(--text-primary);
+}
+
+    .form-control:focus {
+        border-color: var(--input-focus-border);
+        box-shadow: var(--input-focus-shadow);
+        outline: 0;
+    }
+
+/* ========== Table Component ========== */
+.table {
+    color: var(--text-primary);
+}
+
+    .table thead th {
+        border-bottom: 2px solid var(--border-color);
+        font-weight: var(--font-weight-semibold);
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--primary-light);
+    }

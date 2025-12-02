@@ -1,0 +1,74 @@
+﻿@model AnalysisCallUser._02_Infrastructure.Helpers.PagedResult<object>
+
+<div class="pagination-container">
+    <div class="pagination-info">
+        نمایش @(Model.PageSize * (Model.PageNumber - 1) + 1) تا @(Math.Min(Model.PageSize * Model.PageNumber, Model.TotalItems)) 
+        از @Model.TotalItems مورد
+    </div>
+    
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            @if (Model.HasPreviousPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="@(Model.PageNumber - 1)" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                </li>
+            }
+
+            @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+            {
+                if (i == Model.PageNumber)
+                {
+                    <li class="page-item active">
+                        <span class="page-link">@i</span>
+                    </li>
+                }
+                else
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="@i">@i</a>
+                    </li>
+                }
+            }
+
+            @if (Model.HasNextPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="@(Model.PageNumber + 1)" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&raquo;</span>
+                </li>
+            }
+        </ul>
+    </nav>
+    
+    <div class="page-size-selector">
+        <label for="page-size">تعداد نمایش در صفحه:</label>
+        @{
+            var pageSizes = new List<SelectListItem>
+                {
+                new SelectListItem { Value = "10", Text = "10", Selected = Model.PageSize == 10 },
+                new SelectListItem { Value = "25", Text = "25", Selected = Model.PageSize == 25 },
+                new SelectListItem { Value = "50", Text = "50", Selected = Model.PageSize == 50 },
+                new SelectListItem { Value = "100", Text = "100", Selected = Model.PageSize == 100 },
+                };
+        }
+
+        <select asp-for="PageSize" asp-items="pageSizes" class="form-select form-select-sm"></select>
+
+    </div>
+</div>

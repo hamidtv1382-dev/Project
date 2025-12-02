@@ -1,0 +1,247 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Call.CallFilterViewModel
+
+@{
+    ViewData["Title"] = "جستجوی تماس";
+}
+
+<div class="call-search-container">
+    <div class="page-header">
+        <h3>جستجوی تماس</h3>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="filter-panel">
+                <div class="filter-header">
+                    <h4>فیلترها</h4>
+                </div>
+                <div class="filter-body">
+                    <form asp-action="Search" method="post" id="filter-form">
+                        <div class="filter-section">
+                            <h5>بازه زمانی</h5>
+                            <div class="form-group">
+                                <label asp-for="StartDate" class="control-label"></label>
+                                <input asp-for="StartDate" class="form-control" type="date" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="EndDate" class="control-label"></label>
+                                <input asp-for="EndDate" class="form-control" type="date" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="StartTime" class="control-label"></label>
+                                <input asp-for="StartTime" class="form-control" type="time" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="EndTime" class="control-label"></label>
+                                <input asp-for="EndTime" class="form-control" type="time" />
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <h5>شماره تماس</h5>
+                            <div class="form-group">
+                                <label asp-for="ANumber" class="control-label"></label>
+                                <input asp-for="ANumber" class="form-control" placeholder="شماره تماس مبدأ" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="BNumber" class="control-label"></label>
+                                <input asp-for="BNumber" class="form-control" placeholder="شماره تماس مقصد" />
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <h5>موقعیت جغرافیایی</h5>
+                            <div class="form-group">
+                                <label asp-for="OriginCountryID" class="control-label"></label>
+                                <select asp-for="OriginCountryID" class="form-control" asp-items="ViewBag.Countries">
+                                    <option value="">انتخاب کنید</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DestCountryID" class="control-label"></label>
+                                <select asp-for="DestCountryID" class="form-control" asp-items="ViewBag.Countries">
+                                    <option value="">انتخاب کنید</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <h5>سایر فیلترها</h5>
+                            <div class="form-group">
+                                <label asp-for="Answer" class="control-label"></label>
+                                <select asp-for="Answer" class="form-control">
+                                    <option value="">همه</option>
+                                    <option value="true">پاسخ داده شده</option>
+                                    <option value="false">پاسخ داده نشده</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="PageSize" class="control-label"></label>
+                                <select asp-for="PageSize" class="form-control">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50" selected>50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="filter-actions">
+                            <button type="submit" class="btn btn-primary btn-block">جستجو</button>
+                            <button type="button" id="reset-filter" class="btn btn-secondary btn-block">بازنشانی</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div id="search-results">
+                <div class="text-center p-4">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را انتخاب کرده و روی دکمه جستجو کلیک کنید.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel">خروجی داده‌ها</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="export-form">
+                    <div class="form-group">
+                        <label for="export-type">نوع خروجی:</label>
+                        <select id="export-type" class="form-control">
+                            <option value="CSV">CSV</option>
+                            <option value="Excel">Excel</option>
+                            <option value="JSON">JSON</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="export-count">تعداد رکوردها:</label>
+                        <select id="export-count" class="form-control">
+                            <option value="100">100</option>
+                            <option value="500">500</option>
+                            <option value="1000">1000</option>
+                            <option value="5000">5000</option>
+                            <option value="all">همه</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
+                <button type="button" id="export-btn" class="btn btn-primary">دریافت خروجی</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('reset-filter').addEventListener('click', function() {
+            document.getElementById('filter-form').reset();
+        });
+
+        document.getElementById('export-btn').addEventListener('click', function() {
+            const exportType = document.getElementById('export-type').value;
+            const exportCount = document.getElementById('export-count').value;
+
+            // دریافت فیلترهای فعلی از فرم
+            const formData = new FormData(document.getElementById('filter-form'));
+            const filterParams = new URLSearchParams();
+
+            for (const pair of formData.entries()) {
+                if (pair[1]) {
+                    filterParams.append(pair[0], pair[1]);
+                }
+            }
+
+            // افزودن پارامترهای خروجی
+            filterParams.append('exportType', exportType);
+            filterParams.append('exportCount', exportCount);
+
+            // ارسال درخواست خروجی
+            window.location.href = '/Export/RequestExport?' + filterParams.toString();
+
+            // بستن مودال
+            $('#exportModal').modal('hide');
+        });
+
+        document.getElementById('filter-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const filterParams = new URLSearchParams();
+
+            for (const pair of formData.entries()) {
+                if (pair[1]) {
+                    filterParams.append(pair[0], pair[1]);
+                }
+            }
+
+            // نمایش لودینگ
+            document.getElementById('search-results').innerHTML = `
+                <div class="text-center p-4">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">در حال بارگذاری...</span>
+                    </div>
+                    <p class="mt-2">در حال جستجو...</p>
+                </div>
+            `;
+
+            // ارسال درخواست AJAX
+            fetch('/Call/Search?' + filterParams.toString(), {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                // جایگزینی محتوای نتایج جستجو
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const resultsContainer = doc.getElementById('search-results');
+
+                if (resultsContainer) {
+                    document.getElementById('search-results').innerHTML = resultsContainer.innerHTML;
+                } else {
+                    document.getElementById('search-results').innerHTML = `
+                        <div class="alert alert-danger">
+                            خطا در دریافت نتایج جستجو
+                        </div>
+                    `;
+                }
+
+                // اضافه کردن دکمه خروجی اگر نتایج وجود داشته باشد
+                if (doc.querySelector('.table tbody tr')) {
+                    const exportButton = document.createElement('button');
+                    exportButton.className = 'btn btn-success mt-3';
+                    exportButton.innerHTML = '<i class="fas fa-download"></i> خروجی داده‌ها';
+                    exportButton.setAttribute('data-toggle', 'modal');
+                    exportButton.setAttribute('data-target', '#exportModal');
+
+                    const resultsContainer = document.getElementById('search-results');
+                    resultsContainer.appendChild(exportButton);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('search-results').innerHTML = `
+                    <div class="alert alert-danger">
+                        خطا در ارتباط با سرور
+                    </div>
+                `;
+            });
+        });
+    </script>
+}

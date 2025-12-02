@@ -1,0 +1,98 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Analytics.ChartDataViewModel
+
+<div class="analytics-charts-container">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5>@Model.ChartLabel</h5>
+                    <div class="chart-controls">
+                        <button type="button" class="btn btn-sm btn-outline-secondary toggle-chart-type" data-chart-id="@ViewData["ChartId"]">
+                            <i class="fas fa-chart-line"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary download-chart" data-chart-id="@ViewData["ChartId"]">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-body">
+                    <canvas id="chart-@ViewData["ChartId"]" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const chartId = '@ViewData["ChartId"]';
+        const chartData = @Html.Raw(Json.Serialize(Model.Data));
+        const chartLabel = '@Model.ChartLabel';
+
+        // ایجاد نمودار
+        const ctx = document.getElementById('chart-' + chartId).getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.map(d => d.Label),
+                datasets: [{
+                    label: chartLabel,
+                    data: chartData.map(d => d.Value),
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // ذخیره نمودار برای استفاده در رویدادها
+        window['chart-' + chartId] = chart;
+
+        // رویداد تغییر نوع نمودار
+        document.querySelector('[data-chart-id="' + chartId + '"].toggle-chart-type').addEventListener('click', function() {
+            const currentType = chart.config.type;
+            const newType = currentType === 'bar' ? 'line' : 'bar';
+
+            chart.config.type = newType;
+
+            if (newType === 'line') {
+                chart.data.datasets[0].backgroundColor = 'rgba(54, 162, 235, 0.2)';
+                chart.data.datasets[0].borderColor = 'rgba(54, 162, 235, 1)';
+                chart.data.datasets[0].tension = 0.4;
+                chart.data.datasets[0].fill = true;
+            } else {
+                chart.data.datasets[0].backgroundColor = 'rgba(54, 162, 235, 0.2)';
+                chart.data.datasets[0].borderColor = 'rgba(54, 162, 235, 1)';
+                chart.data.datasets[0].tension = 0;
+                chart.data.datasets[0].fill = false;
+            }
+
+            chart.update();
+
+            // تغییر آیکون دکمه
+            this.querySelector('i').className = newType === 'bar' ? 'fas fa-chart-line' : 'fas fa-chart-bar';
+        });
+
+        // رویداد دانلود نمودار
+        document.querySelector('[data-chart-id="' + chartId + '"].download-chart').addEventListener('click', function() {
+            const link = document.createElement('a');
+            link.download = chartLabel + '.png';
+            link.href = chart.toBase64Image();
+            link.click();
+        });
+    })();
+</script>

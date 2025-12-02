@@ -1,0 +1,469 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Analytics.CallPatternViewModel
+
+@{
+    ViewData["Title"] = "الگوهای تماس";
+}
+
+<div class="call-patterns-container">
+    <div class="page-header">
+        <h3>الگوهای تماس</h3>
+        <div class="page-actions">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-secondary active" data-period="day">روزانه</button>
+                <button type="button" class="btn btn-outline-secondary" data-period="week">هفتگی</button>
+                <button type="button" class="btn btn-outline-secondary" data-period="month">ماهانه</button>
+            </div>
+
+            <button id="refresh-patterns" class="btn btn-outline-primary">
+                <i class="fas fa-sync-alt"></i> به‌روزرسانی
+            </button>
+        </div>
+    </div>
+
+    <!--  بخش اول: نمودارهای روزانه + هفتگی  -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header"><h5>الگوهای تماس بر اساس زمان</h5></div>
+                <div class="card-body">
+                    <div class="row">
+
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <h6>حجم تماس‌ها در طول روز</h6>
+                                <canvas id="hourly-call-volume" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <h6>حجم تماس‌ها در طول هفته</h6>
+                                <canvas id="weekly-call-volume" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش دوم: نمودارهای روز ماه + ماه‌ها -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><h5>الگوهای تماس بر اساس روز ماه</h5></div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="daily-call-volume" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><h5>الگوهای تماس بر اساس ماه</h5></div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="monthly-call-volume" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--  بخش سوم: تحلیل الگوهای تماس -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header"><h5>تحلیل الگوهای خاص</h5></div>
+                <div class="card-body">
+
+                    <div class="pattern-analysis">
+                        <div class="row">
+
+                            <div class="col-md-3">
+                                <div class="pattern-card">
+                                    <div class="pattern-icon"><i class="fas fa-sun"></i></div>
+                                    <div class="pattern-content">
+                                        <h6>اوج تماس‌ها</h6>
+                                        <p id="peak-hour" class="pattern-value">---</p>
+                                        <small class="text-muted">ساعت اوج تماس</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="pattern-card">
+                                    <div class="pattern-icon"><i class="fas fa-moon"></i></div>
+                                    <div class="pattern-content">
+                                        <h6>کمترین تماس‌ها</h6>
+                                        <p id="low-hour" class="pattern-value">---</p>
+                                        <small class="text-muted">ساعت کمترین تماس</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="pattern-card">
+                                    <div class="pattern-icon"><i class="fas fa-calendar-day"></i></div>
+                                    <div class="pattern-content">
+                                        <h6>پرتماس‌ترین روز</h6>
+                                        <p id="peak-day" class="pattern-value">---</p>
+                                        <small class="text-muted">روز هفته پرتماس</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="pattern-card">
+                                    <div class="pattern-icon"><i class="fas fa-chart-line"></i></div>
+                                    <div class="pattern-content">
+                                        <h6>روند رشد</h6>
+                                        <p id="growth-trend" class="pattern-value">---</p>
+                                        <small class="text-muted">روند ماهانه</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش چهارم: پیش‌بینی تماس‌ها -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header"><h5>پیش‌بینی تماس‌ها</h5></div>
+                <div class="card-body">
+
+                    <div class="prediction-controls">
+                        <div class="form-group">
+                            <label for="prediction-period">دوره پیش‌بینی:</label>
+                            <select id="prediction-period" class="form-control">
+                                <option value="7">7 روز آینده</option>
+                                <option value="14">14 روز آینده</option>
+                                <option value="30">30 روز آینده</option>
+                            </select>
+                        </div>
+
+                        <button id="generate-prediction" class="btn btn-primary">
+                            <i class="fas fa-magic"></i> تولید پیش‌بینی
+                        </button>
+                    </div>
+
+                    <div class="chart-container mt-3">
+                        <canvas id="call-prediction" width="400" height="200"></canvas>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script src="~/lib/chartjs/dist/chart.min.js"></script>
+
+    <script>
+
+        let hourlyChart, weeklyChart, dailyChart, monthlyChart, predictionChart;
+        let currentPeriod = "day";
+
+        // =====================================================================
+        // مقداردهی اولیه نمودارها
+        // =====================================================================
+        function initializeCharts() {
+
+            // -----------------  نمودار ساعتی  -----------------
+            const hourlyCtx = document.getElementById("hourly-call-volume").getContext("2d");
+
+            hourlyChart = new Chart(hourlyCtx, {
+                type: "line",
+                data: {
+                    labels: Array.from({ length: 24 }, (_, i) => i + ":00"),
+                    datasets: [{
+                        label: "تعداد تماس‌ها",
+                        data: @Html.Raw(Json.Serialize(
+                                                    Model.HourlyCallVolume?.Data?.Select(x => x.Value).ToList() ?? new List<double>()
+                                            )),
+                    backgroundColor: "rgba(54, 162, 235, 0.2)",
+                    borderColor: "rgba(54, 162, 235, 1)",
+                    borderWidth: 1,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+            // -----------------  نمودار هفتگی  -----------------
+            const weeklyCtx = document.getElementById("weekly-call-volume").getContext("2d");
+
+            weeklyChart = new Chart(weeklyCtx, {
+                type: "bar",
+                data: {
+                    labels: ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه"],
+                    datasets: [{
+                        label: "تعداد تماس‌ها",
+                        data: @Html.Raw(Json.Serialize(
+                                                Model.WeeklyCallVolume?.Data?.Select(x => x.Value).ToList()
+                                                ?? new List<double>()
+                                        )),
+                    backgroundColor: "rgba(255, 99, 132, 0.2)",
+                    borderColor: "rgba(255, 99, 132, 1)",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+            // -----------------  نمودار روز ماه  -----------------
+            const dailyCtx = document.getElementById("daily-call-volume").getContext("2d");
+
+            dailyChart = new Chart(dailyCtx, {
+                type: "line",
+                data: {
+                    labels: Array.from({ length: 30 }, (_, i) => i + 1),
+                    datasets: [{
+                        label: "تعداد تماس‌ها",
+                        data: @Html.Raw(Json.Serialize(
+                                                Model.DailyCallVolume?.Data?.Select(x => x.Value).ToList()
+                                                ?? new List<double>()
+                                        )),
+                    backgroundColor: "rgba(75, 192, 192, 0.2)",
+                    borderColor: "rgba(75, 192, 192, 1)",
+                    borderWidth: 1,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+            // -----------------  نمودار ماهانه  -----------------
+            const monthlyCtx = document.getElementById("monthly-call-volume").getContext("2d");
+
+            monthlyChart = new Chart(monthlyCtx, {
+                type: "bar",
+                data: {
+                    labels: ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"],
+                    datasets: [{
+                        label: "تعداد تماس‌ها",
+                        data: @Html.Raw(Json.Serialize(
+                                                Model.MonthlyCallVolume?.Data?.Select(x => x.Value).ToList()
+                                                ?? new List<double>()
+                                        )),
+                    backgroundColor: "rgba(153, 102, 255, 0.2)",
+                    borderColor: "rgba(153, 102, 255, 1)",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+            // -----------------  نمودار پیش‌بینی  -----------------
+            const predictionCtx = document.getElementById("call-prediction").getContext("2d");
+
+            predictionChart = new Chart(predictionCtx, {
+                type: "line",
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: "تماس‌های واقعی",
+                            data: [],
+                            backgroundColor: "rgba(54, 162, 235, 0.2)",
+                            borderColor: "rgba(54, 162, 235, 1)",
+                            borderWidth: 1,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: "پیش‌بینی",
+                            data: [],
+                            backgroundColor: "rgba(255, 99, 132, 0.2)",
+                            borderColor: "rgba(255, 99, 132, 1)",
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            updatePatternAnalysis();
+        }
+
+        // =====================================================================
+        // تحلیل الگوهای تماس
+        // =====================================================================
+        function updatePatternAnalysis() {
+
+            const hourlyData = hourlyChart.data.datasets[0].data;
+            const weeklyData = weeklyChart.data.datasets[0].data;
+            const monthlyData = monthlyChart.data.datasets[0].data;
+
+            // اوج تماس
+            const maxHourIndex = hourlyData.indexOf(Math.max(...hourlyData));
+            document.getElementById("peak-hour").textContent = maxHourIndex + ":00";
+
+            // کمترین تماس
+            const minHourIndex = hourlyData.indexOf(Math.min(...hourlyData));
+            document.getElementById("low-hour").textContent = minHourIndex + ":00";
+
+            // پرتماس‌ترین روز
+            const days = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه"];
+            const maxDayIndex = weeklyData.indexOf(Math.max(...weeklyData));
+            document.getElementById("peak-day").textContent = days[maxDayIndex];
+
+            // روند رشد ماهانه
+            if (monthlyData.length >= 2) {
+                const last = monthlyData[monthlyData.length - 1];
+                const prev = monthlyData[monthlyData.length - 2];
+                const growth = ((last - prev) / prev * 100).toFixed(1);
+                document.getElementById("growth-trend").textContent = growth + "%";
+            }
+        }
+
+        // =====================================================================
+        // تولید پیش‌بینی تماس‌ها
+        // =====================================================================
+        document.getElementById("generate-prediction").addEventListener("click", function () {
+
+            const period = parseInt(document.getElementById("prediction-period").value);
+
+            this.innerHTML =
+                '<span class="spinner-border spinner-border-sm"></span> در حال تولید پیش‌بینی...';
+            this.disabled = true;
+
+            fetch("/Analytics/GenerateCallPrediction", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "RequestVerificationToken":
+                        document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ period })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    predictionChart.data.labels = data.labels;
+                    predictionChart.data.datasets[0].data = data.actualData;
+                    predictionChart.data.datasets[1].data = data.predictionData;
+                    predictionChart.update();
+                })
+                .catch(() => alert("خطا در تولید پیش‌بینی"))
+                .finally(() => {
+                    this.innerHTML = '<i class="fas fa-magic"></i> تولید پیش‌بینی';
+                    this.disabled = false;
+                });
+        });
+
+        // =====================================================================
+        // تغییر دوره زمانی (روز / هفته / ماه)
+        // =====================================================================
+        document.querySelectorAll("[data-period]").forEach(btn => {
+
+            btn.addEventListener("click", function () {
+
+                document.querySelectorAll("[data-period]")
+                    .forEach(b => b.classList.remove("active"));
+
+                this.classList.add("active");
+
+                currentPeriod = this.getAttribute("data-period");
+                updateCallPatterns(currentPeriod);
+
+            });
+
+        });
+
+        // =====================================================================
+        // به‌روزرسانی الگوهای تماس (AJAX)
+        // =====================================================================
+        function updateCallPatterns(period) {
+
+            fetch("/Analytics/UpdateCallPatterns", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "RequestVerificationToken":
+                        document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ period })
+            })
+                .then(res => res.json())
+                .then(data => {
+
+                    hourlyChart.data.datasets[0].data = data.hourlyData;
+                    weeklyChart.data.datasets[0].data = data.weeklyData;
+                    dailyChart.data.datasets[0].data = data.dailyData;
+                    monthlyChart.data.datasets[0].data = data.monthlyData;
+
+                    hourlyChart.update();
+                    weeklyChart.update();
+                    dailyChart.update();
+                    monthlyChart.update();
+
+                    updatePatternAnalysis();
+                })
+                .catch(() => alert("خطا در به‌روزرسانی الگوهای تماس"));
+        }
+
+
+        // =====================================================================
+        // رویداد دکمه Refresh
+        // =====================================================================
+        document.getElementById("refresh-patterns").addEventListener("click", function () {
+
+            this.innerHTML =
+                '<span class="spinner-border spinner-border-sm"></span> در حال به‌روزرسانی...';
+            this.disabled = true;
+
+            updateCallPatterns(currentPeriod);
+
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-sync-alt"></i> به‌روزرسانی';
+                this.disabled = false;
+            }, 1000);
+        });
+
+        // =====================================================================
+        // اجرای اولیه
+        // =====================================================================
+        document.addEventListener("DOMContentLoaded", initializeCharts);
+
+    </script>
+}

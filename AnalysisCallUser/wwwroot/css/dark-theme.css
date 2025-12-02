@@ -1,0 +1,97 @@
+﻿/* ========== Dark Theme Override ========== */
+:root {
+    /* ========== Semantic Colors ========== */
+    --body-bg: #1a1d23;
+    --content-bg: #22262e;
+    --card-bg: #2c3038;
+    --header-bg: #22262e;
+    --footer-bg: #1a1d23;
+    --sidebar-bg: #22262e;
+    --border-color: #3a3f47;
+    --divider-color: #3a3f47;
+    /* ========== Text Colors ========== */
+    --text-primary: #e9ecef;
+    --text-secondary: #adb5bd;
+    --text-muted: #6c757d;
+    --text-inverse: #212529;
+    --text-link: #8ab4f8;
+    --text-link-hover: #b8d4ff;
+    /* ========== Component Specific Colors ========== */
+    --input-bg: #3a3f47;
+    --input-border: #495057;
+    --input-focus-border: #8ab4f8;
+    --input-focus-shadow: 0 0 0 0.2rem rgba(138, 180, 248, 0.25);
+    --button-disabled-bg: #495057;
+    --button-disabled-text: #adb5bd;
+    /* ========== Shadows & Effects ========== */
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+    --header-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+    --sidebar-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+}
+
+/* ========== Dark Theme Specific Styles ========== */
+body.dark-theme {
+    color-scheme: dark;
+}
+
+.dark-theme .card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.dark-theme .card-header {
+    background-color: var(--content-bg);
+    border-bottom-color: var(--border-color);
+}
+
+.dark-theme .main-header {
+    background-color: var(--header-bg);
+    border-bottom-color: var(--border-color);
+}
+
+.dark-theme .sidebar {
+    background-color: var(--sidebar-bg);
+    border-right-color: var(--border-color);
+}
+
+.dark-theme .form-control {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+}
+
+    .dark-theme .form-control:focus {
+        border-color: var(--input-focus-border);
+        box-shadow: var(--input-focus-shadow);
+    }
+
+.dark-theme .table {
+    color: var(--text-primary);
+}
+
+    .dark-theme .table thead th {
+        border-bottom-color: var(--border-color);
+    }
+
+    .dark-theme .table tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+/* Custom Scrollbar for Dark Theme */
+.dark-theme ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.dark-theme ::-webkit-scrollbar-track {
+    background: var(--body-bg);
+}
+
+.dark-theme ::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+    .dark-theme ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
+    }

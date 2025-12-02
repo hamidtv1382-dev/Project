@@ -1,0 +1,47 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Analytics.ChartDataViewModel
+
+<div class="chart-container">
+    <h4>@Model.ChartLabel</h4>
+    <canvas id="line-chart-@ViewData["ChartId"]" width="400" height="200"></canvas>
+</div>
+
+@section Scripts {
+    <script src="~/lib/chartjs/dist/chart.min.js"></script>
+    <script>
+        const ctx@(ViewData["ChartId"]) = document.getElementById('line-chart-@ViewData["ChartId"]').getContext('2d');
+        const lineChart@(ViewData["ChartId"]) = new Chart(ctx@(ViewData["ChartId"]), {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.Data.Select(d => d.Label))),
+                datasets: [{
+                    label: '@Model.ChartLabel',
+                    data: @Html.Raw(Json.Serialize(Model.Data.Select(d => d.Value))),
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            }
+        });
+    </script>
+}

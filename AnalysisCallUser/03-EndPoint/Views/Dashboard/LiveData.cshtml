@@ -1,0 +1,61 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Analytics.LiveDashboardViewModel
+
+@{
+    ViewData["Title"] = "داشبورد زنده";
+}
+
+<div class="live-dashboard-container">
+    <div class="page-header">
+        <h3>داشبورد زنده</h3>
+        <div class="page-actions">
+            <div class="connection-status" id="connection-status">
+                <span class="status-indicator connected"></span>
+                <span class="status-text">متصل</span>
+            </div>
+            <button id="pause-updates" class="btn btn-outline-warning">
+                <i class="fas fa-pause"></i> توقف به‌روزرسانی
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="active-calls-count">@Model.ActiveCallsCount</h3>
+                    <p>تماس‌های فعال</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon answered">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="answered-calls-count">0</h3>
+                    <p>تماس‌های پاسخ داده شده</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon missed">
+                    <i class="fas fa-phone-slash"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="missed-calls-count">0</h3>
+                    <p>تماس‌های پاسخ داده نشده</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon duration">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="avg-duration">0

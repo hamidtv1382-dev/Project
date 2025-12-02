@@ -1,0 +1,167 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Profile.EditProfileViewModel
+
+@{
+    ViewData["Title"] = "ویرایش پروفایل";
+}
+
+<div class="edit-profile-container">
+    <div class="page-header">
+        <h3>ویرایش پروفایل</h3>
+        <div class="page-actions">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> بازگشت به پروفایل
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card profile-card">
+                <div class="card-body text-center">
+                    <div class="avatar-upload">
+                        <img src="~/images/avatars/default-avatar.png" alt="Avatar" class="profile-avatar" id="avatar-preview" />
+                        <div class="avatar-upload-overlay">
+                            <label for="avatar-upload" class="btn btn-sm btn-primary">
+                                <i class="fas fa-camera"></i> تغییر تصویر
+                            </label>
+                            <input type="file" id="avatar-upload" class="d-none" accept="image/*" />
+                        </div>
+                    </div>
+                    <h4 class="profile-name">@Model.FirstName @Model.LastName</h4>
+                    <p class="profile-username">@ViewData["Username"]</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>ویرایش اطلاعات کاربری</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="FirstName" class="control-label"></label>
+                                    <input asp-for="FirstName" class="form-control" />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="LastName" class="control-label"></label>
+                                    <input asp-for="LastName" class="form-control" />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="PhoneNumber" class="control-label"></label>
+                            <input asp-for="PhoneNumber" class="form-control" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bio">بیوگرافی:</label>
+                            <textarea id="bio" name="Bio" class="form-control" rows="4" placeholder="خلاصه‌ای درباره خودتان بنویسید...">@ViewData["Bio"]</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>علایق:</label>
+                            <div class="interests-tags">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="interest1" value="تحلیل داده" @(ViewData["Interests"]?.ToString().Contains("تحلیل داده") == true ? "checked" : "")>
+                                    <label class="form-check-label" for="interest1">تحلیل داده</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="interest2" value="شبکه" @(ViewData["Interests"]?.ToString().Contains("شبکه") == true ? "checked" : "")>
+                                    <label class="form-check-label" for="interest2">شبکه</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="interest3" value="امنیت" @(ViewData["Interests"]?.ToString().Contains("امنیت") == true ? "checked" : "")>
+                                    <label class="form-check-label" for="interest3">امنیت</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="interest4" value="برنامه‌نویسی" @(ViewData["Interests"]?.ToString().Contains("برنامه‌نویسی") == true ? "checked" : "")>
+                                    <label class="form-check-label" for="interest4">برنامه‌نویسی</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>تنظیمات اطلاع‌رسانی:</label>
+                            <div class="notification-settings">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="email-notifications" name="EmailNotifications" value="true" @(ViewData["EmailNotifications"]?.ToString() == "True" ? "checked" : "")>
+                                    <label class="form-check-label" for="email-notifications">
+                                        دریافت اطلاعیه‌ها از طریق ایمیل
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="sms-notifications" name="SmsNotifications" value="true" @(ViewData["SmsNotifications"]?.ToString() == "True" ? "checked" : "")>
+                                    <label class="form-check-label" for="sms-notifications">
+                                        دریافت اطلاعیه‌ها از طریق پیامک
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="system-notifications" name="SystemNotifications" value="true" @(ViewData["SystemNotifications"]?.ToString() == "True" ? "checked" : "")>
+                                    <label class="form-check-label" for="system-notifications">
+                                        نمایش اطلاعیه‌های سیستمی
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> ذخیره تغییرات
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> انصراف
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // پیش‌نمایش تصویر آواتار
+        document.getElementById('avatar-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('avatar-preview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // مدیریت تگ‌های علایق
+        document.querySelectorAll('.interests-tags input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    this.parentElement.classList.add('active');
+                } else {
+                    this.parentElement.classList.remove('active');
+                }
+            });
+
+            // مقداردهی اولیه
+            if (this.checked) {
+                this.parentElement.classList.add('active');
+            }
+        });
+    </script>
+}

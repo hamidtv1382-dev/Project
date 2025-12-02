@@ -1,0 +1,377 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Dashboard.NetworkViewModel
+
+@{
+    ViewData["Title"] = "نمودار شبکه ارتباطی";
+}
+
+<div class="network-chart-container">
+    <div class="page-header">
+        <h3>نمودار شبکه ارتباطی</h3>
+        <div class="page-actions">
+            <button id="fullscreen-toggle" class="btn btn-outline-secondary">
+                <i class="fas fa-expand"></i> تمام صفحه
+            </button>
+        </div>
+    </div>
+
+    <div class="network-controls">
+        <div class="form-group">
+            <label for="phone-numbers">شماره‌های تلفن:</label>
+            <input type="text" id="phone-numbers" class="form-control" placeholder="شماره‌های تلفن را با کاما جدا کنید" />
+        </div>
+        <div class="form-group">
+            <label for="max-depth">حداکثر عمق:</label>
+            <select id="max-depth" class="form-control">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="node-size">اندازه گره‌ها:</label>
+            <select id="node-size" class="form-control">
+                <option value="small">کوچک</option>
+                <option value="medium" selected>متوسط</option>
+                <option value="large">بزرگ</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="layout">چیدمان:</label>
+            <select id="layout" class="form-control">
+                <option value="physics" selected>فیزیکی</option>
+                <option value="hierarchical">سلسله مراتبی</option>
+                <option value="circular">دایره‌ای</option>
+            </select>
+        </div>
+        <button id="update-network" class="btn btn-primary">به‌روزرسانی</button>
+        <button id="export-network" class="btn btn-success">
+            <i class="fas fa-download"></i> خروجی
+        </button>
+    </div>
+
+    <div id="network-graph" class="network-graph"></div>
+
+    <div class="network-info">
+        <div class="info-item">
+            <span class="info-label">تعداد گره‌ها:</span>
+            <span class="info-value" id="node-count">0</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">تعداد یال‌ها:</span>
+            <span class="info-value" id="edge-count">0</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">گره انتخاب شده:</span>
+            <span class="info-value" id="selected-node">-</span>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="node-details-modal" tabindex="-1" role="dialog" aria-labelledby="nodeDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="nodeDetailsModalLabel">جزئیات گره</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="node-details-content">
+                    <!-- جزئیات گره به صورت داینامیک اضافه می‌شود -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                <button type="button" id="expand-node" class="btn btn-primary">گسترش شبکه</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/vis-network/vis-network.min.js"></script>
+    <script src="~/lib/html2canvas/html2canvas.min.js"></script>
+    <script>
+        // نمودار شبکه ارتباطی
+        const container = document.getElementById('network-graph');
+        const data = {
+            nodes: new vis.DataSet(@Html.Raw(Json.Serialize(Model.Nodes))),
+            edges: new vis.DataSet(@Html.Raw(Json.Serialize(Model.Edges)))
+        };
+
+        const options = {
+            nodes: {
+                shape: 'dot',
+                size: 16,
+                font: {
+                    size: 12,
+                    color: '#333'
+                },
+                borderWidth: 2
+            },
+            edges: {
+                width: 2,
+                color: { inherit: 'from' },
+                smooth: {
+                    type: 'continuous'
+                }
+            },
+            physics: {
+                stabilization: false,
+                barnesHut: {
+                    gravitationalConstant: -2000,
+                    centralGravity: 0.3,
+                    springLength: 95,
+                    springConstant: 0.04,
+                    damping: 0.09
+                }
+            },
+            interaction: {
+                hover: true,
+                tooltipDelay: 200
+            }
+        };
+
+        const network = new vis.Network(container, data, options);
+
+        // به‌روزرسانی اطلاعات شبکه
+        function updateNetworkInfo() {
+            document.getElementById('node-count').textContent = data.nodes.length;
+            document.getElementById('edge-count').textContent = data.edges.length;
+        }
+
+        updateNetworkInfo();
+
+        // رویداد انتخاب گره
+        network.on('click', function(params) {
+            if (params.nodes.length > 0) {
+                const nodeId = params.nodes[0];
+                const node = data.nodes.get(nodeId);
+
+                document.getElementById('selected-node').textContent = node.label;
+
+                // نمایش جزئیات گره در مودال
+                document.getElementById('node-details-content').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">شناسه:</th>
+                                    <td>${node.id}</td>
+                                </tr>
+                                <tr>
+                                    <th>برچسب:</th>
+                                    <td>${node.label}</td>
+                                </tr>
+                                <tr>
+                                    <th>اندازه:</th>
+                                    <td>${node.size}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">تعداد ارتباطات:</th>
+                                    <td>${network.getConnectedNodes(nodeId).length}</td>
+                                </tr>
+                                <tr>
+                                    <th>رنگ:</th>
+                                    <td><span style="display:inline-block;width:20px;height:20px;background-color:${node.color};"></span></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+                $('#node-details-modal').modal('show');
+            } else {
+                document.getElementById('selected-node').textContent = '-';
+            }
+        });
+
+        // رویداد به‌روزرسانی شبکه
+        document.getElementById('update-network').addEventListener('click', function() {
+            const phoneNumbers = document.getElementById('phone-numbers').value.split(',').map(s => s.trim());
+            const maxDepth = parseInt(document.getElementById('max-depth').value);
+            const nodeSize = document.getElementById('node-size').value;
+            const layout = document.getElementById('layout').value;
+
+            // نمایش لودینگ
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال به‌روزرسانی...';
+            this.disabled = true;
+
+            // ارسال درخواست به سرور برای دریافت داده‌های جدید
+            fetch('/Analytics/UpdateNetworkGraph', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    phoneNumbers: phoneNumbers,
+                    maxDepth: maxDepth
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // به‌روزرسانی گزینه‌های نمودار
+                const newOptions = {
+                    nodes: {
+                        shape: 'dot',
+                        size: nodeSize === 'small' ? 10 : nodeSize === 'large' ? 25 : 16,
+                        font: {
+                            size: 12,
+                            color: '#333'
+                        },
+                        borderWidth: 2
+                    },
+                    edges: {
+                        width: 2,
+                        color: { inherit: 'from' },
+                        smooth: {
+                            type: 'continuous'
+                        }
+                    }
+                };
+
+                if (layout === 'hierarchical') {
+                    newOptions.layout = {
+                        hierarchical: {
+                            direction: 'UD',
+                            sortMethod: 'directed'
+                        }
+                    };
+                    newOptions.physics = false;
+                } else if (layout === 'circular') {
+                    newOptions.layout = {
+                        randomSeed: 2
+                    };
+                    newOptions.physics = {
+                        stabilization: {
+                            iterations: 300
+                        }
+                    };
+                } else {
+                    newOptions.physics = {
+                        stabilization: false,
+                        barnesHut: {
+                            gravitationalConstant: -2000,
+                            centralGravity: 0.3,
+                            springLength: 95,
+                            springConstant: 0.04,
+                            damping: 0.09
+                        }
+                    };
+                }
+
+                // به‌روزرسانی نمودار با داده‌های جدید
+                network.setOptions(newOptions);
+                network.setData({
+                    nodes: new vis.DataSet(data.nodes),
+                    edges: new vis.DataSet(data.edges)
+                });
+
+                // به‌روزرسانی اطلاعات شبکه
+                updateNetworkInfo();
+
+                // بازگرداندن دکمه به حالت اولیه
+                this.innerHTML = 'به‌روزرسانی';
+                this.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // بازگرداندن دکمه به حالت اولیه
+                this.innerHTML = 'به‌روزرسانی';
+                this.disabled = false;
+
+                // نمایش پیام خطا
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show';
+                alert.innerHTML = `
+                    خطا در به‌روزرسانی شبکه
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                `;
+                document.querySelector('.page-header').after(alert);
+            });
+        });
+
+        // رویداد خروجی شبکه
+        document.getElementById('export-network').addEventListener('click', function() {
+            html2canvas(document.getElementById('network-graph')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'network-chart.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        });
+
+        // رویداد تمام صفحه
+        document.getElementById('fullscreen-toggle').addEventListener('click', function() {
+            const elem = document.getElementById('network-graph');
+
+            if (!document.fullscreenElement) {
+                elem.requestFullscreen().then(() => {
+                    this.innerHTML = '<i class="fas fa-compress"></i> خروج از تمام صفحه';
+                }).catch(err => {
+                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    this.innerHTML = '<i class="fas fa-expand"></i> تمام صفحه';
+                });
+            }
+        });
+
+        // رویداد گسترش شبکه
+        document.getElementById('expand-node').addEventListener('click', function() {
+            const nodeId = document.querySelector('#node-details-content table tr td').textContent;
+
+            // ارسال درخواست به سرور برای گسترش شبکه
+            fetch('/Analytics/ExpandNetworkGraph', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    nodeId: nodeId,
+                    maxDepth: parseInt(document.getElementById('max-depth').value) + 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // به‌روزرسانی نمودار با داده‌های جدید
+                network.setData({
+                    nodes: new vis.DataSet(data.nodes),
+                    edges: new vis.DataSet(data.edges)
+                });
+
+                // به‌روزرسانی اطلاعات شبکه
+                updateNetworkInfo();
+
+                // بستن مودال
+                $('#node-details-modal').modal('hide');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+
+                // نمایش پیام خطا
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show';
+                alert.innerHTML = `
+                    خطا در گسترش شبکه
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                `;
+                document.querySelector('.modal-body').appendChild(alert);
+            });
+        });
+    </script>
+}

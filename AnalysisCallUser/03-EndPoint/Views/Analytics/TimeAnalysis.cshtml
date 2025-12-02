@@ -1,0 +1,569 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Analytics.TimeAnalysisViewModel
+
+@{
+    ViewData["Title"] = "تحلیل زمانی";
+}
+
+<div class="time-analysis-container">
+    <div class="page-header">
+        <h3>تحلیل زمانی</h3>
+        <div class="page-actions">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-secondary active" data-period="hour">ساعتی</button>
+                <button type="button" class="btn btn-outline-secondary" data-period="day">روزانه</button>
+                <button type="button" class="btn btn-outline-secondary" data-period="week">هفتگی</button>
+                <button type="button" class="btn btn-outline-secondary" data-period="month">ماهانه</button>
+            </div>
+            <button id="refresh-analysis" class="btn btn-outline-primary">
+                <i class="fas fa-sync-alt"></i> به‌روزرسانی
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>تحلیل حجم تماس‌ها در طول زمان</h5>
+                </div>
+                <div class="card-body">
+                    <div class="time-range-selector">
+                        <div class="form-group">
+                            <label for="time-range-start">از:</label>
+                            <input type="date" id="time-range-start" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label for="time-range-end">تا:</label>
+                            <input type="date" id="time-range-end" class="form-control" />
+                        </div>
+                        <button id="apply-time-range" class="btn btn-primary">اعمال</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="time-analysis-chart" width="400" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>تحلیل الگوهای زمانی</h5>
+                </div>
+                <div class="card-body">
+                    <div class="pattern-analysis">
+                        <div class="pattern-item">
+                            <div class="pattern-icon">
+                                <i class="fas fa-sun"></i>
+                            </div>
+                            <div class="pattern-content">
+                                <h6>اوج زمانی</h6>
+                                <p class="pattern-value" id="peak-time">---</p>
+                                <small class="text-muted">پرتماس‌ترین زمان</small>
+                            </div>
+                        </div>
+                        <div class="pattern-item">
+                            <div class="pattern-icon">
+                                <i class="fas fa-moon"></i>
+                            </div>
+                            <div class="pattern-content">
+                                <h6>کمترین زمان</h6>
+                                <p class="pattern-value" id="low-time">---</p>
+                                <small class="text-muted">کم‌تماس‌ترین زمان</small>
+                            </div>
+                        </div>
+                        <div class="pattern-item">
+                            <div class="pattern-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="pattern-content">
+                                <h6>روند رشد</h6>
+                                <p class="pattern-value" id="growth-trend">---</p>
+                                <small class="text-muted">روند کلی</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>تحلیل فصلی</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="seasonal-analysis-chart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>پیش‌بینی تماس‌ها</h5>
+                </div>
+                <div class="card-body">
+                    <div class="prediction-controls">
+                        <div class="form-group">
+                            <label for="prediction-period">دوره پیش‌بینی:</label>
+                            <select id="prediction-period" class="form-control">
+                                <option value="7">7 روز آینده</option>
+                                <option value="14">14 روز آینده</option>
+                                <option value="30">30 روز آینده</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="prediction-model">مدل پیش‌بینی:</label>
+                            <select id="prediction-model" class="form-control">
+                                <option value="linear">خطی</option>
+                                <option value="polynomial">چندجمله‌ای</option>
+                                <option value="exponential">توانی</option>
+                                <option value="arima">ARIMA</option>
+                            </select>
+                        </div>
+                        <button id="generate-prediction" class="btn btn-primary">
+                            <i class="fas fa-magic"></i> تولید پیش‌بینی
+                        </button>
+                    </div>
+                    <div class="chart-container mt-3">
+                        <canvas id="prediction-chart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>تحلیل همبستگی زمانی</h5>
+                </div>
+                <div class="card-body">
+                    <div class="correlation-analysis">
+                        <div class="correlation-controls">
+                            <div class="form-group">
+                                <label for="correlation-metric">معیار همبستگی:</label>
+                                <select id="correlation-metric" class="form-control">
+                                    <option value="pearson">پیرسون</option>
+                                    <option value="spearman">اسپیرمن</option>
+                                    <option value="kendall">کندال</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="correlation-lag">وقفه زمانی (Lag):</label>
+                                <input type="number" id="correlation-lag" class="form-control" value="1" min="0" max="30" />
+                            </div>
+                            <button id="calculate-correlation" class="btn btn-primary">
+                                <i class="fas fa-calculator"></i> محاسبه همبستگی
+                            </button>
+                        </div>
+                        <div class="correlation-result mt-3">
+                            <div class="chart-container">
+                                <canvas id="correlation-chart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/chartjs/dist/chart.min.js"></script>
+    <script>
+        let timeAnalysisChart, seasonalAnalysisChart, predictionChart, correlationChart;
+        let currentPeriod = 'hour';
+
+        // مقداردهی اولیه نمودارها
+        function initializeCharts() {
+            // استخراج داده‌ها از مدل
+            const timeLabels = @Html.Raw(Json.Serialize(Model.CallVolumeOverTime?.Data?.Select(p => p.Label).ToList() ?? new List<string>()));
+            const timeData = @Html.Raw(Json.Serialize(Model.CallVolumeOverTime?.Data?.Select(p => p.Value).ToList() ?? new List<double>()));
+            const seasonalData = @Html.Raw(Json.Serialize(Model.SeasonalData ?? new List<double> { 1200, 1500, 1100, 1300 }));
+
+            // نمودار تحلیل زمانی
+            const timeAnalysisCtx = document.getElementById('time-analysis-chart').getContext('2d');
+            timeAnalysisChart = new Chart(timeAnalysisCtx, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [{
+                        label: 'تعداد تماس‌ها',
+                        data: timeData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // نمودار تحلیل فصلی
+            const seasonalAnalysisCtx = document.getElementById('seasonal-analysis-chart').getContext('2d');
+            seasonalAnalysisChart = new Chart(seasonalAnalysisCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['بهار', 'تابستان', 'پاییز', 'زمستان'],
+                    datasets: [{
+                        label: 'میانگین تماس‌ها',
+                        data: seasonalData,
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(255, 159, 64, 0.2)',
+                            'rgba(54, 162, 235, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(54, 162, 235, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // نمودار پیش‌بینی
+            const predictionCtx = document.getElementById('prediction-chart').getContext('2d');
+            predictionChart = new Chart(predictionCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'داده‌های واقعی',
+                        data: [],
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'پیش‌بینی',
+                        data: [],
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        fill: false
+                    }, {
+                        label: 'بازه اطمینان',
+                        data: [],
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        borderColor: 'rgba(255, 99, 132, 0.3)',
+                        borderWidth: 1,
+                        fill: '+1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // نمودار همبستگی
+            const correlationCtx = document.getElementById('correlation-chart').getContext('2d');
+            correlationChart = new Chart(correlationCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'نقاط داده',
+                        data: [],
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'زمان (t)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'زمان (t + lag)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            updatePatternAnalysis();
+        }
+
+        // به‌روزرسانی تحلیل الگوها
+        function updatePatternAnalysis() {
+            const timeData = timeAnalysisChart.data.datasets[0].data;
+
+            if (timeData.length > 0) {
+                // پیدا کردن اوج زمانی
+                const maxValue = Math.max(...timeData);
+                const maxIndex = timeData.indexOf(maxValue);
+                const peakTime = timeAnalysisChart.data.labels[maxIndex];
+                document.getElementById('peak-time').textContent = peakTime;
+
+                // پیدا کردن کمترین زمان
+                const minValue = Math.min(...timeData);
+                const minIndex = timeData.indexOf(minValue);
+                const lowTime = timeAnalysisChart.data.labels[minIndex];
+                document.getElementById('low-time').textContent = lowTime;
+
+                // محاسبه روند رشد
+                if (timeData.length > 1) {
+                    const firstValue = timeData[0];
+                    const lastValue = timeData[timeData.length - 1];
+                    const growthRate = ((lastValue - firstValue) / firstValue * 100).toFixed(1);
+                    document.getElementById('growth-trend').textContent = growthRate + '%';
+                }
+            }
+        }
+
+        // تولید پیش‌بینی
+        document.getElementById('generate-prediction').addEventListener('click', function() {
+            const period = parseInt(document.getElementById('prediction-period').value);
+            const model = document.getElementById('prediction-model').value;
+
+            // نمایش لودینگ
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال تولید پیش‌بینی...';
+            this.disabled = true;
+
+            // ارسال درخواست به سرور
+            fetch('/Analytics/GenerateTimePrediction', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    period: period,
+                    model: model,
+                    data: timeAnalysisChart.data.datasets[0].data
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // به‌روزرسانی نمودار پیش‌بینی
+                predictionChart.data.labels = data.labels;
+                predictionChart.data.datasets[0].data = data.actualData;
+                predictionChart.data.datasets[1].data = data.predictionData;
+                predictionChart.data.datasets[2].data = data.confidenceInterval;
+                predictionChart.update();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('خطا در تولید پیش‌بینی');
+            })
+            .finally(() => {
+                // بازگرداندن دکمه به حالت اولیه
+                this.innerHTML = '<i class="fas fa-magic"></i> تولید پیش‌بینی';
+                this.disabled = false;
+            });
+        });
+
+        // محاسبه همبستگی
+        document.getElementById('calculate-correlation').addEventListener('click', function() {
+            const metric = document.getElementById('correlation-metric').value;
+            const lag = parseInt(document.getElementById('correlation-lag').value);
+
+            // نمایش لودینگ
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال محاسبه...';
+            this.disabled = true;
+
+            // ارسال درخواست به سرور
+            fetch('/Analytics/CalculateTimeCorrelation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    metric: metric,
+                    lag: lag,
+                    data: timeAnalysisChart.data.datasets[0].data
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // به‌روزرسانی نمودار همبستگی
+                correlationChart.data.datasets[0].data = data.scatterData;
+                correlationChart.update();
+
+                // نمایش مقدار همبستگی
+                const correlationValue = data.correlationValue.toFixed(3);
+                const correlationText = `ضریب همبستگی: ${correlationValue}`;
+
+                // افزودن متن به نمودار
+                correlationChart.options.plugins = {
+                    title: {
+                        display: true,
+                        text: correlationText
+                    }
+                };
+                correlationChart.update();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('خطا در محاسبه همبستگی');
+            })
+            .finally(() => {
+                // بازگرداندن دکمه به حالت اولیه
+                this.innerHTML = '<i class="fas fa-calculator"></i> محاسبه همبستگی';
+                this.disabled = false;
+            });
+        });
+
+        // رویداد تغییر دوره زمانی
+        document.querySelectorAll('[data-period]').forEach(button => {
+            button.addEventListener('click', function() {
+                // حذف کلاس active از همه دکمه‌ها
+                document.querySelectorAll('[data-period]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+
+                // افزودن کلاس active به دکمه فعلی
+                this.classList.add('active');
+
+                // به‌روزرسانی دوره زمانی
+                currentPeriod = this.getAttribute('data-period');
+
+                // ارسال درخواست به سرور برای دریافت داده‌های جدید
+                updateTimeAnalysis(currentPeriod);
+            });
+        });
+
+        // به‌روزرسانی تحلیل زمانی
+        function updateTimeAnalysis(period) {
+            fetch('/Analytics/UpdateTimeAnalysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ period: period })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // به‌روزرسانی نمودار با داده‌های جدید
+                timeAnalysisChart.data.labels = data.labels;
+                timeAnalysisChart.data.datasets[0].data = data.data;
+                timeAnalysisChart.update();
+
+                updatePatternAnalysis();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('خطا در به‌روزرسانی تحلیل زمانی');
+            });
+        }
+
+        // رویداد اعمال بازه زمانی
+        document.getElementById('apply-time-range').addEventListener('click', function() {
+            const startDate = document.getElementById('time-range-start').value;
+            const endDate = document.getElementById('time-range-end').value;
+
+            if (!startDate || !endDate) {
+                alert('لطفاً بازه زمانی را انتخاب کنید');
+                return;
+            }
+
+            // ارسال درخواست به سرور
+            fetch('/Analytics/ApplyTimeRange', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    startDate: startDate,
+                    endDate: endDate,
+                    period: currentPeriod
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // به‌روزرسانی نمودار با داده‌های جدید
+                timeAnalysisChart.data.labels = data.labels;
+                timeAnalysisChart.data.datasets[0].data = data.data;
+                timeAnalysisChart.update();
+
+                updatePatternAnalysis();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('خطا در اعمال بازه زمانی');
+            });
+        });
+
+        // رویداد به‌روزرسانی تحلیل
+        document.getElementById('refresh-analysis').addEventListener('click', function() {
+            // نمایش لودینگ
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال به‌روزرسانی...';
+            this.disabled = true;
+
+            // به‌روزرسانی تحلیل زمانی
+            updateTimeAnalysis(currentPeriod);
+
+            setTimeout(() => {
+                // بازگرداندن دکمه به حالت اولیه
+                this.innerHTML = '<i class="fas fa-sync-alt"></i> به‌روزرسانی';
+                this.disabled = false;
+            }, 1000);
+        });
+
+        // مقداردهی اولیه
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+        });
+    </script>
+}

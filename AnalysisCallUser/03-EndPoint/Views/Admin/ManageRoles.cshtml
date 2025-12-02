@@ -1,0 +1,439 @@
+﻿@using AnalysisCallUser._03_EndPoint.Models.ViewModels.Admin
+@model RoleManagementViewModel
+
+@{
+    ViewData["Title"] = "مدیریت نقش‌ها";
+}
+
+<div class="manage-roles-container">
+    <div class="page-header">
+        <h3>مدیریت نقش‌ها</h3>
+        <div class="page-actions">
+            <a asp-action="Users" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> بازگشت به لیست کاربران
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>نقش‌های موجود</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>نقش</th>
+                                    <th>تعداد کاربران</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Roles != null)
+                                {
+                                    @foreach (var role in Model.Roles)
+                                    {
+                                        <tr>
+                                            <td>@role.Name</td>
+                                            <td>
+                                                @{
+                                                    // این بخش بدون تغییر باقی می‌ماند
+                                                    var userCount = Model.UsersWithRoles?.Count(u => u.Roles.Contains(role.Name)) ?? 0;
+                                                }
+                                                @userCount
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <button type="button" class="btn btn-sm btn-outline-info view-role" data-role="@role.Name">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    @if (role.Name != "SuperAdmin" || User.IsInRole("SuperAdmin"))
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-danger delete-role" data-role="@role.Name">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>ایجاد نقش جدید</h5>
+                </div>
+                <div class="card-body">
+                    <form id="create-role-form">
+                        <div class="form-group">
+                            <label for="role-name">نام نقش:</label>
+                            <input type="text" id="role-name" class="form-control" placeholder="نام نقش را وارد کنید" />
+                        </div>
+                        <div class="form-group">
+                            <label for="role-description">توضیحات:</label>
+                            <textarea id="role-description" class="form-control" rows="3" placeholder="توضیحات نقش را وارد کنید"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" id="create-role" class="btn btn-primary btn-block">
+                                <i class="fas fa-plus"></i> ایجاد نقش جدید
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>تخصیص نقش به کاربران</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label for="user-select">انتخاب کاربر:</label>
+                                <select id="user-select" class="form-control">
+                                    <option value="">کاربر را انتخاب کنید</option>
+                                    @if (Model.UsersWithRoles != null)
+                                    {
+                                        @foreach (var userWithRole in Model.UsersWithRoles)
+                                        {
+                                            <option value="@userWithRole.Id">@userWithRole.UserName (@userWithRole.FirstName @userWithRole.LastName)</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label for="role-select">انتخاب نقش:</label>
+                                <select id="role-select" class="form-control">
+                                    <option value="">نقش را انتخاب کنید</option>
+                                    @if (Model.Roles != null)
+                                    {
+                                        @foreach (var role in Model.Roles)
+                                        {
+                                            <option value="@role.Name">@role.Name</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button type="button" id="assign-role" class="btn btn-success btn-block">
+                                    <i class="fas fa-user-tag"></i> تخصیص
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive mt-4">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>کاربر</th>
+                                    <th>نقش‌ها</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-roles-tbody">
+                                @if (Model.UsersWithRoles != null)
+                                {
+                                    @foreach (var userWithRole in Model.UsersWithRoles)
+                                    {
+                                        <tr>
+                                            <td>@userWithRole.UserName (@userWithRole.FirstName @userWithRole.LastName)</td>
+                                            <td>
+                                                @if (userWithRole.Roles != null && userWithRole.Roles.Any())
+                                                {
+                                                    @foreach (var role in userWithRole.Roles)
+                                                    {
+                                                        <span class="badge bg-info mr-1">@role</span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">بدون نقش</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-warning manage-user-roles" data-user-id="@userWithRole.Id" data-username="@userWithRole.UserName">
+                                                    <i class="fas fa-user-cog"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="deleteRoleModal" tabindex="-1" role="dialog" aria-labelledby="deleteRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteRoleModalLabel">حذف نقش</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>آیا از حذف نقش <strong id="delete-role-name"></strong> اطمینان دارید؟</p>
+                <p class="text-danger">این عملیات غیرقابل بازگشت است و تمام کاربران این نقش را از دست خواهند داد.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
+                <button type="button" id="confirm-delete-role" class="btn btn-danger">حذف</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="manageUserRolesModal" tabindex="-1" role="dialog" aria-labelledby="manageUserRolesModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manageUserRolesModalLabel">مدیریت نقش‌های کاربر</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="manage-user-id" />
+                <p>مدیریت نقش‌های کاربر: <strong id="manage-username"></strong></p>
+                <div id="user-roles-checkboxes">
+                    <!-- چکباکس‌ها به صورت داینامیک اضافه می‌شوند -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
+                <button type="button" id="save-user-roles" class="btn btn-primary">ذخیره</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let roleToDelete;
+        let userIdToManage;
+
+        // رویداد ایجاد نقش جدید
+        document.getElementById('create-role').addEventListener('click', function() {
+            const roleName = document.getElementById('role-name').value;
+            const roleDescription = document.getElementById('role-description').value;
+
+            if (!roleName) {
+                alert('نام نقش را وارد کنید');
+                return;
+            }
+
+            fetch('/Admin/CreateRole', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    name: roleName,
+                    description: roleDescription
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    throw new Error('خطا در ایجاد نقش');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('خطا در ایجاد نقش');
+            });
+        });
+
+        // رویداد مشاهده نقش
+        document.querySelectorAll('.view-role').forEach(button => {
+            button.addEventListener('click', function() {
+                const roleName = this.getAttribute('data-role');
+                window.location.href = '/Admin/RoleDetails/' + roleName;
+            });
+        });
+
+        // رویداد حذف نقش
+        document.querySelectorAll('.delete-role').forEach(button => {
+            button.addEventListener('click', function() {
+                roleToDelete = this.getAttribute('data-role');
+                document.getElementById('delete-role-name').textContent = roleToDelete;
+                $('#deleteRoleModal').modal('show');
+            });
+        });
+
+        // رویداد تایید حذف نقش
+        document.getElementById('confirm-delete-role').addEventListener('click', function() {
+            fetch('/Admin/DeleteRole', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ name: roleToDelete })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    throw new Error('خطا در حذف نقش');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('خطا در حذف نقش');
+                $('#deleteRoleModal').modal('hide');
+            });
+        });
+
+        // رویداد تخصیص نقش به کاربر
+        document.getElementById('assign-role').addEventListener('click', function() {
+            const userId = document.getElementById('user-select').value;
+            const roleName = document.getElementById('role-select').value;
+
+            if (!userId || !roleName) {
+                alert('کاربر و نقش را انتخاب کنید');
+                return;
+            }
+
+            fetch('/Admin/AssignRole', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    roleName: roleName
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    throw new Error('خطا در تخصیص نقش');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('خطا در تخصیص نقش');
+            });
+        });
+
+        // رویداد مدیریت نقش‌های کاربر
+        document.querySelectorAll('.manage-user-roles').forEach(button => {
+            button.addEventListener('click', function() {
+                userIdToManage = this.getAttribute('data-user-id');
+                const username = this.getAttribute('data-username');
+
+                document.getElementById('manage-user-id').value = userIdToManage;
+                document.getElementById('manage-username').textContent = username;
+
+                fetch('/Admin/GetUserRoles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ userId: userIdToManage })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const checkboxesContainer = document.getElementById('user-roles-checkboxes');
+                    checkboxesContainer.innerHTML = '';
+
+                    data.roles.forEach(role => {
+                        const div = document.createElement('div');
+                        div.className = 'form-check';
+
+                        const input = document.createElement('input');
+                        input.type = 'checkbox';
+                        input.className = 'form-check-input';
+                        input.id = 'role-' + role.name;
+                        input.value = role.name;
+                        input.checked = role.assigned;
+
+                        const label = document.createElement('label');
+                        label.className = 'form-check-label';
+                        label.htmlFor = 'role-' + role.name;
+                        label.textContent = role.name;
+
+                        div.appendChild(input);
+                        div.appendChild(label);
+                        checkboxesContainer.appendChild(div);
+                    });
+
+                    $('#manageUserRolesModal').modal('show');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('خطا در دریافت نقش‌های کاربر');
+                });
+            });
+        });
+
+        // رویداد ذخیره نقش‌های کاربر
+        document.getElementById('save-user-roles').addEventListener('click', function() {
+            const checkboxes = document.querySelectorAll('#user-roles-checkboxes input[type="checkbox"]');
+            const roles = [];
+
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    roles.push(checkbox.value);
+                }
+            });
+
+            fetch('/Admin/UpdateUserRoles', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    userId: userIdToManage,
+                    roles: roles
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    throw new Error('خطا در به‌روزرسانی نقش‌های کاربر');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('خطا در به‌روزرسانی نقش‌های کاربر');
+                $('#manageUserRolesModal').modal('hide');
+            });
+        });
+    </script>
+}

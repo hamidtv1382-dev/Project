@@ -1,0 +1,256 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Profile.ProfileViewModel
+
+@{
+    ViewData["Title"] = "پروفایل";
+}
+
+<div class="profile-container">
+    <div class="page-header">
+        <h3>پروفایل کاربری</h3>
+        <div class="page-actions">
+            <a asp-action="Edit" class="btn btn-primary">
+                <i class="fas fa-edit"></i> ویرایش پروفایل
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card profile-card">
+                <div class="card-body text-center">
+                    <img src="~/images/avatars/default-avatar.png" alt="Avatar" class="profile-avatar" />
+                    <h4 class="profile-name">@Model.FirstName @Model.LastName</h4>
+                    <p class="profile-username">@Model.UserName</p>
+                    <span class="badge bg-@(Model.Role.ToString() == "SuperAdmin" ? "danger" : Model.Role.ToString() == "Admin" ? "warning" : "info")">
+                        @Model.Role.ToString()
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>اطلاعات کاربری</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="30%">نام:</th>
+                                    <td>@Model.FirstName</td>
+                                </tr>
+                                <tr>
+                                    <th>نام خانوادگی:</th>
+                                    <td>@Model.LastName</td>
+                                </tr>
+                                <tr>
+                                    <th>ایمیل:</th>
+                                    <td>@Model.Email</td>
+                                </tr>
+                                <tr>
+                                    <th>شماره تلفن:</th>
+                                    <td>@Model.PhoneNumber</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="30%">نام کاربری:</th>
+                                    <td>@Model.UserName</td>
+                                </tr>
+                                <tr>
+                                    <th>نقش:</th>
+                                    <td>
+                                        <span class="badge bg-@(Model.Role.ToString() == "SuperAdmin" ? "danger" : Model.Role.ToString() == "Admin" ? "warning" : "info")">
+                                            @Model.Role.ToString()
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>وضعیت:</th>
+                                    <td>
+                                        @if (Model.IsActive)
+                                        {
+                                            <span class="badge bg-success">فعال</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">غیرفعال</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>تاریخ عضویت:</th>
+                                    <td>@Model.CreatedAt.ToString("yyyy/MM/dd")</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <div class="profile-actions">
+                                <a asp-action="Edit" class="btn btn-primary">
+                                    <i class="fas fa-edit"></i> ویرایش اطلاعات
+                                </a>
+                                <a asp-action="ChangePassword" class="btn btn-warning">
+                                    <i class="fas fa-key"></i> تغییر رمز عبور
+                                </a>
+                                <a asp-action="LoginHistory" class="btn btn-info">
+                                    <i class="fas fa-history"></i> تاریخچه ورود
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>آمار فعالیت</h5>
+                </div>
+                <div class="card-body">
+                    <div class="activity-stats">
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4 id="total-logins">0</h4>
+                                <p>تعداد ورود</p>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4 id="total-exports">0</h4>
+                                <p>تعداد خروجی‌ها</p>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4 id="total-searches">0</h4>
+                                <p>تعداد جستجوها</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>اخیرین فعالیت‌ها</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline" id="recent-activities">
+                        <!-- فعالیت‌های اخیر به صورت داینامیک اضافه می‌شوند -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // دریافت آمار فعالیت کاربر
+        fetch('/Profile/GetUserActivityStats', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('total-logins').textContent = data.totalLogins;
+            document.getElementById('total-exports').textContent = data.totalExports;
+            document.getElementById('total-searches').textContent = data.totalSearches;
+
+            // نمایش فعالیت‌های اخیر
+            const activitiesContainer = document.getElementById('recent-activities');
+
+            if (data.recentActivities && data.recentActivities.length > 0) {
+                data.recentActivities.forEach(activity => {
+                    const activityItem = document.createElement('div');
+                    activityItem.className = 'timeline-item';
+
+                    const iconClass = getActivityIcon(activity.type);
+                    const timeAgo = getTimeAgo(activity.timestamp);
+
+                    activityItem.innerHTML = `
+                        <div class="timeline-marker">
+                            <i class="fas ${iconClass}"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <h6>${activity.title}</h6>
+                            <p>${activity.description}</p>
+                            <small class="text-muted">${timeAgo}</small>
+                        </div>
+                    `;
+
+                    activitiesContainer.appendChild(activityItem);
+                });
+            } else {
+                activitiesContainer.innerHTML = '<p class="text-muted">هیچ فعالیتی یافت نشد</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+
+        // تابع برای دریافت آیکون فعالیت
+        function getActivityIcon(activityType) {
+            switch (activityType) {
+                case 'Login':
+                    return 'fa-sign-in-alt text-success';
+                case 'Export':
+                    return 'fa-download text-primary';
+                case 'Search':
+                    return 'fa-search text-info';
+                case 'ProfileUpdate':
+                    return 'fa-user-edit text-warning';
+                case 'PasswordChange':
+                    return 'fa-key text-warning';
+                default:
+                    return 'fa-circle text-secondary';
+            }
+        }
+
+        // تابع برای محاسبه زمان گذشته
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const activityDate = new Date(timestamp);
+            const diffInSeconds = Math.floor((now - activityDate) / 1000);
+
+            if (diffInSeconds < 60) {
+                return 'همین الان';
+            } else if (diffInSeconds < 3600) {
+                const minutes = Math.floor(diffInSeconds / 60);
+                return `${minutes} دقیقه پیش`;
+            } else if (diffInSeconds < 86400) {
+                const hours = Math.floor(diffInSeconds / 3600);
+                return `${hours} ساعت پیش`;
+            } else if (diffInSeconds < 604800) {
+                const days = Math.floor(diffInSeconds / 86400);
+                return `${days} روز پیش`;
+            } else {
+                return activityDate.toLocaleDateString('fa-IR');
+            }
+        }
+    </script>
+}

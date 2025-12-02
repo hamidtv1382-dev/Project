@@ -1,0 +1,118 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Dashboard.AnalyticsViewModel
+
+<div class="analytics-charts-container">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h4>حجم تماس‌ها در طول زمان</h4>
+                <canvas id="call-volume-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h4>تماس‌ها بر اساس کشور</h4>
+                <canvas id="country-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="chart-container">
+                <h4>شبکه ارتباطی</h4>
+                <div id="network-graph" style="height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/chartjs/dist/chart.min.js"></script>
+    <script src="~/lib/vis-network/vis-network.min.js"></script>
+    <script>
+        // نمودار حجم تماس‌ها در طول زمان
+        const callVolumeCtx = document.getElementById('call-volume-chart').getContext('2d');
+        const callVolumeChart = new Chart(callVolumeCtx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.CallVolumeChart.Data.Select(d => d.Label))),
+                datasets: [{
+                    label: 'تعداد تماس‌ها',
+                    data: @Html.Raw(Json.Serialize(Model.CallVolumeChart.Data.Select(d => d.Value))),
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // نمودار تماس‌ها بر اساس کشور
+        const countryCtx = document.getElementById('country-chart').getContext('2d');
+        const countryChart = new Chart(countryCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.CountryChart.Data.Select(d => d.Label))),
+                datasets: [{
+                    label: 'تعداد تماس‌ها',
+                    data: @Html.Raw(Json.Serialize(Model.CountryChart.Data.Select(d => d.Value))),
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // نمودار شبکه ارتباطی
+        const container = document.getElementById('network-graph');
+        const data = {
+            nodes: new vis.DataSet(@Html.Raw(Json.Serialize(Model.NetworkGraph.Nodes))),
+            edges: new vis.DataSet(@Html.Raw(Json.Serialize(Model.NetworkGraph.Edges)))
+        };
+        const options = {
+            nodes: {
+                shape: 'dot',
+                size: 16,
+                font: {
+                    size: 12,
+                    color: '#333'
+                },
+                borderWidth: 2
+            },
+            edges: {
+                width: 2,
+                color: { inherit: 'from' },
+                smooth: {
+                    type: 'continuous'
+                }
+            },
+            physics: {
+                stabilization: false,
+                barnesHut: {
+                    gravitationalConstant: -2000,
+                    centralGravity: 0.3,
+                    springLength: 95,
+                    springConstant: 0.04,
+                    damping: 0.09
+                }
+            }
+        };
+        new vis.Network(container, data, options);
+    </script>
+}

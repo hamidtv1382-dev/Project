@@ -1,0 +1,210 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Export.ExportRequestViewModel
+
+<div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel">خروجی داده‌ها</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="export-form">
+                    <div class="form-group">
+                        <label for="export-type">نوع خروجی:</label>
+                        <select id="export-type" class="form-control">
+                            <option value="CSV">CSV</option>
+                            <option value="Excel">Excel</option>
+                            <option value="JSON">JSON</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="export-count">تعداد رکوردها:</label>
+                        <select id="export-count" class="form-control">
+                            <option value="100">100 رکورد آخر</option>
+                            <option value="500">500 رکورد آخر</option>
+                            <option value="1000">1000 رکورد آخر</option>
+                            <option value="5000">5000 رکورد آخر</option>
+                            <option value="all">همه رکوردها</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="export-columns">ستون‌ها:</label>
+                        <div class="export-columns-container">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-detailid" value="DetailID" checked>
+                                <label class="form-check-label" for="col-detailid">شناسه تماس</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-anumber" value="ANumber" checked>
+                                <label class="form-check-label" for="col-anumber">شماره مبدأ</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-bnumber" value="BNumber" checked>
+                                <label class="form-check-label" for="col-bnumber">شماره مقصد</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-date" value="AccountingTime_Date" checked>
+                                <label class="form-check-label" for="col-date">تاریخ</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-time" value="AccountingTime_Time" checked>
+                                <label class="form-check-label" for="col-time">زمان</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-length" value="Length" checked>
+                                <label class="form-check-label" for="col-length">مدت تماس</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-origincountry" value="OriginCountryName" checked>
+                                <label class="form-check-label" for="col-origincountry">کشور مبدأ</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-destcountry" value="DestCountryName" checked>
+                                <label class="form-check-label" for="col-destcountry">کشور مقصد</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-answer" value="Answer" checked>
+                                <label class="form-check-label" for="col-answer">وضعیت پاسخ</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="export-filename">نام فایل:</label>
+                        <input type="text" id="export-filename" class="form-control" placeholder="نام فایل را وارد کنید" />
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="include-headers" checked>
+                            <label class="form-check-label" for="include-headers">شامل سرتیترها</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
+                <button type="button" id="export-btn" class="btn btn-primary">
+                    <i class="fas fa-download"></i> دریافت خروجی
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // رویداد دریافت خروجی
+    document.getElementById('export-btn').addEventListener('click', function() {
+        const exportType = document.getElementById('export-type').value;
+        const exportCount = document.getElementById('export-count').value;
+        const exportFilename = document.getElementById('export-filename').value || 'call_export';
+        const includeHeaders = document.getElementById('include-headers').checked;
+
+        // دریافت ستون‌های انتخاب شده
+        const selectedColumns = [];
+        document.querySelectorAll('.export-columns-container input[type="checkbox"]:checked').forEach(checkbox => {
+            selectedColumns.push(checkbox.value);
+        });
+
+        // دریافت فیلترهای فعلی از صفحه جستجو
+        const filterData = getCurrentFilters();
+
+        // نمایش لودینگ
+        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال آماده‌سازی...';
+        this.disabled = true;
+
+        // ارسال درخواست به سرور
+        fetch('/Export/RequestExport', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify({
+                exportType: exportType,
+                exportCount: exportCount,
+                exportFilename: exportFilename,
+                includeHeaders: includeHeaders,
+                selectedColumns: selectedColumns,
+                filter: filterData
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                // شروع دانلود فایل
+                return response.blob();
+            } else {
+                throw new Error('خطا در آماده‌سازی خروجی');
+            }
+        })
+        .then(blob => {
+            // ایجاد لینک دانلود
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${exportFilename}.${exportType.toLowerCase()}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            // بستن مودال
+            $('#exportModal').modal('hide');
+
+            // نمایش پیام موفقیت
+            showNotification('خروجی با موفقیت آماده و دانلود شد', 'success');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('خطا در آماده‌سازی خروجی', 'danger');
+        })
+        .finally(() => {
+            // بازگرداندن دکمه به حالت اولیه
+            this.innerHTML = '<i class="fas fa-download"></i> دریافت خروجی';
+            this.disabled = false;
+        });
+    });
+
+    // تابع برای دریافت فیلترهای فعلی
+    function getCurrentFilters() {
+        // این تابع باید بر اساس ساختار صفحه شما پیاده‌سازی شود
+        // در اینجا یک نمونه پیاده‌سازی ارائه شده است
+        const filterData = {};
+
+        // دریافت فیلترهای از فرم جستجو (در صورت وجود)
+        const filterForm = document.getElementById('filter-form');
+        if (filterForm) {
+            const formData = new FormData(filterForm);
+            for (const [key, value] of formData.entries()) {
+                if (value) {
+                    filterData[key] = value;
+                }
+            }
+        }
+
+        return filterData;
+    }
+
+    // تابع برای نمایش اعلان
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show`;
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        `;
+
+        document.querySelector('.container').prepend(notification);
+
+        // حذف خودکار اعلان پس از 5 ثانیه
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
+</script>

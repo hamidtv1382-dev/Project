@@ -1,0 +1,74 @@
+﻿<div class="notification-container" id="notification-container">
+    <!-- اعلان‌ها به صورت داینامیک اضافه می‌شوند -->
+</div>
+
+<script>
+    // تابع برای نمایش اعلان
+    function showNotification(message, type = 'info', duration = 5000) {
+        const notificationContainer = document.getElementById('notification-container');
+
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+
+        const icon = getNotificationIcon(type);
+
+        notification.innerHTML = `
+            <div class="notification-icon">
+                <i class="fas ${icon}"></i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-message">${message}</div>
+            </div>
+            <div class="notification-close">
+                <button type="button" class="close-notification">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+        notificationContainer.appendChild(notification);
+
+        // انیمیشن ورود
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+
+        // رویداد بستن اعلان
+        notification.querySelector('.close-notification').addEventListener('click', function() {
+            closeNotification(notification);
+        });
+
+        // حذف خودکار اعلان پس از مدت زمان مشخص
+        setTimeout(() => {
+            closeNotification(notification);
+        }, duration);
+    }
+
+    // تابع برای بستن اعلان
+    function closeNotification(notification) {
+        notification.classList.remove('show');
+        notification.classList.add('hide');
+
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }
+
+    // تابع برای دریافت آیکون اعلان
+    function getNotificationIcon(type) {
+        switch (type) {
+            case 'success':
+                return 'fa-check-circle';
+            case 'error':
+                return 'fa-exclamation-circle';
+            case 'warning':
+                return 'fa-exclamation-triangle';
+            case 'info':
+            default:
+                return 'fa-info-circle';
+        }
+    }
+
+    // افزودن تابع به شیء window برای استفاده در جاهای دیگر
+    window.showNotification = showNotification;
+</script>

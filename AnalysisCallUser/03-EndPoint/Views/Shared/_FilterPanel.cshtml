@@ -1,0 +1,161 @@
+﻿@* _FilterPanel.cshtml *@
+<div class="filter-panel" id="filter-panel">
+    <div class="filter-header">
+        <h4>فیلترها</h4>
+        <button class="btn btn-sm btn-outline-secondary" id="toggle-filter">
+            <i class="fas fa-chevron-down"></i>
+        </button>
+    </div>
+    <div class="filter-body">
+        <form id="filter-form">
+            <!-- بازه زمانی -->
+            <div class="filter-section">
+                <h5>بازه زمانی</h5>
+                <div class="form-group">
+                    <label for="start-date">از تاریخ</label>
+                    <input type="date" id="start-date" name="StartDate" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="end-date">تا تاریخ</label>
+                    <input type="date" id="end-date" name="EndDate" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="start-time">از ساعت</label>
+                    <input type="time" id="start-time" name="StartTime" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="end-time">تا ساعت</label>
+                    <input type="time" id="end-time" name="EndTime" class="form-control" />
+                </div>
+            </div>
+
+            <!-- شماره تماس -->
+            <div class="filter-section">
+                <h5>شماره تماس</h5>
+                <div class="form-group">
+                    <label for="a-number">شماره مبدأ</label>
+                    <input type="text" id="a-number" name="ANumber" class="form-control" placeholder="شماره تماس مبدأ" />
+                </div>
+                <div class="form-group">
+                    <label for="b-number">شماره مقصد</label>
+                    <input type="text" id="b-number" name="BNumber" class="form-control" placeholder="شماره تماس مقصد" />
+                </div>
+            </div>
+
+            <!-- موقعیت جغرافیایی -->
+            <div class="filter-section">
+                <h5>موقعیت جغرافیایی</h5>
+                <div class="form-group">
+                    <label for="origin-country">کشور مبدأ</label>
+                    <select id="origin-country" name="OriginCountryID" class="form-control">
+                        <option value="">انتخاب کنید</option>
+                        @if (ViewBag.Countries != null)
+                        {
+                            foreach (var country in ViewBag.Countries)
+                            {
+                                <option value="@country.CountryID">@country.CountryName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="origin-city">شهر مبدأ</label>
+                    <select id="origin-city" name="OriginCityID" class="form-control" disabled>
+                        <option value="">انتخاب کنید</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dest-country">کشور مقصد</label>
+                    <select id="dest-country" name="DestCountryID" class="form-control">
+                        <option value="">انتخاب کنید</option>
+                        @if (ViewBag.Countries != null)
+                        {
+                            foreach (var country in ViewBag.Countries)
+                            {
+                                <option value="@country.CountryID">@country.CountryName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dest-city">شهر مقصد</label>
+                    <select id="dest-city" name="DestCityID" class="form-control" disabled>
+                        <option value="">انتخاب کنید</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- اپراتور و نوع تماس -->
+            <div class="filter-section">
+                <h5>اپراتور و نوع تماس</h5>
+                <div class="form-group">
+                    <label for="origin-operator">اپراتور مبدأ</label>
+                    <select id="origin-operator" name="OriginOperatorID" class="form-control">
+                        <option value="">انتخاب کنید</option>
+                        @if (ViewBag.Operators != null)
+                        {
+                            foreach (var op in ViewBag.Operators)
+                            {
+                                <option value="@op.OperatorID">@op.OperatorName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dest-operator">اپراتور مقصد</label>
+                    <select id="dest-operator" name="DestOperatorID" class="form-control">
+                        <option value="">انتخاب کنید</option>
+                        @if (ViewBag.Operators != null)
+                        {
+                            foreach (var op in ViewBag.Operators)
+                            {
+                                <option value="@op.OperatorID">@op.OperatorName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="call-type">نوع تماس</label>
+                    <select id="call-type" name="TypeID" class="form-control">
+                        <option value="">انتخاب کنید</option>
+                        @if (ViewBag.CallTypes != null)
+                        {
+                            foreach (var type in ViewBag.CallTypes)
+                            {
+                                <option value="@type.TypeID">@type.TypeName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="answer-status">وضعیت پاسخ</label>
+                    <select id="answer-status" name="Answer" class="form-control">
+                        <option value="">همه</option>
+                        <option value="true">پاسخ داده شده</option>
+                        <option value="false">پاسخ داده نشده</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- دکمه‌ها -->
+            <div class="filter-actions">
+                <button type="button" id="apply-filter" class="btn btn-primary">اعمال فیلتر</button>
+                <button type="button" id="reset-filter" class="btn btn-secondary">بازنشانی</button>
+                <button type="button" id="export-filtered" class="btn btn-success">
+                    <i class="fas fa-download"></i> خروجی
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- فیلترهای فعال -->
+<div class="active-filters" id="active-filters">
+    <div class="active-filters-header">
+        <h5>فیلترهای فعال</h5>
+        <button type="button" id="clear-all-filters" class="btn btn-sm btn-outline-danger">حذف همه</button>
+    </div>
+    <div class="active-filters-list" id="active-filters-list">
+        <!-- فیلترهای فعال به صورت داینامیک اضافه می‌شوند -->
+    </div>
+</div>

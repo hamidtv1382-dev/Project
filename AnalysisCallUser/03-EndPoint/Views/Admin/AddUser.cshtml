@@ -1,0 +1,139 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Admin.AddUserViewModel
+
+@{
+    ViewData["Title"] = "افزودن کاربر";
+}
+
+<div class="add-user-container">
+    <div class="page-header">
+        <h3>افزودن کاربر</h3>
+        <div class="page-actions">
+            <a asp-action="Users" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> بازگشت به لیست کاربران
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5>اطلاعات کاربر جدید</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AddUser" method="post">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+
+                        <div class="form-group">
+                            <label asp-for="Email" class="control-label"></label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Password" class="control-label"></label>
+                            <input asp-for="Password" type="password" class="form-control" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                            <div class="password-strength-meter">
+                                <div class="password-strength-meter-fill" id="password-strength-fill"></div>
+                            </div>
+                            <small class="form-text text-muted">رمز عبور باید حداقل 8 کاراکتر و شامل حروف بزرگ، کوچک و عدد باشد.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="ConfirmPassword" class="control-label"></label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="FirstName" class="control-label"></label>
+                            <input asp-for="FirstName" class="form-control" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="LastName" class="control-label"></label>
+                            <input asp-for="LastName" class="form-control" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="PhoneNumber" class="control-label"></label>
+                            <input asp-for="PhoneNumber" class="form-control" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <input type="hidden" asp-for="Role" value="User" />
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" id="send-welcome-email" name="SendWelcomeEmail" class="form-check-input" checked />
+                                <label for="send-welcome-email" class="form-check-label">ارسال ایمیل خوش‌آمدگویی</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-user-plus"></i> ایجاد کاربر جدید
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // بررسی قدرت رمز عبور
+        document.getElementById('Password').addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+
+            // بررسی طول رمز عبور
+            if (password.length >= 8) strength += 25;
+            if (password.length >= 12) strength += 25;
+
+            // بررسی وجود حروف کوچک
+            if (/[a-z]/.test(password)) strength += 12.5;
+
+            // بررسی وجود حروف بزرگ
+            if (/[A-Z]/.test(password)) strength += 12.5;
+
+            // بررسی وجود اعداد
+            if (/[0-9]/.test(password)) strength += 12.5;
+
+            // بررسی وجود کاراکترهای خاص
+            if (/[^A-Za-z0-9]/.test(password)) strength += 12.5;
+
+            // به‌روزرسانی نمایش قدرت رمز عبور
+            const strengthFill = document.getElementById('password-strength-fill');
+            strengthFill.style.width = strength + '%';
+
+            if (strength < 30) {
+                strengthFill.style.backgroundColor = '#ff4d4d'; // قرمز
+            } else if (strength < 60) {
+                strengthFill.style.backgroundColor = '#ffa64d'; // نارنجی
+            } else if (strength < 80) {
+                strengthFill.style.backgroundColor = '#ffff4d'; // زرد
+            } else {
+                strengthFill.style.backgroundColor = '#4dff4d'; // سبز
+            }
+        });
+
+        // تطابق رمز عبور و تایید آن
+        document.getElementById('ConfirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('Password').value;
+            const confirmPassword = this.value;
+
+            if (password !== confirmPassword) {
+                this.setCustomValidity('رمز عبور و تایید آن یکسان نیستند');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    </script>
+}

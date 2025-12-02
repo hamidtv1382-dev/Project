@@ -1,0 +1,64 @@
+﻿<div class="sidebar">
+    <div class="sidebar-header">
+        <h3>سیستم تحلیل تماس</h3>
+        <div class="theme-switcher">
+            <button id="theme-toggle" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </button>
+        </div>
+    </div>
+    <ul class="sidebar-nav">
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Home" ? "active" : "")"
+               asp-controller="Home" asp-action="Index">
+                <i class="fas fa-home"></i> صفحه اصلی
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Call" ? "active" : "")"
+               asp-controller="Call" asp-action="Search">
+                <i class="fas fa-search"></i> جستجوی تماس
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Dashboard" ? "active" : "")"
+               asp-controller="Dashboard" asp-action="Analytics">
+                <i class="fas fa-chart-line"></i> داشبورد تحلیلی
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Analytics" ? "active" : "")"
+               asp-controller="Analytics" asp-action="Index">
+                <i class="fas fa-chart-pie"></i> تحلیل‌ها
+            </a>
+        </li>
+        @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+        {
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Admin" ? "active" : "")"
+                   asp-controller="Admin" asp-action="Users">
+                    <i class="fas fa-users"></i> مدیریت کاربران
+                </a>
+            </li>
+        }
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Profile" ? "active" : "")"
+               asp-controller="Profile" asp-action="Index">
+                <i class="fas fa-user"></i> پروفایل
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Export" ? "active" : "")"
+               asp-controller="Export" asp-action="History">
+                <i class="fas fa-download"></i> خروجی‌ها
+            </a>
+        </li>
+    </ul>
+    <div class="sidebar-footer">
+        <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
+            <button type="submit" class="btn btn-link nav-link">
+                <i class="fas fa-sign-out-alt"></i> خروج
+            </button>
+        </form>
+    </div>
+</div>

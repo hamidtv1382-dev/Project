@@ -1,0 +1,210 @@
+﻿@using AnalysisCallUser._01_Domain.Core.Enums
+@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Dashboard.DashboardViewModel
+
+@{
+    ViewData["Title"] = "داشبورد";
+}
+
+<div class="dashboard-container">
+    <div class="page-header">
+        <h3>داشبورد</h3>
+        <div class="page-actions">
+            <button id="refresh-dashboard" class="btn btn-outline-primary">
+                <i class="fas fa-sync-alt"></i> به‌روزرسانی
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.TotalCalls.ToString("N0")</h3>
+                    <p>کل تماس‌ها</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon answered">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.AnsweredCalls.ToString("N0")</h3>
+                    <p>تماس‌های پاسخ داده شده</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon duration">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.AverageCallDuration.ToString("F1")</h3>
+                    <p>میانگین مدت تماس (ثانیه)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon rate">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@(Model.TotalCalls > 0 ? ((double)Model.AnsweredCalls / Model.TotalCalls * 100).ToString("F1") : "0")%</h3>
+                    <p>نرخ پاسخگویی</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="chart-container">
+                <h4>فعالیت اخیر</h4>
+                <canvas id="recent-activity-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-container">
+                <h4>کشورهای برتر</h4>
+                <canvas id="top-countries-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="table-container">
+                <h4>اخیرین تماس‌ها</h4>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>شماره مبدأ</th>
+                            <th>شماره مقصد</th>
+                            <th>تاریخ</th>
+                            <th>زمان</th>
+                            <th>مدت (ثانیه)</th>
+                            <th>کشور مبدأ</th>
+                            <th>کشور مقصد</th>
+                            <th>وضعیت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var call in Model.RecentCalls)
+                        {
+                            <tr>
+                                <td>@call.ANumber</td>
+                                <td>@call.BNumber</td>
+                                <td>@call.AccountingTime_Date.ToString("yyyy/MM/dd")</td>
+                                <td>@call.AccountingTime_Time.ToString(@"hh\:mm\:ss")</td>
+                                <td>@call.Length</td>
+                                <td>@call.OriginCountryName</td>
+                                <td>@call.DestCountryName</td>
+                                <td>
+                                    @if (call.Answer == CallAnswerStatus.Answered)
+                                    {
+                                        <span class="badge bg-success">پاسخ داده شده</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">پاسخ داده نشده</span>
+                                    }
+
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/chartjs/dist/chart.min.js"></script>
+    <script>
+        // نمودار فعالیت اخیر
+        const recentActivityCtx = document.getElementById('recent-activity-chart').getContext('2d');
+        const recentActivityChart = new Chart(recentActivityCtx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.RecentActivity.Select(d => d.Label))),
+                datasets: [{
+                    label: 'تعداد تماس‌ها',
+                    data: @Html.Raw(Json.Serialize(Model.RecentActivity.Select(d => d.Value))),
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            }
+        });
+
+        // نمودار کشورهای برتر
+        const topCountriesCtx = document.getElementById('top-countries-chart').getContext('2d');
+        const topCountriesChart = new Chart(topCountriesCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.TopCountries.Select(d => d.Label))),
+                datasets: [{
+                    label: 'تعداد تماس‌ها',
+                    data: @Html.Raw(Json.Serialize(Model.TopCountries.Select(d => d.Value))),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    </script>
+}

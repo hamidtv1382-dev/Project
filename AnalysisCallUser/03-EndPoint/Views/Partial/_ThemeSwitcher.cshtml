@@ -1,0 +1,42 @@
+﻿<div class="theme-switcher">
+    <div class="theme-switcher-label">
+        <i class="fas fa-moon" id="theme-icon"></i>
+        <span id="theme-text">تم تیره</span>
+    </div>
+    <div class="custom-control custom-switch">
+        <input type="checkbox" class="custom-control-input" id="theme-switch">
+        <label class="custom-control-label" for="theme-switch"></label>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const themeSwitch = document.getElementById('theme-switch');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeText = document.getElementById('theme-text');
+
+        // بارگذاری تم ذخیره شده
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            themeSwitch.checked = true;
+            themeIcon.className = 'fas fa-sun';
+            themeText.textContent = 'تم روشن';
+        }
+
+        // رویداد تغییر تم
+        themeSwitch.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-theme');
+                themeIcon.className = 'fas fa-sun';
+                themeText.textContent = 'تم روشن';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-theme');
+                themeIcon.className = 'fas fa-moon';
+                themeText.textContent = 'تم تیره';
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    })();
+</script>

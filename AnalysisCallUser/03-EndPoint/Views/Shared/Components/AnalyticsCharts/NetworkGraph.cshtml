@@ -1,0 +1,90 @@
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Dashboard.NetworkViewModel
+
+<div class="network-graph-container">
+    <div class="network-controls">
+        <div class="form-group">
+            <label for="phone-numbers">شماره‌های تلفن:</label>
+            <input type="text" id="phone-numbers" class="form-control" placeholder="شماره‌های تلفن را با کاما جدا کنید" />
+        </div>
+        <div class="form-group">
+            <label for="max-depth">حداکثر عمق:</label>
+            <select id="max-depth" class="form-control">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+        </div>
+        <button id="update-network" class="btn btn-primary">به‌روزرسانی</button>
+    </div>
+    <div id="network-graph" style="height: 500px;"></div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/vis-network/vis-network.min.js"></script>
+    <script>
+        // نمودار شبکه ارتباطی
+        const container = document.getElementById('network-graph');
+        const data = {
+            nodes: new vis.DataSet(@Html.Raw(Json.Serialize(Model.Nodes))),
+            edges: new vis.DataSet(@Html.Raw(Json.Serialize(Model.Edges)))
+        };
+        const options = {
+            nodes: {
+                shape: 'dot',
+                size: 16,
+                font: {
+                    size: 12,
+                    color: '#333'
+                },
+                borderWidth: 2
+            },
+            edges: {
+                width: 2,
+                color: { inherit: 'from' },
+                smooth: {
+                    type: 'continuous'
+                }
+            },
+            physics: {
+                stabilization: false,
+                barnesHut: {
+                    gravitationalConstant: -2000,
+                    centralGravity: 0.3,
+                    springLength: 95,
+                    springConstant: 0.04,
+                    damping: 0.09
+                }
+            }
+        };
+        const network = new vis.Network(container, data, options);
+
+        // رویداد به‌روزرسانی شبکه
+        document.getElementById('update-network').addEventListener('click', function() {
+            const phoneNumbers = document.getElementById('phone-numbers').value.split(',').map(s => s.trim());
+            const maxDepth = parseInt(document.getElementById('max-depth').value);
+
+            // ارسال درخواست به سرور برای دریافت داده‌های جدید
+            fetch('/Analytics/UpdateNetworkGraph', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    phoneNumbers: phoneNumbers,
+                    maxDepth: maxDepth
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // به‌روزرسانی نمودار با داده‌های جدید
+                network.setData({
+                    nodes: new vis.DataSet(data.nodes),
+                    edges: new vis.DataSet(data.edges)
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+}

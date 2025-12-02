@@ -1,0 +1,76 @@
+﻿<div class="live-stats-container">
+    <div class="live-stats-header">
+        <h5>آمار زنده</h5>
+        <div class="live-indicator">
+            <span class="live-dot"></span>
+            <span class="live-text">زنده</span>
+        </div>
+    </div>
+    <div class="live-stats-body">
+        <div class="stat-item">
+            <div class="stat-label">تماس‌های فعال:</div>
+            <div class="stat-value" id="live-active-calls">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">تماس‌ها در دقیقه:</div>
+            <div class="stat-value" id="live-calls-per-minute">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">نرخ پاسخگویی:</div>
+            <div class="stat-value" id="live-answer-rate">0%</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">میانگین مدت:</div>
+            <div class="stat-value" id="live-avg-duration">0s</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        let updateInterval;
+
+        // شروع به‌روزرسانی آمار زنده
+        function startLiveStatsUpdate() {
+            updateInterval = setInterval(updateLiveStats, 5000); // به‌روزرسانی هر 5 ثانیه
+        }
+
+        // توقف به‌روزرسانی آمار زنده
+        function stopLiveStatsUpdate() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        }
+
+        // به‌روزرسانی آمار زنده
+        function updateLiveStats() {
+            fetch('/Analytics/GetLiveStats', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('live-active-calls').textContent = data.activeCalls;
+                document.getElementById('live-calls-per-minute').textContent = data.callsPerMinute;
+                document.getElementById('live-answer-rate').textContent = data.answerRate + '%';
+                document.getElementById('live-avg-duration').textContent = data.avgDuration + 's';
+            })
+            .catch(error => {
+                console.error('Error updating live stats:', error);
+            });
+        }
+
+        // شروع به‌روزرسانی در بارگذاری صفحه
+        document.addEventListener('DOMContentLoaded', function() {
+            startLiveStatsUpdate();
+        });
+
+        // توقف به‌روزرسانی در خروج از صفحه
+        window.addEventListener('beforeunload', function() {
+            stopLiveStatsUpdate();
+        });
+    })();
+</script>

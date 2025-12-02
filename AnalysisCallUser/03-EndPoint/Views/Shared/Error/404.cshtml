@@ -1,0 +1,15 @@
+﻿@{
+    ViewData["Title"] = "صفحه یافت نشد";
+}
+
+<div class="error-page">
+    <div class="error-code">404</div>
+    <div class="error-message">صفحه مورد نظر یافت نشد</div>
+    <div class="error-description">
+        متأسفانه صفحه‌ای که به دنبال آن بودید در سیستم موجود نیست. ممکن است آدرس را اشتباه وارد کرده باشید یا صفحه حذف شده باشد.
+    </div>
+    <div class="error-actions">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">بازگشت به صفحه اصلی</a>
+        <button onclick="history.back()" class="btn btn-secondary">بازگشت به صفحه قبل</button>
+    </div>
+</div>

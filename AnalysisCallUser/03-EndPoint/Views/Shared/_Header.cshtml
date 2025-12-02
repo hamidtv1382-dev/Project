@@ -1,0 +1,65 @@
+﻿<header class="main-header">
+    <div class="header-container">
+        <div class="header-left">
+            <button id="sidebar-toggle" class="btn btn-link">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title">@ViewData["Title"]</h1>
+        </div>
+        <div class="header-right">
+            <div class="notifications">
+                <button class="btn btn-link position-relative" id="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge">
+                        3
+                    </span>
+                </button>
+                <div class="notification-dropdown dropdown-menu dropdown-menu-end" id="notification-dropdown">
+                    <div class="notification-header">اعلان‌ها</div>
+                    <div class="notification-item">
+                        <div class="notification-content">
+                            <strong>تحلیل جدید آماده است</strong>
+                            <p>تحلیل تماس‌های روز گذشته آماده مشاهده است.</p>
+                            <small class="text-muted">10 دقیقه پیش</small>
+                        </div>
+                    </div>
+                    <div class="notification-item">
+                        <div class="notification-content">
+                            <strong>کاربر جدید ثبت‌نام کرد</strong>
+                            <p>کاربر جدیدی در سیستم ثبت‌نام کرده و نیاز به تأیید دارد.</p>
+                            <small class="text-muted">1 ساعت پیش</small>
+                        </div>
+                    </div>
+                    <div class="notification-item">
+                        <div class="notification-content">
+                            <strong>خروجی آماده است</strong>
+                            <p>خروجی درخواستی شما آماده دانلود است.</p>
+                            <small class="text-muted">3 ساعت پیش</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-info dropdown">
+                <button class="btn btn-link dropdown-toggle" type="button" id="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="~/images/avatars/default-avatar.png" alt="User" class="user-avatar" />
+                    <span class="user-name">@User.Identity.Name</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-dropdown">
+                    <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index">پروفایل</a></li>
+                    <li><a class="dropdown-item" asp-controller="Profile" asp-action="Edit">ویرایش پروفایل</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li>
+                        <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
+                            <button type="submit" class="dropdown-item">خروج</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+            <div class="theme-switcher">
+                <button id="theme-toggle" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</header>

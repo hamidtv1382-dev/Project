@@ -1,0 +1,42 @@
+﻿/* در فایل light-theme.css */
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    /* تغییر left به right */
+    right: 0; 
+    height: 100vh;
+    width: var(--sidebar-width);
+    background-color: var(--sidebar-bg);
+    box-shadow: var(--sidebar-shadow);
+    z-index: 1030;
+    transition: transform 0.3s ease-in-out;
+}
+
+    .sidebar.collapsed {
+        /* تغییر translateX برای حرکت به سمت راست */
+        transform: translateX(100%);
+    }
+
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    background-color: var(--header-bg);
+    box-shadow: var(--header-shadow);
+    z-index: 1020;
+}
+
+.content-wrapper {
+    /* تغییر margin-left به margin-right */
+    margin-right: var(--sidebar-width);
+    padding: 2rem;
+    transition: margin-right 0.3s ease-in-out;
+}
+
+    .content-wrapper.full-width {
+        /* تغییر margin-left به margin-right */
+        margin-right: 0;
+    }

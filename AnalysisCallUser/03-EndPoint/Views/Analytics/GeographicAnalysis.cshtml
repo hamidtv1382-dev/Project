@@ -1,0 +1,768 @@
+﻿@using AnalysisCallUser._03_EndPoint.Models.ViewModels.Dashboard
+@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Analytics.GeographicAnalysisViewModel
+
+@{
+    ViewData["Title"] = "تحلیل جغرافیایی";
+}
+
+<div class="geographic-analysis-container">
+    <div class="page-header">
+        <h3>تحلیل جغرافیایی</h3>
+        <div class="page-actions">
+            <button id="fullscreen-toggle" class="btn btn-outline-secondary">
+                <i class="fas fa-expand"></i> تمام صفحه
+            </button>
+            <button id="export-map" class="btn btn-success">
+                <i class="fas fa-download"></i> خروجی نقشه
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="analysis-controls">
+                <div class="control-header">
+                    <h5>فیلترهای جغرافیایی</h5>
+                </div>
+                <div class="control-body">
+                    <form id="geographic-filter-form">
+                        <div class="form-group">
+                            <label for="date-range">بازه زمانی:</label>
+                            <div class="input-group">
+                                <input type="date" id="start-date" class="form-control" />
+                                <span class="input-group-text">تا</span>
+                                <input type="date" id="end-date" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="call-type">نوع تماس:</label>
+                            <select id="call-type" class="form-control">
+                                <option value="">همه</option>
+                                @foreach (var type in ViewBag.CallTypes)
+                                {
+                                    <option value="@type.TypeID">@type.TypeName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="visualization-type">نوع نمایش:</label>
+                            <select id="visualization-type" class="form-control">
+                                <option value="heat">نقشه حرارتی</option>
+                                <option value="bubble">نقشه حبابی</option>
+                                <option value="choropleth">نقشه رنگی</option>
+                                <option value="flow">نقشه جریان</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="region-focus">تمرکز بر منطقه:</label>
+                            <select id="region-focus" class="form-control">
+                                <option value="">جهان</option>
+                                <option value="asia">آسیا</option>
+                                <option value="europe">اروپا</option>
+                                <option value="africa">آفریقا</option>
+                                <option value="americas">آمریکا</option>
+                                <option value="middle-east">خاورمیانه</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>فیلترهای اضافی:</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="show-incoming" checked>
+                                <label class="form-check-label" for="show-incoming">
+                                    نمایش تماس‌های ورودی
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="show-outgoing" checked>
+                                <label class="form-check-label" for="show-outgoing">
+                                    نمایش تماس‌های خروجی
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="animate-flows">
+                                <label class="form-check-label" for="animate-flows">
+                                    انیمیشن جریان‌ها
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="button" id="apply-filters" class="btn btn-primary btn-block">
+                                <i class="fas fa-filter"></i> اعمال فیلترها
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="region-stats">
+                <div class="stats-header">
+                    <h5>آمار مناطق</h5>
+                </div>
+                <div class="stats-body">
+                    <div class="stat-item">
+                        <div class="stat-label">کشورهای فعال:</div>
+                        <div class="stat-value" id="active-countries">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">شهرهای فعال:</div>
+                        <div class="stat-value" id="active-cities">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">پرتماس‌ترین کشور:</div>
+                        <div class="stat-value" id="top-country">---</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">پرتماس‌ترین شهر:</div>
+                        <div class="stat-value" id="top-city">---</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="top-regions">
+                <div class="top-regions-header">
+                    <h5>برترین مناطق</h5>
+                </div>
+                <div class="top-regions-body">
+                    <div id="top-countries-list">
+                        <!-- لیست برترین کشورها به صورت داینامیک اضافه می‌شود -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="map-visualization">
+                <div id="world-map" class="world-map"></div>
+                <div class="map-controls">
+                    <div class="btn-group" role="group">
+                        <button type="button" id="zoom-in" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                        <button type="button" id="zoom-out" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                        <button type="button" id="zoom-fit" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-compress"></i>
+                        </button>
+                        <button type="button" id="reset-map" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-title">تعداد تماس‌ها</div>
+                        <div class="legend-items">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #ffeda0;"></div>
+                                <span>0 - 100</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #fed976;"></div>
+                                <span>100 - 500</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #feb24c;"></div>
+                                <span>500 - 1000</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #fd8d3c;"></div>
+                                <span>1000 - 5000</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #fc4e2a;"></div>
+                                <span>5000 - 10000</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #e31a1c;"></div>
+                                <span>10000 - 50000</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #b10026;"></div>
+                                <span>50000+</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>تحلیل‌های جغرافیایی پیشرفته</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="chart-container">
+                                <h6>تماس‌ها بر اساس قاره</h6>
+                                <canvas id="continent-chart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="chart-container">
+                                <h6>تماس‌های بین‌المللی در مقابل داخلی</h6>
+                                <canvas id="domestic-intl-chart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="chart-container">
+                                <h6>مسافت‌های تماس</h6>
+                                <canvas id="distance-chart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="regionDetailsModal" tabindex="-1" role="dialog" aria-labelledby="regionDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="regionDetailsModalLabel">جزئیات منطقه</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="region-details-content">
+                    <!-- جزئیات منطقه به صورت داینامیک اضافه می‌شوند -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                <button type="button" id="analyze-region" class="btn btn-primary">تحلیل منطقه</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="~/lib/leaflet/dist/leaflet.css" />
+    <script src="~/lib/leaflet.heat/dist/leaflet-heat.js"></script>
+    <script src="~/lib/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="~/lib/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="~/lib/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <script src="~/lib/chartjs/dist/chart.min.js"></script>
+    <script src="~/lib/html2canvas/html2canvas.min.js"></script>
+    <script>
+        let map;
+        let currentLayer;
+        let flowAnimationId;
+        let continentChart, domesticIntlChart, distanceChart;
+
+        // مقداردهی اولیه نقشه
+        function initializeMap() {
+            map = L.map('world-map').setView([30, 0], 2);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // افزودن داده‌های اولیه
+            loadInitialData();
+        }
+
+        // بارگذاری داده‌های اولیه
+        function loadInitialData() {
+        const mapData = @Html.Raw(Json.Serialize(Model.MapData?.Points ?? new List<MapViewModel.MapPoint>()));
+
+            if (mapData.length > 0) {
+                showBubbleMap(mapData);
+                updateRegionStats(mapData);
+                updateTopRegions(mapData);
+            }
+
+            // مقداردهی اولیه نمودارها
+            initializeCharts();
+        }
+
+        // تابع برای تعیین رنگ بر اساس تعداد تماس‌ها
+        function getColor(callCount) {
+            return callCount > 50000 ? '#b10026' :
+                   callCount > 10000 ? '#e31a1c' :
+                   callCount > 5000 ? '#fc4e2a' :
+                   callCount > 1000 ? '#fd8d3c' :
+                   callCount > 500 ? '#feb24c' :
+                   callCount > 100 ? '#fed976' :
+                   '#ffeda0';
+        }
+
+        // تابع برای تعیین شعاع بر اساس تعداد تماس‌ها
+        function getRadius(callCount) {
+            return Math.sqrt(callCount) * 1000;
+        }
+
+        // نمایش نقشه حبابی
+        function showBubbleMap(data) {
+            // حذف لایه فعلی
+            if (currentLayer) {
+                map.removeLayer(currentLayer);
+            }
+
+            // ایجاد لایه جدید
+            currentLayer = L.layerGroup();
+
+            // افزودن نقاط به نقشه
+            data.forEach(point => {
+                L.circle([point.Lat, point.Lng], {
+                    color: getColor(point.CallCount),
+                    fillColor: getColor(point.CallCount),
+                    fillOpacity: 0.7,
+                    radius: getRadius(point.CallCount)
+                }).addTo(currentLayer)
+                .bindPopup(`<strong>${point.CountryName}</strong><br>تعداد تماس‌ها: ${point.CallCount.toLocaleString()}`)
+                .on('click', function() {
+                    showRegionDetails(point);
+                });
+            });
+
+            // افزودن لایه به نقشه
+            currentLayer.addTo(map);
+        }
+
+        // نمایش نقشه حرارتی
+        function showHeatMap(data) {
+            // حذف لایه فعلی
+            if (currentLayer) {
+                map.removeLayer(currentLayer);
+            }
+
+            // تبدیل داده‌ها به فرمت مناسب برای نقشه حرارتی
+            const heatData = data.map(point => [point.Lat, point.Lng, point.CallCount]);
+
+            // ایجاد لایه جدید
+            currentLayer = L.heatLayer(heatData, {
+                radius: 25,
+                blur: 15,
+                maxZoom: 17,
+                max: Math.max(...data.map(point => point.CallCount))
+            });
+
+            // افزودن لایه به نقشه
+            currentLayer.addTo(map);
+        }
+
+        // نمایش نقشه رنگی
+        function showChoroplethMap(data) {
+            // حذف لایه فعلی
+            if (currentLayer) {
+                map.removeLayer(currentLayer);
+            }
+
+            // ایجاد لایه جدید
+            currentLayer = L.layerGroup();
+
+            // افزودن نقاط به نقشه
+            data.forEach(point => {
+                L.circleMarker([point.Lat, point.Lng], {
+                    radius: 10,
+                    fillColor: getColor(point.CallCount),
+                    color: '#fff',
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(currentLayer)
+                .bindPopup(`<strong>${point.CountryName}</strong><br>تعداد تماس‌ها: ${point.CallCount.toLocaleString()}`)
+                .on('click', function() {
+                    showRegionDetails(point);
+                });
+            });
+
+            // افزودن لایه به نقشه
+            currentLayer.addTo(map);
+        }
+
+        // نمایش نقشه جریان
+        function showFlowMap(data) {
+            // حذف لایه فعلی
+            if (currentLayer) {
+                map.removeLayer(currentLayer);
+            }
+
+            // ایجاد لایه جدید
+            currentLayer = L.layerGroup();
+
+            // این بخش نیاز به داده‌های جریان بین مناطق دارد
+            // در اینجا یک پیاده‌سازی ساده ارائه شده است
+            data.forEach(point => {
+                L.circle([point.Lat, point.Lng], {
+                    radius: 8,
+                    fillColor: '#3498db',
+                    color: '#fff',
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(currentLayer)
+                .bindPopup(`<strong>${point.CountryName}</strong><br>تعداد تماس‌ها: ${point.CallCount.toLocaleString()}`)
+                .on('click', function() {
+                    showRegionDetails(point);
+                });
+            });
+
+            // افزودن لایه به نقشه
+            currentLayer.addTo(map);
+
+            // اگر انیمیشن فعال است
+            if (document.getElementById('animate-flows').checked) {
+                animateFlows();
+            }
+        }
+
+        // انیمیشن جریان‌ها
+        function animateFlows() {
+            // این بخش نیاز به داده‌های جریان بین مناطق دارد
+            // در اینجا یک پیاده‌سازی ساده ارائه شده است
+            if (flowAnimationId) {
+                cancelAnimationFrame(flowAnimationId);
+            }
+
+            function animate() {
+                // انیمیشن جریان‌ها
+                flowAnimationId = requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        // به‌روزرسانی آمار مناطق
+        function updateRegionStats(data) {
+            const countries = new Set(data.map(point => point.CountryName));
+            const cities = new Set(data.map(point => point.CityName));
+
+            document.getElementById('active-countries').textContent = countries.size;
+            document.getElementById('active-cities').textContent = cities.size;
+
+            // پیدا کردن پرتماس‌ترین کشور
+            const topCountry = data.reduce((max, point) => point.CallCount > max.CallCount ? point : max, data[0]);
+            document.getElementById('top-country').textContent = topCountry ? topCountry.CountryName : '---';
+
+            // پیدا کردن پرتماس‌ترین شهر
+            const topCity = data.reduce((max, point) => point.CallCount > max.CallCount ? point : max, data[0]);
+            document.getElementById('top-city').textContent = topCity ? topCity.CityName : '---';
+        }
+
+        // به‌روزرسانی برترین مناطق
+        function updateTopRegions(data) {
+            // مرتب‌سازی کشورها بر اساس تعداد تماس‌ها
+            const sortedCountries = data
+                .filter((point, index, self) =>
+                    index === self.findIndex(p => p.CountryName === point.CountryName))
+                .sort((a, b) => b.CallCount - a.CallCount)
+                .slice(0, 5);
+
+            const topCountriesList = document.getElementById('top-countries-list');
+            topCountriesList.innerHTML = '';
+
+            sortedCountries.forEach((country, index) => {
+                const item = document.createElement('div');
+                item.className = 'top-region-item';
+                item.innerHTML = `
+                    <div class="rank">${index + 1}</div>
+                    <div class="info">
+                        <div class="name">${country.CountryName}</div>
+                        <div class="count">${country.CallCount.toLocaleString()} تماس</div>
+                    </div>
+                `;
+                topCountriesList.appendChild(item);
+            });
+        }
+
+        // نمایش جزئیات منطقه
+        function showRegionDetails(region) {
+            document.getElementById('region-details-content').innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">کشور:</th>
+                                <td>${region.CountryName}</td>
+                            </tr>
+                            <tr>
+                                <th>شهر:</th>
+                                <td>${region.CityName}</td>
+                            </tr>
+                            <tr>
+                                <th>مختصات:</th>
+                                <td>${region.Lat.toFixed(4)}, ${region.Lng.toFixed(4)}</td>
+                            </tr>
+                            <tr>
+                                <th>تعداد تماس‌ها:</th>
+                                <td>${region.CallCount.toLocaleString()}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">میانگین مدت تماس:</th>
+                                <td>${region.AvgDuration ? region.AvgDuration.toFixed(1) + ' ثانیه' : '---'}</td>
+                            </tr>
+                            <tr>
+                                <th>نرخ پاسخگویی:</th>
+                                <td>${region.AnswerRate ? (region.AnswerRate * 100).toFixed(1) + '%' : '---'}</td>
+                            </tr>
+                            <tr>
+                                <th>تماس‌های ورودی:</th>
+                                <td>${region.IncomingCalls ? region.IncomingCalls.toLocaleString() : '---'}</td>
+                            </tr>
+                            <tr>
+                                <th>تماس‌های خروجی:</th>
+                                <td>${region.OutgoingCalls ? region.OutgoingCalls.toLocaleString() : '---'}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            $('#regionDetailsModal').modal('show');
+        }
+
+        // مقداردهی اولیه نمودارها
+        function initializeCharts() {
+            // نمودار تماس‌ها بر اساس قاره
+            const continentCtx = document.getElementById('continent-chart').getContext('2d');
+            continentChart = new Chart(continentCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['آسیا', 'اروپا', 'آفریقا', 'آمریکا', 'خاورمیانه', 'اقیانوسیه'],
+                    datasets: [{
+                        data: @Html.Raw(Json.Serialize(Model.ContinentData ?? new List<int> { 30, 25, 15, 20, 7, 3 })),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 159, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+
+            // نمودار تماس‌های بین‌المللی در مقابل داخلی
+            const domesticIntlCtx = document.getElementById('domestic-intl-chart').getContext('2d');
+            domesticIntlChart = new Chart(domesticIntlCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['داخلی', 'بین‌المللی'],
+                    datasets: [{
+                        label: 'تعداد تماس‌ها',
+                        data: @Html.Raw(Json.Serialize(Model.DomesticIntlData ?? new List<int> { 65, 35 })),
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 99, 132, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // نمودار مسافت‌های تماس
+            const distanceCtx = document.getElementById('distance-chart').getContext('2d');
+            distanceChart = new Chart(distanceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['0-100km', '100-500km', '500-1000km', '1000-5000km', '5000km+'],
+                    datasets: [{
+                        label: 'تعداد تماس‌ها',
+                        data: @Html.Raw(Json.Serialize(Model.DistanceData ?? new List<int> { 40, 30, 15, 10, 5 })),
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // رویداد اعمال فیلترها
+        document.getElementById('apply-filters').addEventListener('click', function() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            const callType = document.getElementById('call-type').value;
+            const visualizationType = document.getElementById('visualization-type').value;
+            const regionFocus = document.getElementById('region-focus').value;
+
+            const showIncoming = document.getElementById('show-incoming').checked;
+            const showOutgoing = document.getElementById('show-outgoing').checked;
+            const animateFlows = document.getElementById('animate-flows').checked;
+
+            // نمایش لودینگ
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال اعمال فیلترها...';
+            this.disabled = true;
+
+            // ارسال درخواست به سرور
+            fetch('/Analytics/UpdateGeographicAnalysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    startDate: startDate,
+                    endDate: endDate,
+                    callType: callType,
+                    visualizationType: visualizationType,
+                    regionFocus: regionFocus,
+                    showIncoming: showIncoming,
+                    showOutgoing: showOutgoing,
+                    animateFlows: animateFlows
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // نمایش نقشه بر اساس نوع نمایش انتخاب شده
+                switch (visualizationType) {
+                    case 'heat':
+                        showHeatMap(data);
+                        break;
+                    case 'bubble':
+                        showBubbleMap(data);
+                        break;
+                    case 'choropleth':
+                        showChoroplethMap(data);
+                        break;
+                    case 'flow':
+                        showFlowMap(data);
+                        break;
+                }
+
+                // به‌روزرسانی آمار مناطق
+                updateRegionStats(data);
+                updateTopRegions(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('خطا در اعمال فیلترها');
+            })
+            .finally(() => {
+                // بازگرداندن دکمه به حالت اولیه
+                this.innerHTML = '<i class="fas fa-filter"></i> اعمال فیلترها';
+                this.disabled = false;
+            });
+        });
+
+        // کنترل‌های نقشه
+        document.getElementById('zoom-in').addEventListener('click', function() {
+            map.zoomIn();
+        });
+
+        document.getElementById('zoom-out').addEventListener('click', function() {
+            map.zoomOut();
+        });
+
+        document.getElementById('zoom-fit').addEventListener('click', function() {
+            map.fitBounds(currentLayer.getBounds());
+        });
+
+        document.getElementById('reset-map').addEventListener('click', function() {
+            map.setView([30, 0], 2);
+        });
+
+        // خروجی نقشه
+        document.getElementById('export-map').addEventListener('click', function() {
+            html2canvas(document.getElementById('world-map')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'geographic-analysis.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        });
+
+        // تمام صفحه
+        document.getElementById('fullscreen-toggle').addEventListener('click', function() {
+            const elem = document.getElementById('world-map');
+
+            if (!document.fullscreenElement) {
+                elem.requestFullscreen().then(() => {
+                    this.innerHTML = '<i class="fas fa-compress"></i> خروج از تمام صفحه';
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 500);
+                }).catch(err => {
+                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    this.innerHTML = '<i class="fas fa-expand"></i> تمام صفحه';
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 500);
+                });
+            }
+        });
+
+        // تحلیل منطقه
+        document.getElementById('analyze-region').addEventListener('click', function() {
+            // انتقال به صفحه تحلیل منطقه
+            window.location.href = '/Analytics/RegionAnalysis';
+        });
+
+        // مقداردهی اولیه
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMap();
+        });
+    </script>
+}

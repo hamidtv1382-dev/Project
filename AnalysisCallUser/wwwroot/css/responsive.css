@@ -1,0 +1,145 @@
+﻿/* ========== Responsive Design ========== */
+
+/* Extra Small Devices (Phones, < 576px) */
+@media (max-width: 575.98px) {
+    :root {
+        --sidebar-width: 100%;
+        --font-size-base: 0.875rem;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+
+    .content-wrapper {
+        margin-left: 0;
+        padding: 1rem;
+    }
+
+    .main-header {
+        padding: 0 1rem;
+    }
+
+        .main-header .navbar-brand {
+            font-size: 1.25rem;
+        }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .table-responsive {
+        border-radius: var(--border-radius);
+    }
+
+    .notification-container {
+        left: 10px;
+        right: 10px;
+        max-width: none;
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+
+    .stat-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .login-card, .register-card {
+        margin: 1rem;
+    }
+}
+
+/* Small Devices (Landscape Phones, >= 576px) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .content-wrapper {
+        margin-left: 0;
+        padding: 1.5rem;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+}
+
+/* Medium Devices (Tablets, >= 768px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .content-wrapper {
+        margin-left: 0;
+        padding: 1.5rem;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+}
+
+/* Large Devices (Desktops, >= 992px) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .content-wrapper {
+        margin-left: var(--sidebar-width);
+        padding: 1.5rem;
+    }
+}
+
+/* Extra Large Devices (Large Desktops, >= 1200px) */
+@media (min-width: 1200px) {
+    .content-wrapper {
+        padding: 2rem;
+    }
+}
+
+/* ========== Print Styles ========== */
+@media print {
+    .sidebar,
+    .main-header,
+    .notification-container,
+    .btn,
+    .form-control {
+        display: none !important;
+    }
+
+    .content-wrapper {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+
+    body {
+        font-size: 12pt;
+        line-height: 1.4;
+        color: #000;
+        background: #fff !important;
+    }
+
+    .table {
+        font-size: 10pt;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+    }
+
+    img, table, figure {
+        page-break-inside: avoid;
+    }
+}

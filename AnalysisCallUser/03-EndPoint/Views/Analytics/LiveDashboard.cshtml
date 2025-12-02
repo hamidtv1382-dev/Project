@@ -1,0 +1,570 @@
+﻿@using AnalysisCallUser._01_Domain.Core.Enums
+@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Analytics.LiveDashboardViewModel
+
+@{
+    ViewData["Title"] = "داشبورد زنده";
+}
+
+<div class="live-dashboard-container">
+    <div class="page-header">
+        <h3>داشبورد زنده</h3>
+        <div class="page-actions">
+            <div class="connection-status" id="connection-status">
+                <span class="status-indicator connected"></span>
+                <span class="status-text">متصل</span>
+            </div>
+            <button id="pause-updates" class="btn btn-outline-warning">
+                <i class="fas fa-pause"></i> توقف به‌روزرسانی
+            </button>
+            <button id="fullscreen-dashboard" class="btn btn-outline-secondary">
+                <i class="fas fa-expand"></i> تمام صفحه
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="live-stats">
+                <div class="stats-header">
+                    <h5>آمار زنده</h5>
+                </div>
+                <div class="stats-body">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="active-calls-count">@Model.ActiveCallsCount</h3>
+                            <p>تماس‌های فعال</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon answered">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="answered-calls-count">0</h3>
+                            <p>تماس‌های پاسخ داده شده</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon missed">
+                            <i class="fas fa-phone-slash"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="missed-calls-count">0</h3>
+                            <p>تماس‌های پاسخ داده نشده</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon duration">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="avg-duration">0</h3>
+                            <p>میانگین مدت تماس (ثانیه)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="live-alerts">
+                <div class="alerts-header">
+                    <h5>هشدارهای زنده</h5>
+                </div>
+                <div class="alerts-body" id="live-alerts">
+                    <!-- هشدارها به صورت داینامیک اضافه می‌شوند -->
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="live-content">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>جریان تماس‌ها (زنده)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="live-calls-chart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>نرخ پاسخگویی (زنده)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="answer-rate-chart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>اخیرترین تماس‌ها (زنده)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>زمان</th>
+                                                <th>شماره مبدأ</th>
+                                                <th>شماره مقصد</th>
+                                                <th>کشور مبدأ</th>
+                                                <th>کشور مقصد</th>
+                                                <th>مدت</th>
+                                                <th>وضعیت</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="recent-calls-tbody">
+                                            @if (Model.RecentCalls != null)
+                                            {
+                                                @foreach (var call in Model.RecentCalls)
+                                                {
+                                                    <tr>
+                                                        <td>@call.AccountingTime_Time.ToString(@"hh\:mm\:ss")</td>
+                                                        <td>@call.ANumber</td>
+                                                        <td>@call.BNumber</td>
+                                                        <td>@call.OriginCountryName</td>
+                                                        <td>@call.DestCountryName</td>
+                                                        <td>@call.Length</td>
+                                                        <td>
+                                                            @if (call.Answer == CallAnswerStatus.Answered)
+                                                            {
+                                                                <span class="badge bg-success">پاسخ داده شده</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-danger">پاسخ داده نشده</span>
+                                                            }
+                                                        </td>
+
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>نقشه زنده تماس‌ها</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="live-map" style="height: 300px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>فعالیت اپراتورها</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="operator-activity-chart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/chartjs/dist/chart.min.js"></script>
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/lib/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="~/lib/leaflet/dist/leaflet.css" />
+    <script>
+        // اتصال به SignalR برای دریافت داده‌های زنده
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/liveDataHub")
+            .build();
+
+        let liveCallsChart, answerRateChart, operatorActivityChart, liveMap;
+        let totalAnswered = 0;
+        let totalMissed = 0;
+        let isPaused = false;
+        let callData = [];
+        let mapData = [];
+
+        // مقداردهی اولیه نمودارها
+        function initializeCharts() {
+            // نمودار جریان تماس‌ها
+            const liveCallsCtx = document.getElementById('live-calls-chart').getContext('2d');
+            liveCallsChart = new Chart(liveCallsCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'تماس‌های فعال',
+                        data: [],
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        },
+                        x: {
+                            display: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    animation: {
+                        duration: 0 // غیرفعال کردن انیمیشن برای به‌روزرسانی سریع
+                    }
+                }
+            });
+
+            // نمودار نرخ پاسخگویی
+            const answerRateCtx = document.getElementById('answer-rate-chart').getContext('2d');
+            answerRateChart = new Chart(answerRateCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['پاسخ داده شده', 'پاسخ داده نشده'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 99, 132, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    animation: {
+                        duration: 0
+                    }
+                }
+            });
+
+            // نمودار فعالیت اپراتورها
+            const operatorActivityCtx = document.getElementById('operator-activity-chart').getContext('2d');
+            operatorActivityChart = new Chart(operatorActivityCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'تعداد تماس‌ها',
+                        data: [],
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    animation: {
+                        duration: 0
+                    }
+                }
+            });
+
+            // مقداردهی اولیه نقشه
+            initializeMap();
+        }
+
+        // مقداردهی اولیه نقشه
+        function initializeMap() {
+            liveMap = L.map('live-map').setView([30, 0], 2);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(liveMap);
+        }
+
+        // رویداد دریافت داده‌های زنده از SignalR
+        connection.on("ReceiveCallUpdate", (callData) => {
+            if (isPaused) return;
+
+            // به‌روزرسانی آمار
+            document.getElementById('active-calls-count').textContent = callData.activeCalls;
+
+            if (callData.answered) {
+                totalAnswered++;
+            } else {
+                totalMissed++;
+            }
+
+            document.getElementById('answered-calls-count').textContent = totalAnswered;
+            document.getElementById('missed-calls-count').textContent = totalMissed;
+
+            // به‌روزرسانی میانگین مدت تماس
+            const avgDuration = callData.totalDuration / (totalAnswered + totalMissed);
+            document.getElementById('avg-duration').textContent = avgDuration.toFixed(1);
+
+            // به‌روزرسانی نمودار جریان تماس‌ها
+            const now = new Date();
+            const timeLabel = now.getHours().toString().padStart(2, '0') + ':' +
+                             now.getMinutes().toString().padStart(2, '0') + ':' +
+                             now.getSeconds().toString().padStart(2, '0');
+
+            liveCallsChart.data.labels.push(timeLabel);
+            liveCallsChart.data.datasets[0].data.push(callData.activeCalls);
+
+            // نگه داشتن حداکثر 20 نقطه در نمودار
+            if (liveCallsChart.data.labels.length > 20) {
+                liveCallsChart.data.labels.shift();
+                liveCallsChart.data.datasets[0].data.shift();
+            }
+
+            liveCallsChart.update('none'); // به‌روزرسانی بدون انیمیشن
+
+            // به‌روزرسانی نمودار نرخ پاسخگویی
+            answerRateChart.data.datasets[0].data = [totalAnswered, totalMissed];
+            answerRateChart.update('none'); // به‌روزرسانی بدون انیمیشن
+
+            // افزودن تماس جدید به جدول
+            const tbody = document.getElementById('recent-calls-tbody');
+            const newRow = tbody.insertRow(0);
+
+            newRow.innerHTML = `
+                <td>${callData.time}</td>
+                <td>${callData.aNumber}</td>
+                <td>${callData.bNumber}</td>
+                <td>${callData.originCountry}</td>
+                <td>${callData.destCountry}</td>
+                <td>${callData.duration}</td>
+                <td>
+                    ${callData.answered ?
+                        '<span class="badge bg-success">پاسخ داده شده</span>' :
+                        '<span class="badge bg-danger">پاسخ داده نشده</span>'}
+                </td>
+            `;
+
+            // نگه داشتن حداکثر 10 ردیف در جدول
+            while (tbody.rows.length > 10) {
+                tbody.deleteRow(tbody.rows.length - 1);
+            }
+
+            // افزودن انیمیشن به ردیف جدید
+            newRow.classList.add('highlight-new-row');
+            setTimeout(() => {
+                newRow.classList.remove('highlight-new-row');
+            }, 2000);
+
+            // به‌روزرسانی نقشه
+            updateLiveMap(callData);
+
+            // بررسی هشدارها
+            checkAlerts(callData);
+        });
+
+        // به‌روزرسانی نقشه زنده
+        function updateLiveMap(callData) {
+            if (callData.lat && callData.lng) {
+                const color = callData.answered ? 'green' : 'red';
+
+                L.circle([callData.lat, callData.lng], {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.7,
+                    radius: 50000
+                }).addTo(liveMap)
+                .bindPopup(`<strong>${callData.aNumber}</strong><br>به <strong>${callData.bNumber}</strong><br>وضعیت: ${callData.answered ? 'پاسخ داده شده' : 'پاسخ داده نشده'}`)
+                .addTo(liveMap);
+
+                // حذف مارکر پس از 10 ثانیه
+                setTimeout(() => {
+                    liveMap.eachLayer(layer => {
+                        if (layer instanceof L.Circle) {
+                            liveMap.removeLayer(layer);
+                        }
+                    });
+                }, 10000);
+            }
+        }
+
+        // بررسی هشدارها
+        function checkAlerts(callData) {
+            const alertsContainer = document.getElementById('live-alerts');
+
+            // اگر تعداد تماس‌های فعال از آستانه عبور کرد
+            if (callData.activeCalls > 100) {
+                addAlert('warning', 'تعداد تماس‌های فعال بالا', 'تعداد تماس‌های فعال از آستانه عبور کرده است: ' + callData.activeCalls);
+            }
+
+            // اگر نرخ پاسخگویی پایین بود
+            const answerRate = totalAnswered / (totalAnswered + totalMissed) * 100;
+            if (answerRate < 80 && (totalAnswered + totalMissed) > 10) {
+                addAlert('danger', 'نرخ پاسخگویی پایین', 'نرخ پاسخگویی پایین است: ' + answerRate.toFixed(1) + '%');
+            }
+        }
+
+        // افزودن هشدار
+        function addAlert(type, title, message) {
+            const alertsContainer = document.getElementById('live-alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                <strong>${title}</strong><br>
+                <small>${message}</small>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            `;
+
+            alertsContainer.insertBefore(alert, alertsContainer.firstChild);
+
+            // حذف خودکار هشدار پس از 10 ثانیه
+            setTimeout(() => {
+                alert.remove();
+            }, 10000);
+        }
+
+        // رویداد دریافت به‌روزرسانی فعالیت اپراتورها
+        connection.on("ReceiveOperatorActivity", (operatorData) => {
+            if (isPaused) return;
+
+            // به‌روزرسانی نمودار فعالیت اپراتورها
+            operatorActivityChart.data.labels = operatorData.map(op => op.name);
+            operatorActivityChart.data.datasets[0].data = operatorData.map(op => op.callCount);
+            operatorActivityChart.update('none');
+        });
+
+        // رویداد تغییر وضعیت اتصال
+        connection.onreconnecting(() => {
+            const statusIndicator = document.querySelector('.status-indicator');
+            const statusText = document.querySelector('.status-text');
+
+            statusIndicator.classList.remove('connected');
+            statusIndicator.classList.add('disconnected');
+            statusText.textContent = 'در حال اتصال مجدد...';
+        });
+
+        connection.onreconnected(() => {
+            const statusIndicator = document.querySelector('.status-indicator');
+            const statusText = document.querySelector('.status-text');
+
+            statusIndicator.classList.remove('disconnected');
+            statusIndicator.classList.add('connected');
+            statusText.textContent = 'متصل';
+        });
+
+        connection.onclose(() => {
+            const statusIndicator = document.querySelector('.status-indicator');
+            const statusText = document.querySelector('.status-text');
+
+            statusIndicator.classList.remove('connected');
+            statusIndicator.classList.add('disconnected');
+            statusText.textContent = 'قطع ارتباط';
+        });
+
+        // شروع اتصال
+        connection.start()
+            .then(() => {
+                console.log("SignalR Connected.");
+
+                // درخواست داده‌های اولیه
+                connection.invoke("GetInitialData")
+                    .then(initialData => {
+                        document.getElementById('active-calls-count').textContent = initialData.activeCalls;
+                        totalAnswered = initialData.answeredCalls;
+                        totalMissed = initialData.missedCalls;
+                        document.getElementById('answered-calls-count').textContent = totalAnswered;
+                        document.getElementById('missed-calls-count').textContent = totalMissed;
+
+                        const avgDuration = initialData.totalDuration / (totalAnswered + totalMissed);
+                        document.getElementById('avg-duration').textContent = avgDuration.toFixed(1);
+
+                        // به‌روزرسانی نمودار نرخ پاسخگویی
+                        answerRateChart.data.datasets[0].data = [totalAnswered, totalMissed];
+                        answerRateChart.update();
+                    })
+                    .catch(err => console.error(err.toString()));
+            })
+            .catch(err => console.error(err.toString()));
+
+        // رویداد توقف/ادامه به‌روزرسانی
+        document.getElementById('pause-updates').addEventListener('click', function() {
+            isPaused = !isPaused;
+
+            if (isPaused) {
+                this.innerHTML = '<i class="fas fa-play"></i> ادامه به‌روزرسانی';
+                this.classList.remove('btn-outline-warning');
+                this.classList.add('btn-outline-success');
+            } else {
+                this.innerHTML = '<i class="fas fa-pause"></i> توقف به‌روزرسانی';
+                this.classList.remove('btn-outline-success');
+                this.classList.add('btn-outline-warning');
+            }
+        });
+
+        // رویداد تمام صفحه
+        document.getElementById('fullscreen-dashboard').addEventListener('click', function() {
+            const elem = document.querySelector('.live-dashboard-container');
+
+            if (!document.fullscreenElement) {
+                elem.requestFullscreen().then(() => {
+                    this.innerHTML = '<i class="fas fa-compress"></i> خروج از تمام صفحه';
+                }).catch(err => {
+                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    this.innerHTML = '<i class="fas fa-expand"></i> تمام صفحه';
+                });
+            }
+        });
+
+        // مقداردهی اولیه
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+        });
+    </script>
+}

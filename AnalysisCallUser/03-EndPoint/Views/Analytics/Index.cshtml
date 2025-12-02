@@ -1,0 +1,232 @@
+﻿@{
+    ViewData["Title"] = "تحلیل‌ها";
+}
+
+<div class="analytics-container">
+    <div class="page-header">
+        <h3>تحلیل‌ها</h3>
+        <div class="page-actions">
+            <button id="refresh-analytics" class="btn btn-outline-primary">
+                <i class="fas fa-sync-alt"></i> به‌روزرسانی داده‌ها
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="analytics-menu">
+                <div class="menu-header">
+                    <h5>نوع تحلیل</h5>
+                </div>
+                <div class="menu-body">
+                    <ul class="nav nav-pills flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#network-analysis" data-toggle="pill">
+                                <i class="fas fa-project-diagram"></i> تحلیل شبکه ارتباطی
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#call-patterns" data-toggle="pill">
+                                <i class="fas fa-chart-line"></i> الگوهای تماس
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#geographic-analysis" data-toggle="pill">
+                                <i class="fas fa-globe"></i> تحلیل جغرافیایی
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#time-analysis" data-toggle="pill">
+                                <i class="fas fa-clock"></i> تحلیل زمانی
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#operator-performance" data-toggle="pill">
+                                <i class="fas fa-tachometer-alt"></i> عملکرد اپراتورها
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#live-dashboard" data-toggle="pill">
+                                <i class="fas fa-broadcast-tower"></i> داشبورد زنده
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="network-analysis">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>تحلیل شبکه ارتباطی</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>تحلیل ارتباطات بین شماره‌های تلفن و شناسایی الگوهای ارتباطی در شبکه تماس‌ها.</p>
+                            <div class="text-center">
+                                <img src="~/images/analytics/network-analysis-preview.jpg" alt="Network Analysis Preview" class="img-fluid rounded" />
+                            </div>
+                            <div class="text-center mt-3">
+                                <a asp-action="NetworkAnalysis" class="btn btn-primary">
+                                    <i class="fas fa-arrow-left"></i> مشاهده تحلیل شبکه
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="call-patterns">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>الگوهای تماس</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>شناسایی الگوهای تماس بر اساس زمان، روز، هفته و ماه و تحلیل رفتار کاربران.</p>
+                            <div class="text-center">
+                                <img src="~/images/analytics/call-patterns-preview.jpg" alt="Call Patterns Preview" class="img-fluid rounded" />
+                            </div>
+                            <div class="text-center mt-3">
+                                <a asp-action="CallPatterns" class="btn btn-primary">
+                                    <i class="fas fa-arrow-left"></i> مشاهده الگوهای تماس
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="geographic-analysis">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>تحلیل جغرافیایی</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>تحلیل توزیع جغرافیایی تماس‌ها بر اساس کشورها و شهرهای مختلف.</p>
+                            <div class="text-center">
+                                <img src="~/images/analytics/geographic-analysis-preview.jpg" alt="Geographic Analysis Preview" class="img-fluid rounded" />
+                            </div>
+                            <div class="text-center mt-3">
+                                <a asp-action="GeographicAnalysis" class="btn btn-primary">
+                                    <i class="fas fa-arrow-left"></i> مشاهده تحلیل جغرافیایی
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="time-analysis">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>تحلیل زمانی</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>تحلیل تماس‌ها بر اساس زمان، شناسایی ساعات اوج و الگوهای زمانی.</p>
+                            <div class="text-center">
+                                <img src="~/images/analytics/time-analysis-preview.jpg" alt="Time Analysis Preview" class="img-fluid rounded" />
+                            </div>
+                            <div class="text-center mt-3">
+                                <a asp-action="TimeAnalysis" class="btn btn-primary">
+                                    <i class="fas fa-arrow-left"></i> مشاهده تحلیل زمانی
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="operator-performance">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>عملکرد اپراتورها</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>تحلیل عملکرد اپراتورهای مختلف بر اساس تعداد تماس‌ها و کیفیت ارتباط.</p>
+                            <div class="text-center">
+                                <img src="~/images/analytics/operator-performance-preview.jpg" alt="Operator Performance Preview" class="img-fluid rounded" />
+                            </div>
+                            <div class="text-center mt-3">
+                                <a asp-action="OperatorPerformance" class="btn btn-primary">
+                                    <i class="fas fa-arrow-left"></i> مشاهده عملکرد اپراتورها
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="live-dashboard">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>داشبورد زنده</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>مشاهده داده‌های تماس به صورت زنده و به‌روزرسانی لحظه‌ای آمار.</p>
+                            <div class="text-center">
+                                <img src="~/images/analytics/live-dashboard-preview.jpg" alt="Live Dashboard Preview" class="img-fluid rounded" />
+                            </div>
+                            <div class="text-center mt-3">
+                                <a asp-action="LiveDashboard" class="btn btn-primary">
+                                    <i class="fas fa-arrow-left"></i> مشاهده داشبورد زنده
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // رویداد به‌روزرسانی داده‌های تحلیل
+        document.getElementById('refresh-analytics').addEventListener('click', function() {
+            // نمایش لودینگ
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال به‌روزرسانی...';
+            this.disabled = true;
+
+            // ارسال درخواست به سرور برای به‌روزرسانی داده‌های تحلیل
+            fetch('/Analytics/RefreshAnalyticsData', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // نمایش پیام موفقیت
+                    showNotification('داده‌های تحلیل با موفقیت به‌روزرسانی شد', 'success');
+                } else {
+                    throw new Error('خطا در به‌روزرسانی داده‌های تحلیل');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('خطا در به‌روزرسانی داده‌های تحلیل', 'danger');
+            })
+            .finally(() => {
+                // بازگرداندن دکمه به حالت اولیه
+                this.innerHTML = '<i class="fas fa-sync-alt"></i> به‌روزرسانی داده‌ها';
+                this.disabled = false;
+            });
+        });
+
+        // تابع برای نمایش اعلان
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show`;
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            `;
+
+            document.querySelector('.page-header').after(notification);
+
+            // حذف خودکار اعلان پس از 5 ثانیه
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+    </script>
+}
