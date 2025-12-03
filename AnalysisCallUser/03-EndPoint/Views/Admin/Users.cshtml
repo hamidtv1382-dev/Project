@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "مدیریت کاربران";
+    // برای استفاده از AntiForgeryToken در درخواست‌های AJAX
+    var antiforgeryToken = @Html.AntiForgeryToken();
 }
 
 <div class="admin-users-container">
@@ -16,6 +18,10 @@
             }
             <a asp-action="AddUser" class="btn btn-success">
                 <i class="fas fa-user"></i> افزودن کاربر
+            </a>
+            @* دکمه جدید برای مدیریت کلی نقش‌ها (اختیاری) *@
+            <a asp-action="RoleManagement" class="btn btn-info">
+                <i class="fas fa-user-shield"></i> مدیریت نقش‌ها
             </a>
         </div>
     </div>
@@ -105,6 +111,16 @@
                                     <button type="button" class="btn btn-sm btn-outline-info view-user" data-id="@user.Id">
                                         <i class="fas fa-eye"></i>
                                     </button>
+                                    @* دکمه جدید برای مدیریت نقش کاربر *@
+                                    @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-warning manage-roles-btn"
+                                                data-id="@user.Id"
+                                                data-username="@user.UserName"
+                                                data-current-role="@user.Role.ToString()">
+                                            <i class="fas fa-user-shield"></i>
+                                        </button>
+                                    }
                                     @if (user.Role.ToString() != "SuperAdmin" || User.IsInRole("SuperAdmin"))
                                     {
                                         <button type="button" class="btn btn-sm btn-outline-danger delete-user" data-id="@user.Id" data-username="@user.UserName">
@@ -132,6 +148,7 @@
     }
 </div>
 
+@* مودال ویرایش کاربر (بدون تغییر) *@
 <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -187,6 +204,7 @@
     </div>
 </div>
 
+@* مودال حذف کاربر (بدون تغییر) *@
 <div class="modal fade" id="deleteUserModal" tabindex="-1" role="dialog" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -208,50 +226,87 @@
     </div>
 </div>
 
+@* مودال جدید برای مدیریت نقش کاربر *@
+<div class="modal fade" id="manageRolesModal" tabindex="-1" role="dialog" aria-labelledby="manageRolesModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manageRolesModalLabel">مدیریت نقش کاربر: <span id="role-username"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="manage-roles-form">
+                    <input type="hidden" id="manage-roles-user-id" />
+                    <div class="form-group">
+                        <label for="current-role-display">نقش فعلی:</label>
+                        <div id="current-role-display" class="form-control-plaintext fw-bold"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-role-select">تغییر نقش به:</label>
+                        <select id="new-role-select" class="form-control">
+                            <option value="User">کاربر</option>
+                            <option value="Admin">ادمین</option>
+                            @if (User.IsInRole("SuperAdmin"))
+                            {
+                                <option value="SuperAdmin">سوپر ادمین</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>توجه:</strong> تغییر نقش کاربر ممکن است دسترسی‌های او را در سیستم محدود یا گسترش دهد.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
+                <button type="button" id="save-role-change" class="btn btn-primary">ذخیره تغییرات</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Raw(antiforgeryToken) @* اضافه کردن توکن برای درخواست‌های AJAX *@
+
 @section Scripts {
     <script>
         let userIdToDelete;
 
-        // رویداد جستجوی کاربران
-        document.getElementById('search-btn').addEventListener('click', function() {
+        // رویداد جستجو، فیلتر و... (بدون تغییر)
+        document.getElementById('search-btn').addEventListener('click', function () {
             const searchTerm = document.getElementById('user-search').value;
             const roleFilter = document.getElementById('role-filter').value;
             const statusFilter = document.getElementById('status-filter').value;
 
-            // ساخت URL با پارامترهای فیلتر
             const url = new URL(window.location);
             url.searchParams.set('search', searchTerm);
             url.searchParams.set('role', roleFilter);
             url.searchParams.set('status', statusFilter);
             url.searchParams.set('page', '1');
 
-            // بارگذاری مجدد صفحه با فیلترهای جدید
             window.location.href = url.toString();
         });
 
-        // رویداد فیلتر نقش
-        document.getElementById('role-filter').addEventListener('change', function() {
+        document.getElementById('role-filter').addEventListener('change', function () {
             document.getElementById('search-btn').click();
         });
 
-        // رویداد فیلتر وضعیت
-        document.getElementById('status-filter').addEventListener('change', function() {
+        document.getElementById('status-filter').addEventListener('change', function () {
             document.getElementById('search-btn').click();
         });
 
-        // رویداد جستجو با فشردن Enter
-        document.getElementById('user-search').addEventListener('keypress', function(e) {
+        document.getElementById('user-search').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 document.getElementById('search-btn').click();
             }
         });
 
-        // رویداد ویرایش کاربر
+        // رویداد ویرایش کاربر (بدون تغییر)
         document.querySelectorAll('.edit-user').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function () {
                 const userId = this.getAttribute('data-id');
-
-                // دریافت اطلاعات کاربر از سرور
                 fetch('/Admin/GetUser', {
                     method: 'POST',
                     headers: {
@@ -262,7 +317,6 @@
                 })
                 .then(response => response.json())
                 .then(user => {
-                    // پر کردن فرم با اطلاعات کاربر
                     document.getElementById('edit-user-id').value = user.id;
                     document.getElementById('edit-first-name').value = user.firstName;
                     document.getElementById('edit-last-name').value = user.lastName;
@@ -270,8 +324,6 @@
                     document.getElementById('edit-phone-number').value = user.phoneNumber;
                     document.getElementById('edit-role').value = user.role;
                     document.getElementById('edit-is-active').checked = user.isActive;
-
-                    // نمایش مودال
                     $('#editUserModal').modal('show');
                 })
                 .catch(error => {
@@ -281,29 +333,75 @@
             });
         });
 
-        // رویداد مشاهده کاربر
+        // رویداد مشاهده کاربر (بدون تغییر)
         document.querySelectorAll('.view-user').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function () {
                 const userId = this.getAttribute('data-id');
-
-                // انتقال به صفحه جزئیات کاربر
                 window.location.href = '/Admin/UserDetails/' + userId;
             });
         });
 
-        // رویداد حذف کاربر
+        // --- شروع کد جدید برای مدیریت نقش ---
+
+        // رویداد کلیک روی دکمه "مدیریت نقش"
+        document.querySelectorAll('.manage-roles-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const userId = this.getAttribute('data-id');
+                const username = this.getAttribute('data-username');
+                const currentRole = this.getAttribute('data-current-role');
+
+                // پر کردن اطلاعات مودال
+                document.getElementById('manage-roles-user-id').value = userId;
+                document.getElementById('role-username').textContent = username;
+                document.getElementById('current-role-display').textContent = currentRole;
+                document.getElementById('new-role-select').value = currentRole;
+
+                // نمایش مودال
+                $('#manageRolesModal').modal('show');
+            });
+        });
+
+        // رویداد کلیک روی دکمه "ذخیره تغییرات" در مودال نقش
+        document.getElementById('save-role-change').addEventListener('click', function () {
+            const userId = document.getElementById('manage-roles-user-id').value;
+            const newRole = document.getElementById('new-role-select').value;
+
+            fetch('/Admin/UpdateUserRole', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ userId: userId, newRole: newRole })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload(); // بارگذاری مجدد صفحه برای نمایش تغییرات
+                } else {
+                    return response.json().then(err => { throw new Error(err.message || 'خطا در به‌روزرسانی نقش کاربر'); });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message);
+                $('#manageRolesModal').modal('hide');
+            });
+        });
+
+        // --- پایان کد جدید ---
+
+
+        // رویداد حذف کاربر (بدون تغییر)
         document.querySelectorAll('.delete-user').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function () {
                 userIdToDelete = this.getAttribute('data-id');
                 const username = this.getAttribute('data-username');
-
                 document.getElementById('delete-username').textContent = username;
                 $('#deleteUserModal').modal('show');
             });
         });
 
-        // رویداد تایید حذف کاربر
-        document.getElementById('confirm-delete').addEventListener('click', function() {
+        document.getElementById('confirm-delete').addEventListener('click', function () {
             fetch('/Admin/DeleteUser', {
                 method: 'POST',
                 headers: {
@@ -314,7 +412,6 @@
             })
             .then(response => {
                 if (response.ok) {
-                    // بارگذاری مجدد صفحه
                     window.location.reload();
                 } else {
                     throw new Error('خطا در حذف کاربر');
@@ -327,8 +424,8 @@
             });
         });
 
-        // رویداد ذخیره کاربر
-        document.getElementById('save-user').addEventListener('click', function() {
+        // رویداد ذخیره کاربر (بدون تغییر)
+        document.getElementById('save-user').addEventListener('click', function () {
             const userData = {
                 id: document.getElementById('edit-user-id').value,
                 firstName: document.getElementById('edit-first-name').value,
@@ -349,7 +446,6 @@
             })
             .then(response => {
                 if (response.ok) {
-                    // بارگذاری مجدد صفحه
                     window.location.reload();
                 } else {
                     throw new Error('خطا در به‌روزرسانی کاربر');

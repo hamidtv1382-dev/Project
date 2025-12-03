@@ -1,0 +1,583 @@
+﻿/* --- استایل‌های عمومی و مشترک با صفحات دیگر --- */
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap');
+
+:root {
+    --bg-gradient-start: #1a1a2e;
+    --bg-gradient-end: #16213e;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --primary-color: #00adb5;
+    --primary-color-hover: #00c9d1;
+    --danger-color: #ff4d4d;
+    --success-color: #4caf50;
+    --input-bg: rgba(255, 255, 255, 0.07);
+    --input-border: rgba(255, 255, 255, 0.2);
+}
+
+body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+    background-attachment: fixed; /* برای افکت پارالاکس */
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* --- کانتینر اصلی صفحات تماس --- */
+.call-details-container, .call-list-container, .call-search-container {
+    padding: 20px;
+    animation: fadeIn 0.8s ease-out;
+}
+
+/* --- هدر صفحه --- */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 0 10px;
+}
+
+    .page-header h3 {
+        font-weight: 700;
+        font-size: 28px;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        /* انیمیشن تایپ */
+        overflow: hidden;
+        border-right: 3px solid var(--primary-color);
+        white-space: nowrap;
+        animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        width: 0;
+        animation-fill-mode: forwards;
+    }
+
+.page-actions .btn {
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.page-actions .btn-secondary {
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+    background-color: transparent;
+}
+
+    .page-actions .btn-secondary:hover {
+        background-color: var(--text-secondary);
+        color: var(--bg-gradient-start);
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 6px 20px rgba(176, 176, 176, 0.4);
+    }
+
+.page-actions .btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+    .page-actions .btn-primary:hover {
+        background-color: var(--primary-color-hover);
+        border-color: var(--primary-color-hover);
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 6px 20px rgba(0, 173, 181, 0.4);
+    }
+
+/* --- پنل فیلتر در صفحه جستجو (طراحی فشرده و خطی) --- */
+.filter-panel {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    padding: 0;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), 0 0 0 1px rgba(255, 255, 255, 0.1); /* سایه عمیق و افکت نوری */
+    animation: slideUp 0.6s ease-out, float 6s ease-in-out infinite; /* انیمیشن شناور */
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+    .filter-panel:hover {
+        box-shadow: 0 8px 32px 0 rgba(0, 173, 181, 0.2), 0 0 0 1px rgba(0, 173, 181, 0.5); /* هاله نوری در هاور */
+    }
+
+.filter-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+    .filter-header h4 {
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+.filter-body {
+    padding: 20px;
+}
+
+/* --- استایل‌دهی به فرم و فیلدها (طراحی فشرده و خطی) --- */
+.filter-section {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed var(--card-border);
+    animation: waveIn 0.6s ease-out; /* انیمیشن ورود موجی */
+    animation-fill-mode: both;
+}
+
+    /* ایجاد تاخیر در انیمیشن موجی */
+    .filter-section:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .filter-section:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .filter-section:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .filter-section:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+    .filter-section:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .filter-section h5 {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin: 0 0 15px 0;
+    }
+
+    .filter-section .fields-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .filter-section .form-group {
+        flex-basis: calc(50% - 5px);
+        flex-grow: 1;
+        margin-bottom: 0;
+    }
+
+@media (max-width: 768px) {
+    .filter-section .form-group {
+        flex-basis: 100%;
+    }
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+    transition: color 0.3s ease;
+    font-size: 12px;
+}
+
+.form-control {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 8px 12px;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+    .form-control:focus {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(0, 173, 181, 0.25), 0 0 15px rgba(0, 173, 181, 0.2); /* موج رنگی در فوکوس */
+        color: var(--text-primary);
+        transform: scale(1.02);
+    }
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+    .filter-actions .btn {
+        flex-grow: 1;
+        border-radius: 10px;
+        padding: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-actions .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+        .filter-actions .btn-primary:hover {
+            background-color: var(--primary-color-hover);
+            border-color: var(--primary-color-hover);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 173, 181, 0.4);
+        }
+
+    .filter-actions .btn-secondary {
+        background-color: transparent;
+        border-color: var(--text-secondary);
+        color: var(--text-secondary);
+    }
+
+        .filter-actions .btn-secondary:hover {
+            background-color: var(--text-secondary);
+            color: var(--bg-gradient-start);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(176, 176, 176, 0.4);
+        }
+
+/* --- کانتینر نتایج جستجو --- */
+#search-results {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    padding: 25px;
+    min-height: 400px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    animation: slideUp 0.8s ease-out, float 6s ease-in-out infinite;
+    animation-delay: 0.2s; /* تاخیر برای شروع انیمیشن */
+    animation-fill-mode: both;
+    transition: all 0.4s ease;
+}
+
+    #search-results:hover {
+        box-shadow: 0 8px 32px 0 rgba(0, 173, 181, 0.2), 0 0 0 1px rgba(0, 173, 181, 0.5);
+    }
+
+    #search-results .text-muted {
+        color: var(--text-secondary) !important;
+    }
+
+    #search-results .table {
+        color: var(--text-primary);
+    }
+
+        #search-results .table thead th {
+            border-bottom: 2px solid var(--card-border);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        #search-results .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+            #search-results .table tbody tr:nth-of-type(odd) {
+                background-color: rgba(255, 255, 255, 0.02);
+            }
+
+            #search-results .table tbody tr:hover {
+                background-color: rgba(255, 255, 255, 0.05);
+                transform: scale(1.01);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
+
+        #search-results .table td {
+            border-color: var(--card-border);
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+/* --- مودال خروجی داده‌ها --- */
+.modal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--card-border);
+}
+
+.modal-title {
+    color: var(--text-primary);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--card-border);
+}
+
+/* --- انیمیشن‌های جدید و پیشرفته --- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes typing {
+    from {
+        width: 0;
+    }
+
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes blink-caret {
+    from, to {
+        border-color: transparent;
+    }
+
+    50% {
+        border-color: var(--primary-color);
+    }
+}
+
+@keyframes waveIn {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+/* --- استایل‌دهی به منوهای آبشاری (Dropdown) --- */
+.dropdown-menu {
+    background-color: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+    padding: 0.5rem 0 !important;
+}
+
+.dropdown-item {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+    padding: 0.5rem 1.5rem !important;
+    transition: all 0.2s ease !important;
+}
+
+    .dropdown-item:hover {
+        background-color: var(--primary-color) !important;
+        color: #fff !important;
+    }
+
+/* برای منوی کاربر در نوار بالای سایت */
+.navbar-nav .dropdown-menu {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+}
+
+.navbar-nav .dropdown-item {
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+    .navbar-nav .dropdown-item:hover {
+        background-color: var(--primary-color);
+        color: #fff;
+    }
+/* --- استایل‌دهی به فیلدهای ورودی (Input) --- */
+.form-control {
+    /* ... استایل‌های قبلی ... */
+    /* اگر استایل‌های قبلی را دارید، این بخش را حذف کنید */
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 8px 12px;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+    .form-control:focus {
+        /* ... استایل‌های قبلی ... */
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(0, 173, 181, 0.25), 0 0 15px rgba(0, 173, 181, 0.2);
+        color: var(--text-primary);
+        transform: scale(1.02);
+    }
+
+/* --- استایل‌دهی به منوهای کشویی (Select) --- */
+.custom-select {
+    position: relative;
+}
+
+    .custom-select .form-control {
+        appearance: none; /* حذف فلش پیش‌فرض مرورگر */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b0b0b0'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); /* فلش سفارشی */
+        background-repeat: no-repeat;
+        background-position: left 10px center;
+        background-size: 24px;
+        padding-left: 40px; /* فاصله برای فلش */
+    }
+
+        .custom-select .form-control:focus {
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300adb5'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); /* تغییر رنگ فلش در فوکوس */
+        }
+
+/* --- استایل‌دهی به پنجره DatePicker (تاریخ شمسی) --- */
+.pdp-dropdown {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    border-radius: 15px !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.pdp-header {
+    background-color: var(--primary-color) !important;
+    border-radius: 15px 15px 0 0 !important;
+    color: #fff !important;
+}
+
+    .pdp-header .pdp-year, .pdp-header .pdp-month {
+        color: #fff !important;
+    }
+
+.pdp-days .pdp-day {
+    color: var(--text-primary) !important;
+    border-radius: 50% !important;
+    transition: all 0.2s ease !important;
+}
+
+    .pdp-days .pdp-day:hover {
+        background-color: var(--primary-color) !important;
+        color: #fff !important;
+        transform: scale(1.1);
+    }
+
+.pdp-days .pdp-selected {
+    background-color: var(--primary-color) !important;
+    color: #fff !important;
+    box-shadow: 0 0 10px var(--primary-color) !important;
+}
+
+.pdp-days .pdp-disabled {
+    color: var(--text-secondary) !important;
+    opacity: 0.5;
+}
+
+.pdp-footer {
+    border-top: 1px solid var(--card-border) !important;
+}
+
+    .pdp-footer button {
+        background-color: var(--primary-color) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 8px 16px !important;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+        .pdp-footer button:hover {
+            background-color: var(--primary-color-hover) !important;
+            transform: scale(1.05);
+        }
+/* ====== عمومی ====== */
+select.form-control,
+input.form-control {
+    color: #fff !important;
+    background-color: #1e1e2f !important;
+    border: 1px solid #3a3a4f;
+}
+
+    select.form-control option {
+        color: #000 !important; /* متن آیتم‌ها سیاه */
+        background: #fff !important; /* پس‌زمینه روشن برای دیده شدن */
+    }
+
+/* ====== حل مشکل باز شدن منوهای Select ====== */
+.custom-select select {
+    color: #fff !important;
+    background-color: #2c2c40 !important;
+}
+
+    .custom-select select option {
+        background: #ffffff !important;
+        color: #000 !important;
+    }
+
+/* ====== استایل DatePicker ====== */
+.pwt-datepicker {
+    z-index: 9999 !important; /* جلوگیری از مخفی شدن زیر عناصر دیگر */
+}
+
+    .pwt-datepicker .pwt-btn,
+    .pwt-datepicker .pwt-day,
+    .pwt-datepicker .pwt-select-year,
+    .pwt-datepicker .pwt-select-month {
+        color: #000 !important; /* متن قابل خواندن */
+    }
+
+.pwt-date-picker-main {
+    background: #ffffff !important; /* پس‌زمینه سفید پاپ‌آپ */
+    color: #000 !important;
+}
+
+.pwt-datepicker .pwt-day:hover,
+.pwt-datepicker .pwt-btn:hover {
+    background: #007bff !important;
+    color: #fff !important;
+}
+
+/* ====== ورودی تاریخ ====== */
+input.datepicker {
+    background: #1e1e2f !important;
+    color: #fff !important;
+}

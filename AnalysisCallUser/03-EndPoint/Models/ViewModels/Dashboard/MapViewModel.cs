@@ -2,14 +2,16 @@
 {
     public class MapViewModel
     {
-        public List<MapViewModel.MapPoint> Points { get; set; } = new List<MapPoint>();
+        public List<MapPoint> Points { get; set; }
 
         public class MapPoint
         {
-            public double Lat { get; set; }
-            public double Lng { get; set; }
-            public int CallCount { get; set; }
             public string CountryName { get; set; }
+            public string CityName { get; set; }
+            public int CallCount { get; set; }
+            public double AvgDuration { get; set; }
+            public double AnswerRate { get; set; }
         }
     }
+
 }

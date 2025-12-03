@@ -19,70 +19,78 @@
                     <form asp-action="Search" method="post" id="filter-form">
                         <div class="filter-section">
                             <h5>بازه زمانی</h5>
-                            <div class="form-group">
-                                <label asp-for="StartDate" class="control-label"></label>
-                                <input asp-for="StartDate" class="form-control" type="date" />
-                            </div>
-                            <div class="form-group">
-                                <label asp-for="EndDate" class="control-label"></label>
-                                <input asp-for="EndDate" class="form-control" type="date" />
-                            </div>
-                            <div class="form-group">
-                                <label asp-for="StartTime" class="control-label"></label>
-                                <input asp-for="StartTime" class="form-control" type="time" />
-                            </div>
-                            <div class="form-group">
-                                <label asp-for="EndTime" class="control-label"></label>
-                                <input asp-for="EndTime" class="form-control" type="time" />
+                            <div class="fields-container">
+                                <div class="form-group">
+                                    <label asp-for="StartDate" class="control-label"></label>
+                                    <input asp-for="StartDate" class="form-control" type="date" />
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="EndDate" class="control-label"></label>
+                                    <input asp-for="EndDate" class="form-control" type="date" />
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="StartTime" class="control-label"></label>
+                                    <input asp-for="StartTime" class="form-control" type="time" />
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="EndTime" class="control-label"></label>
+                                    <input asp-for="EndTime" class="form-control" type="time" />
+                                </div>
                             </div>
                         </div>
 
                         <div class="filter-section">
                             <h5>شماره تماس</h5>
-                            <div class="form-group">
-                                <label asp-for="ANumber" class="control-label"></label>
-                                <input asp-for="ANumber" class="form-control" placeholder="شماره تماس مبدأ" />
-                            </div>
-                            <div class="form-group">
-                                <label asp-for="BNumber" class="control-label"></label>
-                                <input asp-for="BNumber" class="form-control" placeholder="شماره تماس مقصد" />
+                            <div class="fields-container">
+                                <div class="form-group">
+                                    <label asp-for="ANumber" class="control-label"></label>
+                                    <input asp-for="ANumber" class="form-control" placeholder="شماره تماس مبدأ" />
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="BNumber" class="control-label"></label>
+                                    <input asp-for="BNumber" class="form-control" placeholder="شماره تماس مقصد" />
+                                </div>
                             </div>
                         </div>
 
                         <div class="filter-section">
                             <h5>موقعیت جغرافیایی</h5>
-                            <div class="form-group">
-                                <label asp-for="OriginCountryID" class="control-label"></label>
-                                <select asp-for="OriginCountryID" class="form-control" asp-items="ViewBag.Countries">
-                                    <option value="">انتخاب کنید</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label asp-for="DestCountryID" class="control-label"></label>
-                                <select asp-for="DestCountryID" class="form-control" asp-items="ViewBag.Countries">
-                                    <option value="">انتخاب کنید</option>
-                                </select>
+                            <div class="fields-container">
+                                <div class="form-group">
+                                    <label asp-for="OriginCountryID" class="control-label"></label>
+                                    <select asp-for="OriginCountryID" class="form-control" asp-items="ViewBag.Countries">
+                                        <option value="">انتخاب کنید</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="DestCountryID" class="control-label"></label>
+                                    <select asp-for="DestCountryID" class="form-control" asp-items="ViewBag.Countries">
+                                        <option value="">انتخاب کنید</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
                         <div class="filter-section">
                             <h5>سایر فیلترها</h5>
-                            <div class="form-group">
-                                <label asp-for="Answer" class="control-label"></label>
-                                <select asp-for="Answer" class="form-control">
-                                    <option value="">همه</option>
-                                    <option value="true">پاسخ داده شده</option>
-                                    <option value="false">پاسخ داده نشده</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label asp-for="PageSize" class="control-label"></label>
-                                <select asp-for="PageSize" class="form-control">
-                                    <option value="10">10</option>
-                                    <option value="25">25</option>
-                                    <option value="50" selected>50</option>
-                                    <option value="100">100</option>
-                                </select>
+                            <div class="fields-container">
+                                <div class="form-group">
+                                    <label asp-for="Answer" class="control-label"></label>
+                                    <select asp-for="Answer" class="form-control">
+                                        <option value="">همه</option>
+                                        <option value="true">پاسخ داده شده</option>
+                                        <option value="false">پاسخ داده نشده</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="PageSize" class="control-label"></label>
+                                    <select asp-for="PageSize" class="form-control">
+                                        <option value="10">10</option>
+                                        <option value="25">25</option>
+                                        <option value="50" selected>50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
@@ -105,6 +113,7 @@
         </div>
     </div>
 </div>
+
 
 <div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exportModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">

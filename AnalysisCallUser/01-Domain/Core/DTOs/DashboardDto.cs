@@ -7,5 +7,6 @@
         public double AverageCallDuration { get; set; }
         public List<ChartDataDto.ChartPoint> TopCountries { get; set; }
         public List<ChartDataDto.ChartPoint> RecentActivity { get; set; }
+        public IEnumerable<CallDetailDto> RecentCalls { get; set; }
     }
 }

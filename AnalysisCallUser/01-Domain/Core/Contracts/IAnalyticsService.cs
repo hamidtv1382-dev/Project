@@ -1,5 +1,6 @@
 ﻿
 using AnalysisCallUser._01_Domain.Core.DTOs;
+using AnalysisCallUser._01_Domain.Core.DTOs.AnalysisCallUser._01_Domain.Core.DTOs;
 
 namespace AnalysisCallUser._01_Domain.Core.Contracts
 {

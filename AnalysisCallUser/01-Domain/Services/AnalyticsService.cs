@@ -1,5 +1,6 @@
 ﻿using AnalysisCallUser._01_Domain.Core.Contracts;
 using AnalysisCallUser._01_Domain.Core.DTOs;
+using AnalysisCallUser._01_Domain.Core.DTOs.AnalysisCallUser._01_Domain.Core.DTOs;
 using AnalysisCallUser._01_Domain.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,23 +30,41 @@ namespace AnalysisCallUser._01_Domain.Services
         public async Task<MapDataDto> GetGeographicDistributionAsync(GeographicAnalysisDto filter)
         {
             var query = _unitOfWork.CallDetails.GetAll();
-            if (filter.CountryIds?.Any() == true)
-            {
-                query = query.Where(cd => filter.CountryIds.Contains(cd.OriginCountryID));
-            }
 
+            // فیلتر کشور
+            if (filter.CountryIds?.Any() == true)
+                query = query.Where(cd => filter.CountryIds.Contains(cd.OriginCountryID));
+
+            // گروه‌بندی بر اساس کشور و شهر
             var data = await query
-                .GroupBy(cd => new { cd.OriginCountry.CountryName, cd.OriginCity.CityName })
-                .Select(g => new MapDataDto.MapPoint { CountryCode = g.Key.CountryName.Substring(0, 2), CityName = g.Key.CityName, CallCount = g.Count() })
+                .GroupBy(cd => new
+                {
+                    Country = cd.OriginCountry.CountryName,
+                    City = cd.OriginCity.CityName
+                })
+                .Select(g => new MapDataDto.MapPoint
+                {
+                    CountryName = g.Key.Country,
+                    CityName = g.Key.City,
+                    CallCount = g.Count(),
+
+                    // میانگین مدت مکالمه
+                    AvgDuration = g.Average(x => x.Length),
+
+                    // درصد پاسخ
+                    AnswerRate = g.Count(x => x.Answer == CallAnswerStatus.Answered)
+                                 * 100.0 / g.Count()
+                })
+                .OrderByDescending(x => x.CallCount)
                 .Take(100)
                 .ToListAsync();
 
             return new MapDataDto { Points = data };
         }
 
+        // در کلاس AnalyticsService
         public async Task<NetworkDto> GetCallNetworkAnalysisAsync(NetworkAnalysisDto filter)
         {
-            // ورودی از نوع NetworkAnalysisDto دریافت می‌شود
             var query = _unitOfWork.CallDetails.GetAll();
 
             if (filter.PhoneNumbers?.Any() == true)
@@ -55,20 +74,36 @@ namespace AnalysisCallUser._01_Domain.Services
 
             var sampleData = await query.Take(200).ToListAsync();
 
-            // خروجی از نوع NetworkDto ساخته می‌شود
-            var nodes = new List<NetworkDto.Node>();
-            var edges = new List<NetworkDto.Edge>();
+            // تمام شماره‌های منحصر به فرد
+            var allNodes = sampleData.SelectMany(cd => new[] { cd.ANumber, cd.BNumber }).Distinct().ToList();
 
-            foreach (var call in sampleData)
+            // محاسبه تعداد ارتباطات برای هر شماره (Degree)
+            var nodeDegrees = sampleData
+                .SelectMany(cd => new[] { new { Node = cd.ANumber }, new { Node = cd.BNumber } })
+                .GroupBy(x => x.Node)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var nodes = allNodes.Select(number => new NetworkDto.Node
             {
-                nodes.Add(new NetworkDto.Node { Id = call.ANumber, Label = call.ANumber, Size = 1 });
-                nodes.Add(new NetworkDto.Node { Id = call.BNumber, Label = call.BNumber, Size = 1 });
-                edges.Add(new NetworkDto.Edge { From = call.ANumber, To = call.BNumber, Weight = 1 });
-            }
+                Id = number,
+                Label = number,
+                // اندازه گره بر اساس تعداد کل ارتباطات (ورودی و خروجی)
+                Size = nodeDegrees.ContainsKey(number) ? nodeDegrees[number] : 0
+            }).ToList();
 
-            return new NetworkDto { Nodes = nodes.Distinct().ToList(), Edges = edges };
+            // گروه‌بندی یال‌ها برای محاسبه وزن (تعداد تماس بین دو گره)
+            var edges = sampleData
+                .GroupBy(cd => new { From = cd.ANumber, To = cd.BNumber })
+                .Select(g => new NetworkDto.Edge
+                {
+                    From = g.Key.From,
+                    To = g.Key.To,
+                    Weight = g.Count() // وزن بر اساس تعداد تماس‌ها
+                })
+                .ToList();
+
+            return new NetworkDto { Nodes = nodes, Edges = edges };
         }
-
         public async Task<OperatorPerformanceDto> GetOperatorPerformanceDataAsync()
         {
             var performance = await _unitOfWork.CallDetails

@@ -37,6 +37,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="PersianDateTime" Version="1.1.5082.36395" />
     <PackageReference Include="Scrutor" Version="7.0.0" />
   </ItemGroup>
 

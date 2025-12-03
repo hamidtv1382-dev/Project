@@ -4,6 +4,9 @@
     ViewData["Title"] = "تحلیل‌ها";
 }
 
+<!-- یک نگهدارنده برای اعلان‌ها، اگر وجود ندارد -->
+<div id="notification-container"></div>
+
 <div class="analytics-container">
     <div class="page-header">
         <h3>تحلیل‌ها</h3>
@@ -13,7 +16,6 @@
             </button>
         </div>
     </div>
-
     <div class="row">
         <div class="col-md-3">
             <div class="analytics-menu">
@@ -23,32 +25,33 @@
                 <div class="menu-body">
                     <ul class="nav nav-pills flex-column">
                         <li class="nav-item">
-                            <a class="nav-link active" href="#network-analysis" data-toggle="pill">
+                            <!-- تغییر اصلی: data-toggle به data-bs-toggle تغییر یافت -->
+                            <a class="nav-link active" href="#network-analysis" data-bs-toggle="pill" role="tab" aria-controls="network-analysis" aria-selected="true">
                                 <i class="fas fa-project-diagram"></i> تحلیل شبکه ارتباطی
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#call-patterns" data-toggle="pill">
+                            <a class="nav-link" href="#call-patterns" data-bs-toggle="pill" role="tab" aria-controls="call-patterns" aria-selected="false">
                                 <i class="fas fa-chart-line"></i> الگوهای تماس
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#geographic-analysis" data-toggle="pill">
+                            <a class="nav-link" href="#geographic-analysis" data-bs-toggle="pill" role="tab" aria-controls="geographic-analysis" aria-selected="false">
                                 <i class="fas fa-globe"></i> تحلیل جغرافیایی
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#time-analysis" data-toggle="pill">
+                            <a class="nav-link" href="#time-analysis" data-bs-toggle="pill" role="tab" aria-controls="time-analysis" aria-selected="false">
                                 <i class="fas fa-clock"></i> تحلیل زمانی
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#operator-performance" data-toggle="pill">
+                            <a class="nav-link" href="#operator-performance" data-bs-toggle="pill" role="tab" aria-controls="operator-performance" aria-selected="false">
                                 <i class="fas fa-tachometer-alt"></i> عملکرد اپراتورها
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#live-dashboard" data-toggle="pill">
+                            <a class="nav-link" href="#live-dashboard" data-bs-toggle="pill" role="tab" aria-controls="live-dashboard" aria-selected="false">
                                 <i class="fas fa-broadcast-tower"></i> داشبورد زنده
                             </a>
                         </li>
@@ -59,18 +62,28 @@
 
         <div class="col-md-9">
             <div class="tab-content">
-                <div id="network-analysis" class="tab-pane fade show active">
+                <div id="network-analysis" class="tab-pane fade show active" role="tabpanel" aria-labelledby="network-analysis-tab">
                     <div class="card">
                         <div class="card-header">
                             <h5>تحلیل شبکه ارتباطی</h5>
                         </div>
                         <div class="card-body">
                             <p>تحلیل ارتباطات بین شماره‌های تلفن و شناسایی الگوهای ارتباطی در شبکه تماس‌ها.</p>
+                            @if (Model?.NetworkGraph != null)
+                            {
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>خلاصه داده‌های فعلی:</strong><br>
+                                    تعداد گره‌ها (Nodes): @Model.NetworkGraph.Nodes.Count<br>
+                                    تعداد ارتباطات (Edges): @Model.NetworkGraph.Edges.Count
+                                </div>
+                            }
                             <div class="text-center">
                                 <img src="~/images/analytics/network-analysis-preview.jpg" alt="Network Analysis Preview" class="img-fluid rounded" />
                             </div>
                             <div class="text-center mt-3">
-                                <a asp-action="NetworkAnalysis" class="btn btn-primary">
+                                <!-- لینک اصلاح شده -->
+                                <a asp-controller="Analytics" asp-action="NetworkAnalysis" class="btn btn-primary">
                                     <i class="fas fa-arrow-left"></i> مشاهده تحلیل شبکه
                                 </a>
                             </div>
@@ -78,18 +91,26 @@
                     </div>
                 </div>
 
-                <div id="call-patterns" class="tab-pane fade">
+                <div id="call-patterns" class="tab-pane fade" role="tabpanel" aria-labelledby="call-patterns-tab">
                     <div class="card">
                         <div class="card-header">
                             <h5>الگوهای تماس</h5>
                         </div>
                         <div class="card-body">
                             <p>شناسایی الگوهای تماس بر اساس زمان، روز، هفته و ماه و تحلیل رفتار کاربران.</p>
+                            @if (Model?.CallVolumeChart != null)
+                            {
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>عنوان نمودار حجم تماس:</strong> @Model.CallVolumeChart.ChartLabel
+                                </div>
+                            }
                             <div class="text-center">
                                 <img src="~/images/analytics/call-patterns-preview.jpg" alt="Call Patterns Preview" class="img-fluid rounded" />
                             </div>
                             <div class="text-center mt-3">
-                                <a asp-action="CallPatterns" class="btn btn-primary">
+                                <!-- لینک اصلاح شده -->
+                                <a asp-controller="Analytics" asp-action="CallPatterns" class="btn btn-primary">
                                     <i class="fas fa-arrow-left"></i> مشاهده الگوهای تماس
                                 </a>
                             </div>
@@ -97,18 +118,27 @@
                     </div>
                 </div>
 
-                <div id="geographic-analysis" class="tab-pane fade">
+                <div id="geographic-analysis" class="tab-pane fade" role="tabpanel" aria-labelledby="geographic-analysis-tab">
                     <div class="card">
                         <div class="card-header">
                             <h5>تحلیل جغرافیایی</h5>
                         </div>
                         <div class="card-body">
                             <p>تحلیل توزیع جغرافیایی تماس‌ها بر اساس کشورها و شهرهای مختلف.</p>
+                            @if (Model?.GeographicMap != null)
+                            {
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>خلاصه داده‌های فعلی:</strong><br>
+                                    تعداد نقاط فعال روی نقشه: @Model.GeographicMap.Points.Count
+                                </div>
+                            }
                             <div class="text-center">
                                 <img src="~/images/analytics/geographic-analysis-preview.jpg" alt="Geographic Analysis Preview" class="img-fluid rounded" />
                             </div>
                             <div class="text-center mt-3">
-                                <a asp-action="GeographicAnalysis" class="btn btn-primary">
+                                <!-- لینک اصلاح شده -->
+                                <a asp-controller="Analytics" asp-action="GeographicAnalysis" class="btn btn-primary">
                                     <i class="fas fa-arrow-left"></i> مشاهده تحلیل جغرافیایی
                                 </a>
                             </div>
@@ -116,7 +146,7 @@
                     </div>
                 </div>
 
-                <div id="time-analysis" class="tab-pane fade">
+                <div id="time-analysis" class="tab-pane fade" role="tabpanel" aria-labelledby="time-analysis-tab">
                     <div class="card">
                         <div class="card-header">
                             <h5>تحلیل زمانی</h5>
@@ -127,7 +157,8 @@
                                 <img src="~/images/analytics/time-analysis-preview.jpg" alt="Time Analysis Preview" class="img-fluid rounded" />
                             </div>
                             <div class="text-center mt-3">
-                                <a asp-action="TimeAnalysis" class="btn btn-primary">
+                                <!-- لینک اصلاح شده -->
+                                <a asp-controller="Analytics" asp-action="TimeAnalysis" class="btn btn-primary">
                                     <i class="fas fa-arrow-left"></i> مشاهده تحلیل زمانی
                                 </a>
                             </div>
@@ -135,7 +166,7 @@
                     </div>
                 </div>
 
-                <div id="operator-performance" class="tab-pane fade">
+                <div id="operator-performance" class="tab-pane fade" role="tabpanel" aria-labelledby="operator-performance-tab">
                     <div class="card">
                         <div class="card-header">
                             <h5>عملکرد اپراتورها</h5>
@@ -146,7 +177,8 @@
                                 <img src="~/images/analytics/operator-performance-preview.jpg" alt="Operator Performance Preview" class="img-fluid rounded" />
                             </div>
                             <div class="text-center mt-3">
-                                <a asp-action="OperatorPerformance" class="btn btn-primary">
+                                <!-- لینک اصلاح شده -->
+                                <a asp-controller="Analytics" asp-action="OperatorPerformance" class="btn btn-primary">
                                     <i class="fas fa-arrow-left"></i> مشاهده عملکرد اپراتورها
                                 </a>
                             </div>
@@ -154,7 +186,7 @@
                     </div>
                 </div>
 
-                <div id="live-dashboard" class="tab-pane fade">
+                <div id="live-dashboard" class="tab-pane fade" role="tabpanel" aria-labelledby="live-dashboard-tab">
                     <div class="card">
                         <div class="card-header">
                             <h5>داشبورد زنده</h5>
@@ -165,7 +197,8 @@
                                 <img src="~/images/analytics/live-dashboard-preview.jpg" alt="Live Dashboard Preview" class="img-fluid rounded" />
                             </div>
                             <div class="text-center mt-3">
-                                <a asp-action="LiveDashboard" class="btn btn-primary">
+                                <!-- لینک اصلاح شده -->
+                                <a asp-controller="Analytics" asp-action="LiveDashboard" class="btn btn-primary">
                                     <i class="fas fa-arrow-left"></i> مشاهده داشبورد زنده
                                 </a>
                             </div>
@@ -179,24 +212,29 @@
 
 @section Scripts {
     <script>
+        // این اسکریپت تب‌ها را به صورت دستی مقداردهی اولیه می‌کند
+        document.addEventListener('DOMContentLoaded', function() {
+            var triggerTabList = [].slice.call(document.querySelectorAll('[data-bs-toggle="pill"]'))
+            triggerTabList.forEach(function (triggerEl) {
+                new bootstrap.Tab(triggerEl)
+            })
+        });
+
         // رویداد به‌روزرسانی داده‌های تحلیل
         document.getElementById('refresh-analytics').addEventListener('click', function() {
-            // نمایش لودینگ
             this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال به‌روزرسانی...';
             this.disabled = true;
 
-            // ارسال درخواست به سرور برای به‌روزرسانی داده‌های تحلیل
-            fetch('/Analytics/RefreshAnalyticsData', {
-                method: 'POST',
+            fetch('/Dashboard/Analytics', {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
                 }
             })
             .then(response => {
                 if (response.ok) {
-                    // نمایش پیام موفقیت
-                    showNotification('داده‌های تحلیل با موفقیت به‌روزرسانی شد', 'success');
+                    location.reload();
                 } else {
                     throw new Error('خطا در به‌روزرسانی داده‌های تحلیل');
                 }
@@ -206,7 +244,6 @@
                 showNotification('خطا در به‌روزرسانی داده‌های تحلیل', 'danger');
             })
             .finally(() => {
-                // بازگرداندن دکمه به حالت اولیه
                 this.innerHTML = '<i class="fas fa-sync-alt"></i> به‌روزرسانی داده‌ها';
                 this.disabled = false;
             });
@@ -217,65 +254,18 @@
             const notificationContainer = document.getElementById('notification-container');
 
             const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-
-            const icon = getNotificationIcon(type);
-
+            notification.className = `alert alert-${type} alert-dismissible fade show`;
+            notification.setAttribute('role', 'alert');
             notification.innerHTML = `
-                <div class="notification-icon">
-                    <i class="fas ${icon}"></i>
-                </div>
-                <div class="notification-content">
-                    <div class="notification-message">${message}</div>
-                </div>
-                <div class="notification-close">
-                    <button type="button" class="close-notification">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             `;
 
             notificationContainer.appendChild(notification);
 
-            // انیمیشن ورود
-            setTimeout(() => {
-                notification.classList.add('show');
-            }, 100);
-
-            // رویداد بستن اعلان
-            notification.querySelector('.close-notification').addEventListener('click', function() {
-                closeNotification(notification);
-            });
-
-            // حذف خودکار اعلان پس از مدت زمان مشخص
-            setTimeout(() => {
-                closeNotification(notification);
-            }, duration);
-        }
-
-        // تابع برای بستن اعلان
-        function closeNotification(notification) {
-            notification.classList.remove('show');
-            notification.classList.add('hide');
-
             setTimeout(() => {
                 notification.remove();
-            }, 300);
-        }
-
-        // تابع برای دریافت آیکون اعلان
-        function getNotificationIcon(type) {
-            switch (type) {
-                case 'success':
-                    return 'fa-check-circle';
-                case 'error':
-                    return 'fa-exclamation-circle';
-                case 'warning':
-                    return 'fa-exclamation-triangle';
-                case 'info':
-                default:
-                    return 'fa-info-circle';
-            }
+            }, duration);
         }
     </script>
 }

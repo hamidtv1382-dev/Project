@@ -1,4 +1,5 @@
 ﻿using AnalysisCallUser._03_EndPoint.Models.ViewModels.Dashboard;
+using static AnalysisCallUser._01_Domain.Core.DTOs.AnalysisCallUser._01_Domain.Core.DTOs.MapDataDto;
 
 namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Analytics
 {
@@ -12,15 +13,4 @@ namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Analytics
         public List<int> DomesticIntlData { get; set; } = new List<int>();
     }
 
-    public class MapPoint
-    {
-        public double Lat { get; set; }
-        public double Lng { get; set; }
-        public string CountryName { get; set; }
-        public int CallCount { get; set; }
-        public double AvgDuration { get; set; }
-        public double AnswerRate { get; set; }
-        public int IncomingCalls { get; set; }
-        public int OutgoingCalls { get; set; }
-    }
 }
