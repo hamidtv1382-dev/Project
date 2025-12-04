@@ -16,7 +16,7 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
         {
         }
 
-        // پیاده‌سازی متد GetAll
+        // متد GetAll بدون تغییر باقی می‌ماند تا سایر بخش‌های برنامه دچار مشکل نشوند
         public IQueryable<CallDetail> GetAll()
         {
             return _context.CallDetails
@@ -29,80 +29,99 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                 .Include(cd => cd.CallType);
         }
 
+        // متد GetFilteredAsync بدون تغییر باقی می‌ماند
         public async Task<IEnumerable<CallDetail>> GetFilteredAsync(CallFilterDto filter)
         {
-            var query = GetAll(); // استفاده از متد GetAll برای خوانایی بیشتر
+            var query = GetAll()
+                .Select(cd => new
+                {
+                    CallDetail = cd,
+                    FullDateTime = cd.AccountingTime
+                });
 
             if (filter != null)
             {
                 if (filter.StartDate.HasValue)
-                    query = query.Where(cd => cd.AccountingTime_Date >= filter.StartDate.Value);
+                {
+                    var startDateTime =
+                        filter.StartDate.Value.Date +
+                        (filter.StartTime ?? TimeSpan.Zero);
+
+                    query = query.Where(x => x.CallDetail.AccountingTime >= startDateTime);
+                }
 
                 if (filter.EndDate.HasValue)
-                    query = query.Where(cd => cd.AccountingTime_Date <= filter.EndDate.Value);
+                {
+                    var endDateTime =
+                        filter.EndDate.Value.Date +
+                        (filter.EndTime ?? new TimeSpan(23, 59, 59));
 
-                if (filter.StartTime.HasValue)
-                    query = query.Where(cd => cd.AccountingTime_Time >= filter.StartTime.Value);
-
-                if (filter.EndTime.HasValue)
-                    query = query.Where(cd => cd.AccountingTime_Time <= filter.EndTime.Value);
+                    query = query.Where(x => x.FullDateTime <= endDateTime);
+                }
 
                 if (!string.IsNullOrEmpty(filter.ANumber))
-                    query = query.Where(cd => cd.ANumber.Contains(filter.ANumber));
+                    query = query.Where(x => x.CallDetail.ANumber.Contains(filter.ANumber));
 
                 if (!string.IsNullOrEmpty(filter.BNumber))
-                    query = query.Where(cd => cd.BNumber.Contains(filter.BNumber));
+                    query = query.Where(x => x.CallDetail.BNumber.Contains(filter.BNumber));
 
                 if (filter.OriginCountryID.HasValue)
-                    query = query.Where(cd => cd.OriginCountryID == filter.OriginCountryID);
+                    query = query.Where(x => x.CallDetail.OriginCountryID == filter.OriginCountryID);
 
                 if (filter.DestCountryID.HasValue)
-                    query = query.Where(cd => cd.DestCountryID == filter.DestCountryID);
+                    query = query.Where(x => x.CallDetail.DestCountryID == filter.DestCountryID);
 
                 if (filter.OriginCityID.HasValue)
-                    query = query.Where(cd => cd.OriginCityID == filter.OriginCityID);
+                    query = query.Where(x => x.CallDetail.OriginCityID == filter.OriginCityID);
 
                 if (filter.DestCityID.HasValue)
-                    query = query.Where(cd => cd.DestCityID == filter.DestCityID);
+                    query = query.Where(x => x.CallDetail.DestCityID == filter.DestCityID);
 
                 if (filter.OriginOperatorID.HasValue)
-                    query = query.Where(cd => cd.OriginOperatorID == filter.OriginOperatorID);
+                    query = query.Where(x => x.CallDetail.OriginOperatorID == filter.OriginOperatorID);
 
                 if (filter.DestOperatorID.HasValue)
-                    query = query.Where(cd => cd.DestOperatorID == filter.DestOperatorID);
+                    query = query.Where(x => x.CallDetail.DestOperatorID == filter.DestOperatorID);
 
                 if (filter.TypeID.HasValue)
-                    query = query.Where(cd => cd.TypeID == filter.TypeID);
+                    query = query.Where(x => x.CallDetail.TypeID == filter.TypeID);
 
                 if (filter.Answer.HasValue)
-                    query = query.Where(cd => cd.Answer == filter.Answer.Value);
+                    query = query.Where(x => x.CallDetail.Answer == filter.Answer);
             }
 
             return await query
-                .OrderByDescending(cd => cd.AccountingTime_Date)
-                .ThenByDescending(cd => cd.AccountingTime_Time)
+                .OrderByDescending(x => x.FullDateTime)
                 .Skip((filter.Page - 1) * filter.PageSize)
                 .Take(filter.PageSize)
+                .Select(x => x.CallDetail)
                 .ToListAsync();
         }
 
+        // متد GetFilteredCountAsync بدون تغییر باقی می‌ماند
         public async Task<int> GetFilteredCountAsync(CallFilterDto filter)
         {
-            var query = GetAll(); // استفاده از متد GetAll برای خوانایی بیشتر
+            var query = GetAll();
 
             if (filter != null)
             {
                 if (filter.StartDate.HasValue)
-                    query = query.Where(cd => cd.AccountingTime_Date >= filter.StartDate.Value);
+                {
+                    var startDateTime =
+                        filter.StartDate.Value.Date +
+                        (filter.StartTime ?? TimeSpan.Zero);
+
+                    query = query.Where(cd => cd.AccountingTime >= startDateTime);
+                }
 
                 if (filter.EndDate.HasValue)
-                    query = query.Where(cd => cd.AccountingTime_Date <= filter.EndDate.Value);
+                {
+                    var endDateTime =
+                        filter.EndDate.Value.Date +
+                        (filter.EndTime ?? new TimeSpan(23, 59, 59));
 
-                if (filter.StartTime.HasValue)
-                    query = query.Where(cd => cd.AccountingTime_Time >= filter.StartTime.Value);
-
-                if (filter.EndTime.HasValue)
-                    query = query.Where(cd => cd.AccountingTime_Time <= filter.EndTime.Value);
+                    query = query.Where(cd => cd.AccountingTime <= endDateTime);
+                }
 
                 if (!string.IsNullOrEmpty(filter.ANumber))
                     query = query.Where(cd => cd.ANumber.Contains(filter.ANumber));
@@ -136,6 +155,15 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
             }
 
             return await query.CountAsync();
+        }
+        // این متد جدید برای حل مشکل NullReferenceException اضافه می‌شود
+        public async Task<CallDetail> GetByIdAsync(int id)
+        {
+            // برای این متد، فقط روابط مورد نیاز را Include می‌کنیم تا کوئری بهینه باشد
+            return await _context.CallDetails
+                .Include(cd => cd.OriginCountry)
+                .Include(cd => cd.DestCountry)
+                .FirstOrDefaultAsync(cd => cd.DetailID == id);
         }
     }
 }

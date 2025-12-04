@@ -341,8 +341,7 @@ namespace AnalysisCallUser.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ANumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     BNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    AccountingTime_Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    AccountingTime_Time = table.Column<TimeSpan>(type: "time", nullable: false),
+                    AccountingTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Length = table.Column<int>(type: "int", nullable: false),
                     OriginCountryID = table.Column<int>(type: "int", nullable: false),
                     OriginCityID = table.Column<int>(type: "int", nullable: false),
@@ -351,8 +350,7 @@ namespace AnalysisCallUser.Migrations
                     DestCityID = table.Column<int>(type: "int", nullable: false),
                     DestOperatorID = table.Column<int>(type: "int", nullable: false),
                     TypeID = table.Column<int>(type: "int", nullable: false),
-                    AccountingTime_SH_Date = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    AccountingTime_SH_Time = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
+                    AccountingTime_SH = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Answer = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>

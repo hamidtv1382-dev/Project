@@ -1,90 +1,113 @@
-﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Call.CallFilterViewModel
-
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Call.CallSearchViewModel
 @{
     ViewData["Title"] = "جستجوی تماس";
 }
 
-<div class="call-search-container">
-    <div class="page-header">
-        <h3>جستجوی تماس</h3>
-    </div>
-
+<div class="container-fluid">
     <div class="row">
         <div class="col-md-3">
-            <div class="filter-panel">
-                <div class="filter-header">
+            <div class="card">
+                <div class="card-header">
                     <h4>فیلترها</h4>
                 </div>
-                <div class="filter-body">
+                <div class="card-body">
                     <form asp-action="Search" method="post" id="filter-form">
+                        @Html.AntiForgeryToken()
+
+                        <!-- فیلدهای تاریخ -->
                         <div class="filter-section">
-                            <h5>بازه زمانی</h5>
-                            <div class="fields-container">
-                                <div class="form-group">
-                                    <label asp-for="StartDate" class="control-label"></label>
-                                    <input asp-for="StartDate" class="form-control" type="date" />
+                            <div class="filter-section-title">بازه زمانی</div>
+                            <div class="filter-row">
+                                <div class="filter-field">
+                                    <label asp-for="Filter.StartDate" class="form-label"></label>
+                                    <input asp-for="Filter.StartDate" type="date" class="form-control" />
                                 </div>
-                                <div class="form-group">
-                                    <label asp-for="EndDate" class="control-label"></label>
-                                    <input asp-for="EndDate" class="form-control" type="date" />
-                                </div>
-                                <div class="form-group">
-                                    <label asp-for="StartTime" class="control-label"></label>
-                                    <input asp-for="StartTime" class="form-control" type="time" />
-                                </div>
-                                <div class="form-group">
-                                    <label asp-for="EndTime" class="control-label"></label>
-                                    <input asp-for="EndTime" class="form-control" type="time" />
+                                <div class="filter-field">
+                                    <label asp-for="Filter.EndDate" class="form-label"></label>
+                                    <input asp-for="Filter.EndDate" type="date" class="form-control" />
                                 </div>
                             </div>
                         </div>
 
+                        <!-- فیلدهای مبدأ -->
                         <div class="filter-section">
-                            <h5>شماره تماس</h5>
-                            <div class="fields-container">
-                                <div class="form-group">
-                                    <label asp-for="ANumber" class="control-label"></label>
-                                    <input asp-for="ANumber" class="form-control" placeholder="شماره تماس مبدأ" />
-                                </div>
-                                <div class="form-group">
-                                    <label asp-for="BNumber" class="control-label"></label>
-                                    <input asp-for="BNumber" class="form-control" placeholder="شماره تماس مقصد" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="filter-section">
-                            <h5>موقعیت جغرافیایی</h5>
-                            <div class="fields-container">
-                                <div class="form-group">
-                                    <label asp-for="OriginCountryID" class="control-label"></label>
-                                    <select asp-for="OriginCountryID" class="form-control" asp-items="ViewBag.Countries">
+                            <div class="filter-section-title">مبدأ</div>
+                            <div class="filter-row">
+                                <div class="filter-field">
+                                    <label asp-for="Filter.OriginCountryID" class="form-label"></label>
+                                    <select asp-for="Filter.OriginCountryID" class="form-select" id="origin-country-select">
                                         <option value="">انتخاب کنید</option>
+                                        @if (Model.Countries != null)
+                                        {
+                                            @foreach (var country in Model.Countries)
+                                            {
+                                                <option value="@country.CountryID">@country.CountryName</option>
+                                            }
+                                        }
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label asp-for="DestCountryID" class="control-label"></label>
-                                    <select asp-for="DestCountryID" class="form-control" asp-items="ViewBag.Countries">
-                                        <option value="">انتخاب کنید</option>
+                                <div class="filter-field">
+                                    <label asp-for="Filter.OriginCityID" class="form-label"></label>
+                                    <select asp-for="Filter.OriginCityID" class="form-select" id="origin-city-select" disabled>
+                                        <option value="">ابتدا کشور را انتخاب کنید</option>
                                     </select>
                                 </div>
                             </div>
+                            <div class="filter-row">
+                                <div class="filter-field">
+                                    <label asp-for="Filter.ANumber" class="form-label"></label>
+                                    <input asp-for="Filter.ANumber" class="form-control" placeholder="شماره مبدأ را وارد کنید" />
+                                </div>
+                            </div>
                         </div>
 
+                        <!-- فیلدهای مقصد -->
                         <div class="filter-section">
-                            <h5>سایر فیلترها</h5>
-                            <div class="fields-container">
-                                <div class="form-group">
-                                    <label asp-for="Answer" class="control-label"></label>
-                                    <select asp-for="Answer" class="form-control">
+                            <div class="filter-section-title">مقصد</div>
+                            <div class="filter-row">
+                                <div class="filter-field">
+                                    <label asp-for="Filter.DestCountryID" class="form-label"></label>
+                                    <select asp-for="Filter.DestCountryID" class="form-select" id="dest-country-select">
+                                        <option value="">انتخاب کنید</option>
+                                        @if (Model.Countries != null)
+                                        {
+                                            @foreach (var country in Model.Countries)
+                                            {
+                                                <option value="@country.CountryID">@country.CountryName</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="filter-field">
+                                    <label asp-for="Filter.DestCityID" class="form-label"></label>
+                                    <select asp-for="Filter.DestCityID" class="form-select" id="dest-city-select" disabled>
+                                        <option value="">ابتدا کشور را انتخاب کنید</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-field">
+                                    <label asp-for="Filter.BNumber" class="form-label"></label>
+                                    <input asp-for="Filter.BNumber" class="form-control" placeholder="شماره مقصد را وارد کنید" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- فیلدهای دیگر -->
+                        <div class="filter-section">
+                            <div class="filter-section-title">سایر فیلترها</div>
+                            <div class="filter-row">
+                                <div class="filter-field">
+                                    <label asp-for="Filter.Answer" class="form-label"></label>
+                                    <select asp-for="Filter.Answer" class="form-select">
                                         <option value="">همه</option>
-                                        <option value="true">پاسخ داده شده</option>
-                                        <option value="false">پاسخ داده نشده</option>
+                                        <option value="@AnalysisCallUser._01_Domain.Core.Enums.CallAnswerStatus.Answered">پاسخ داده شده</option>
+                                        <option value="@AnalysisCallUser._01_Domain.Core.Enums.CallAnswerStatus.NotAnswered">پاسخ داده نشده</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label asp-for="PageSize" class="control-label"></label>
-                                    <select asp-for="PageSize" class="form-control">
+                                <div class="filter-field">
+                                    <label asp-for="Filter.PageSize" class="form-label"></label>
+                                    <select asp-for="Filter.PageSize" class="form-select">
                                         <option value="10">10</option>
                                         <option value="25">25</option>
                                         <option value="50" selected>50</option>
@@ -94,61 +117,30 @@
                             </div>
                         </div>
 
-                        <div class="filter-actions">
-                            <button type="submit" class="btn btn-primary btn-block">جستجو</button>
-                            <button type="button" id="reset-filter" class="btn btn-secondary btn-block">بازنشانی</button>
+                        <!-- دکمه‌ها -->
+                        <div class="filter-row">
+                            <button type="submit" class="btn btn-primary flex-fill">
+                                <i class="fas fa-search"></i> جستجو
+                            </button>
+                            <button type="button" id="reset-filter" class="btn btn-secondary flex-fill">بازنشانی</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-
         <div class="col-md-9">
-            <div id="search-results">
-                <div class="text-center p-4">
-                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را انتخاب کرده و روی دکمه جستجو کلیک کنید.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exportModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exportModalLabel">خروجی داده‌ها</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="export-form">
-                    <div class="form-group">
-                        <label for="export-type">نوع خروجی:</label>
-                        <select id="export-type" class="form-control">
-                            <option value="CSV">CSV</option>
-                            <option value="Excel">Excel</option>
-                            <option value="JSON">JSON</option>
-                        </select>
+            <div id="search-results-container">
+                @if (Model.Results != null)
+                {
+                    <partial name="_SearchResults" model="Model.Results" />
+                }
+                else
+                {
+                    <div class="text-center p-4">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p>
                     </div>
-                    <div class="form-group">
-                        <label for="export-count">تعداد رکوردها:</label>
-                        <select id="export-count" class="form-control">
-                            <option value="100">100</option>
-                            <option value="500">500</option>
-                            <option value="1000">1000</option>
-                            <option value="5000">5000</option>
-                            <option value="all">همه</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
-                <button type="button" id="export-btn" class="btn btn-primary">دریافت خروجی</button>
+                }
             </div>
         </div>
     </div>
@@ -156,100 +148,112 @@
 
 @section Scripts {
     <script>
-        document.getElementById('reset-filter').addEventListener('click', function() {
-            document.getElementById('filter-form').reset();
-        });
+        document.addEventListener('DOMContentLoaded', function () {
+            const originCountrySelect = document.getElementById('origin-country-select');
+            const originCitySelect = document.getElementById('origin-city-select');
+            const destCountrySelect = document.getElementById('dest-country-select');
+            const destCitySelect = document.getElementById('dest-city-select');
 
-        document.getElementById('export-btn').addEventListener('click', function() {
-            const exportType = document.getElementById('export-type').value;
-            const exportCount = document.getElementById('export-count').value;
+            // تابع برای بارگذاری شهرها
+            async function loadCities(countrySelect, citySelect) {
+                const countryId = countrySelect.value;
+                citySelect.innerHTML = '<option value="">در حال بارگذاری...</option>';
+                citySelect.disabled = true;
 
-            // دریافت فیلترهای فعلی از فرم
-            const formData = new FormData(document.getElementById('filter-form'));
-            const filterParams = new URLSearchParams();
+                if (!countryId) {
+                    citySelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
+                    citySelect.disabled = true;
+                    return;
+                }
 
-            for (const pair of formData.entries()) {
-                if (pair[1]) {
-                    filterParams.append(pair[0], pair[1]);
+                try {
+                    const response = await fetch(`/Call/GetCities?countryId=${countryId}`);
+                    if (!response.ok) throw new Error('Network response was not ok.');
+                    const cities = await response.json();
+
+                    citySelect.innerHTML = '<option value="">انتخاب کنید</option>';
+                    cities.forEach(city => {
+                        const option = new Option(city.cityName, city.cityID);
+                        citySelect.add(option);
+                    });
+                    citySelect.disabled = false;
+                } catch (error) {
+                    console.error('Error loading cities:', error);
+                    citySelect.innerHTML = '<option value="">خطا در بارگذاری</option>';
                 }
             }
 
-            // افزودن پارامترهای خروجی
-            filterParams.append('exportType', exportType);
-            filterParams.append('exportCount', exportCount);
+            // رویداد برای کشور مبدأ
+            originCountrySelect.addEventListener('change', () => loadCities(originCountrySelect, originCitySelect));
+            // رویداد برای کشور مقصد
+            destCountrySelect.addEventListener('change', () => loadCities(destCountrySelect, destCitySelect));
 
-            // ارسال درخواست خروجی
-            window.location.href = '/Export/RequestExport?' + filterParams.toString();
+            // اگر در حالت POST-back هستیم و کشور انتخاب شده، شهرها را بارگذاری کن
+            const originCountryId = '@Model.Filter.OriginCountryID';
+            const destCountryId = '@Model.Filter.DestCountryID';
 
-            // بستن مودال
-            $('#exportModal').modal('hide');
-        });
-
-        document.getElementById('filter-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(this);
-            const filterParams = new URLSearchParams();
-
-            for (const pair of formData.entries()) {
-                if (pair[1]) {
-                    filterParams.append(pair[0], pair[1]);
-                }
+            if (originCountryId && originCountryId !== '') { // اضافه کردن شرط برای اطمینان از وجود مقدار
+                loadCities(originCountrySelect, originCitySelect).then(() => {
+                    originCitySelect.value = '@Model.Filter.OriginCityID';
+                });
+            }
+            if (destCountryId && destCountryId !== '') { // اضافه کردن شرط برای اطمینان از وجود مقدار
+                loadCities(destCountrySelect, destCitySelect).then(() => {
+                    destCitySelect.value = '@Model.Filter.DestCityID';
+                });
             }
 
-            // نمایش لودینگ
-            document.getElementById('search-results').innerHTML = `
-                <div class="text-center p-4">
-                    <div class="spinner-border" role="status">
-                        <span class="sr-only">در حال بارگذاری...</span>
-                    </div>
-                    <p class="mt-2">در حال جستجو...</p>
-                </div>
-            `;
-
-            // ارسال درخواست AJAX
-            fetch('/Call/Search?' + filterParams.toString(), {
-                method: 'POST',
-                headers: {
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                }
-            })
-            .then(response => response.text())
-            .then(html => {
-                // جایگزینی محتوای نتایج جستجو
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const resultsContainer = doc.getElementById('search-results');
-
-                if (resultsContainer) {
-                    document.getElementById('search-results').innerHTML = resultsContainer.innerHTML;
-                } else {
-                    document.getElementById('search-results').innerHTML = `
-                        <div class="alert alert-danger">
-                            خطا در دریافت نتایج جستجو
-                        </div>
-                    `;
-                }
-
-                // اضافه کردن دکمه خروجی اگر نتایج وجود داشته باشد
-                if (doc.querySelector('.table tbody tr')) {
-                    const exportButton = document.createElement('button');
-                    exportButton.className = 'btn btn-success mt-3';
-                    exportButton.innerHTML = '<i class="fas fa-download"></i> خروجی داده‌ها';
-                    exportButton.setAttribute('data-toggle', 'modal');
-                    exportButton.setAttribute('data-target', '#exportModal');
-
-                    const resultsContainer = document.getElementById('search-results');
-                    resultsContainer.appendChild(exportButton);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('search-results').innerHTML = `
-                    <div class="alert alert-danger">
-                        خطا در ارتباط با سرور
+            // ... بقیه اسکریپت‌های جستجو و ریست (بدون تغییر) ...
+            document.getElementById('reset-filter').addEventListener('click', function() {
+                document.getElementById('filter-form').reset();
+                originCitySelect.disabled = true;
+                originCitySelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
+                destCitySelect.disabled = true;
+                destCitySelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
+                document.getElementById('search-results-container').innerHTML = `
+                    <div class="text-center p-4">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p>
                     </div>
                 `;
+            });
+
+            document.getElementById('filter-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const filterParams = new URLSearchParams();
+                for (const pair of formData.entries()) {
+                    if (pair[1]) {
+                        filterParams.append(pair[0], pair[1]);
+                    }
+                }
+                document.getElementById('search-results-container').innerHTML = `
+                    <div class="text-center p-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">در حال بارگذاری...</span>
+                        </div>
+                        <p class="mt-2">در حال جستجو...</p>
+                    </div>
+                `;
+                fetch('/Call/Search?' + filterParams.toString(), {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('search-results-container').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('search-results-container').innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            خطا در دریافت نتایج جستجو. لطفاً دوباره تلاش کنید.
+                        </div>
+                    `;
+                });
             });
         });
     </script>

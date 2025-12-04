@@ -1,80 +1,51 @@
-﻿@using AnalysisCallUser._01_Domain.Core.Enums
-@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Call.CallDetailsViewModel
-
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Call.CallDetailsViewModel
 @{
     ViewData["Title"] = "جزئیات تماس";
 }
 
-<div class="call-details-container">
-    <div class="page-header">
-        <h3>جزئیات تماس</h3>
-        <div class="page-actions">
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">جزئیات تماس</h4>
             <a asp-action="Search" class="btn btn-secondary">
-                <i class="fas fa-arrow-right"></i> بازگشت به جستجو
+                <i class="fas fa-arrow-left"></i> بازگشت به جستجو
             </a>
         </div>
-    </div>
-
-    <div class="card">
-        <div class="card-header">
-            <h5>اطلاعات تماس</h5>
-        </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <table class="table table-borderless">
-                        <tr>
-                            <th width="30%">شناسه تماس:</th>
-                            <td>@Model.DetailID</td>
-                        </tr>
-                        <tr>
-                            <th>شماره مبدأ:</th>
-                            <td>@Model.ANumber</td>
-                        </tr>
-                        <tr>
-                            <th>شماره مقصد:</th>
-                            <td>@Model.BNumber</td>
-                        </tr>
-                        <tr>
-                            <th>تاریخ:</th>
-                            <td>@Model.AccountingTime_Date.ToString("yyyy/MM/dd")</td>
-                        </tr>
-                        <tr>
-                            <th>زمان:</th>
-                            <td>@Model.AccountingTime_Time.ToString(@"hh\:mm\:ss")</td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="col-md-6">
-                    <table class="table table-borderless">
-                        <tr>
-                            <th width="30%">مدت تماس (ثانیه):</th>
-                            <td>@Model.Length</td>
-                        </tr>
-                        <tr>
-                            <th>کشور مبدأ:</th>
-                            <td>@Model.OriginCountryName</td>
-                        </tr>
-                        <tr>
-                            <th>کشور مقصد:</th>
-                            <td>@Model.DestCountryName</td>
-                        </tr>
-                        <tr>
-                            <th>وضعیت پاسخ:</th>
-                            <td>
-                                @if (Model.Answer == CallAnswerStatus.Answered)
-                                {
-                                    <span class="badge bg-success">پاسخ داده شده</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">پاسخ داده نشده</span>
-                                }
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
+            <dl class="row">
+                <dt class="col-sm-3">شناسه تماس:</dt>
+                <dd class="col-sm-9">@Model.DetailID</dd>
+
+                <dt class="col-sm-3">شماره مبدأ:</dt>
+                <dd class="col-sm-9">@Model.ANumber</dd>
+
+                <dt class="col-sm-3">شماره مقصد:</dt>
+                <dd class="col-sm-9">@Model.BNumber</dd>
+
+                <dt class="col-sm-3">زمان تماس:</dt>
+                <dd class="col-sm-9">@Model.AccountingTime.ToString("yyyy/MM/dd HH:mm:ss")</dd>
+
+                <dt class="col-sm-3">مدت زمان:</dt>
+                <dd class="col-sm-9">@Model.Length ثانیه</dd>
+
+                <dt class="col-sm-3">کشور مبدأ:</dt>
+                <dd class="col-sm-9">@Model.OriginCountryName</dd>
+
+                <dt class="col-sm-3">کشور مقصد:</dt>
+                <dd class="col-sm-9">@Model.DestCountryName</dd>
+
+                <dt class="col-sm-3">وضعیت:</dt>
+                <dd class="col-sm-9">
+                    @if (Model.Answer == AnalysisCallUser._01_Domain.Core.Enums.CallAnswerStatus.Answered)
+                    {
+                        <span class="badge bg-success fs-6">پاسخ داده شده</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger fs-6">پاسخ داده نشده</span>
+                    }
+                </dd>
+            </dl>
         </div>
     </div>
 </div>

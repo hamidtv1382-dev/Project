@@ -60,8 +60,8 @@ namespace AnalysisCallUser._01_Domain.Services
             // دریافت تماس‌های 30 روز گذشته گروه‌بندی شده بر اساس روز
             var thirtyDaysAgo = DateTime.Today.AddDays(-30);
             var recentActivityQuery = _unitOfWork.CallDetails.GetAll()
-                .Where(cd => cd.AccountingTime_Date >= thirtyDaysAgo)
-                .GroupBy(cd => cd.AccountingTime_Date.Date)
+                .Where(cd => cd.AccountingTime >= thirtyDaysAgo)
+                .GroupBy(cd => cd.AccountingTime.Date)
                 .Select(g => new { Date = g.Key, Count = g.Count() })
                 .OrderBy(g => g.Date);
 
@@ -81,16 +81,14 @@ namespace AnalysisCallUser._01_Domain.Services
         private async Task<IEnumerable<CallDetailDto>> GetRecentCallsAsync(int count)
         {
             var recentCallsQuery = _unitOfWork.CallDetails.GetAll()
-                .OrderByDescending(cd => cd.AccountingTime_Date)
-                .ThenByDescending(cd => cd.AccountingTime_Time)
+                .OrderByDescending(cd => cd.AccountingTime)
                 .Take(count)
                 .Select(cd => new CallDetailDto
                 {
                     DetailID = cd.DetailID,
                     ANumber = cd.ANumber,
                     BNumber = cd.BNumber,
-                    AccountingTime_Date = cd.AccountingTime_Date,
-                    AccountingTime_Time = cd.AccountingTime_Time,
+                    AccountingTime = cd.AccountingTime,
                     Length = cd.Length,
                     OriginCountryName = cd.OriginCountry.CountryName,
                     DestCountryName = cd.DestCountry.CountryName,

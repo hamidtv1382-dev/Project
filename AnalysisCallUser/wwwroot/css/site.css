@@ -1,213 +1,2424 @@
-@charset "UTF-8";
+/* =============================================
+   فونت‌ها و متغیرهای کلی (CSS Variables)
+   ============================================= */
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap');
 
 :root {
-    /* ========== Core Palette & Brand Colors ========== */
-    --primary-color: #4a6cf7;
-    --primary-hover: #3451d4;
-    --primary-light: #e8efff;
-    --secondary-color: #6c757d;
-    --accent-color: #17a2b8;
-    --success-color: #28a745;
-    --warning-color: #ffc107;
-    --danger-color: #dc3545;
-    --info-color: #17a2b8;
-    /* ========== Semantic Colors ========== */
-    --body-bg: #f8f9fa;
-    --content-bg: #ffffff;
-    --card-bg: #ffffff;
-    --header-bg: #ffffff;
-    --footer-bg: #f1f3f5;
-    --sidebar-bg: #ffffff;
-    --border-color: #dee2e6;
-    --divider-color: #e9ecef;
-    /* ========== Text Colors ========== */
-    --text-primary: #212529;
-    --text-secondary: #6c757d;
-    --text-muted: #adb5bd;
-    --text-inverse: #ffffff;
-    --text-link: var(--primary-color);
-    --text-link-hover: var(--primary-hover);
-    /* ========== Component Specific Colors ========== */
-    --input-bg: #ffffff;
-    --input-border: #ced4da;
-    --input-focus-border: var(--primary-color);
-    --input-focus-shadow: 0 0 0 0.2rem rgba(74, 108, 247, 0.25);
-    --button-text: #ffffff;
-    --button-disabled-bg: #e9ecef;
-    --button-disabled-text: #6c757d;
-    /* ========== Shadows & Effects ========== */
-    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
-    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    --header-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    --sidebar-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    /* ========== Fonts & Typography ========== */
-    --font-family-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    --font-family-monospace: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-    --font-size-base: 0.9rem;
-    --font-size-lg: 1.125rem;
-    --font-size-sm: 0.875rem;
-    --font-weight-light: 300;
-    --font-weight-normal: 400;
-    --font-weight-medium: 500;
-    --font-weight-semibold: 600;
-    --font-weight-bold: 700;
-    --line-height-base: 1.5;
-    --line-height-sm: 1.25;
-    /* ========== Spacing & Layout ========== */
-    --border-radius: 0.375rem;
-    --border-radius-lg: 0.5rem;
-    --border-radius-sm: 0.25rem;
-    --sidebar-width: 280px;
-    --header-height: 65px;
-    --footer-height: 60px;
+    --bg-gradient-start: #1a1a2e;
+    --bg-gradient-end: #16213e;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --primary-color: #00adb5;
+    --primary-color-hover: #00c9d1;
+    --danger-color: #ff4d4d;
+    --success-color: #4caf50;
+    --warning-color: #ffce56;
+    --info-color: #9966ff;
+    --input-bg: rgba(255, 255, 255, 0.07);
+    --input-border: rgba(255, 255, 255, 0.2);
+    --logo-glow-color: #00d4ff;
+    --shadow-glow-primary: 0 0 20px rgba(0, 173, 181, 0.5);
+    --shadow-glow-success: 0 0 20px rgba(76, 175, 80, 0.5);
+    --shadow-glow-warning: 0 0 20px rgba(255, 206, 86, 0.5);
+    --shadow-glow-info: 0 0 20px rgba(153, 102, 255, 0.5);
 }
 
-/* ========== Global Body & Layout Reset ========== */
+/* =============================================
+   استایل‌های پایه و عمومی (Base & Global Styles)
+   ============================================= */
 body {
-    font-family: var(--font-family-sans);
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-normal);
-    line-height: var(--line-height-base);
+    font-family: 'Vazirmatn', sans-serif;
+    background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
     color: var(--text-primary);
-    background-color: var(--body-bg);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-/* ========== Main Layout Structure ========== */
-.main-content {
-    padding-top: var(--header-height);
     min-height: 100vh;
+    margin: 0;
 }
 
-.sidebar {
+/* --- پس‌زمینه متحرک با ذرات نورانی --- */
+.animated-bg {
     position: fixed;
+    width: 100%;
+    height: 100%;
     top: 0;
     left: 0;
-    height: 100vh;
-    width: var(--sidebar-width);
-    background-color: var(--sidebar-bg);
-    box-shadow: var(--sidebar-shadow);
+    z-index: -1;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    animation: float 20s infinite;
+}
+
+    .particle:nth-child(1) {
+        left: 10%;
+        animation-delay: 0s;
+    }
+
+    .particle:nth-child(2) {
+        left: 20%;
+        animation-delay: 2s;
+        width: 6px;
+        height: 6px;
+        animation-duration: 22s;
+    }
+
+    .particle:nth-child(3) {
+        left: 30%;
+        animation-delay: 4s;
+    }
+
+    .particle:nth-child(4) {
+        left: 40%;
+        animation-delay: 1s;
+        width: 5px;
+        height: 5px;
+        animation-duration: 19s;
+    }
+
+    .particle:nth-child(5) {
+        left: 50%;
+        animation-delay: 3s;
+    }
+
+    .particle:nth-child(6) {
+        left: 60%;
+        animation-delay: 5s;
+    }
+
+    .particle:nth-child(7) {
+        left: 70%;
+        animation-delay: 7s;
+        width: 3px;
+        height: 3px;
+        animation-duration: 25s;
+    }
+
+/* =============================================
+   کامپوننت‌های اصلی لایه (Layout Components)
+   ============================================= */
+
+/* --- هدر و نوار بالایی (Navbar) --- */
+header {
+    position: sticky;
+    top: 0;
     z-index: 1030;
-    transition: transform 0.3s ease-in-out;
+    height: 80px; /* ارتفاع ثابت هدر */
+    display: flex;
+    align-items: center; /* لوگو و محتوا وسط چین عمودی */
+    background: var(--card-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 1px solid var(--card-border);
 }
 
-    .sidebar.collapsed {
-        transform: translateX(-100%);
+.navbar {
+    padding: 0 20px; /* padding داخلی کم برای ارتفاع کمتر */
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.navbar-logo-wrapper {
+    width: 60px; /* اندازه لوگو ثابت */
+    height: 60px;
+}
+
+
+.navbar-brand {
+    color: var(--text-primary) !important;
+    font-weight: 700;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    gap: 15px; /* افزایش فاصله بین لوگو و متن */
+    transition: all 0.3s ease;
+}
+
+    .navbar-brand:hover {
+        transform: scale(1.02);
     }
 
-.main-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: var(--header-height);
-    background-color: var(--header-bg);
-    box-shadow: var(--header-shadow);
-    z-index: 1020;
+/* استایل برای لوگوی داخل ناوبری */
+.navbar-logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.main-footer {
-    background-color: var(--footer-bg);
-    padding: 1rem 0;
-    margin-top: 2rem;
-    border-top: 1px solid var(--border-color);
+.navbar-logo-wrapper {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: navbarLogoPulse 10s ease-in-out infinite;
 }
 
-.content-wrapper {
-    margin-left: var(--sidebar-width);
-    padding: 2rem;
-    transition: margin-left 0.3s ease-in-out;
-}
-
-    .content-wrapper.full-width {
-        margin-left: 0;
+    .navbar-logo-wrapper::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: 12px;
+        padding: 2px;
+        background: conic-gradient(from 0deg, transparent, var(--logo-glow-color), transparent, var(--logo-glow-color), transparent);
+        animation: logoGlowRotate 4s linear infinite;
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
     }
 
-/* ========== Card Component ========== */
-.card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    margin-bottom: 1.5rem;
+.navbar-logo-image {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    border-radius: 8px;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 0 5px rgba(0, 173, 181, 0.4));
 }
 
-.card-header {
-    background-color: var(--content-bg);
-    border-bottom: 1px solid var(--border-color);
-    padding: 1rem 1.25rem;
-    font-weight: var(--font-weight-semibold);
+/* استایل برای لینک‌های منو */
+.navbar-nav .nav-link {
+    color: var(--text-secondary) !important;
+    font-weight: 500;
+    margin: 0 8px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
 }
 
-.card-body {
-    padding: 1.25rem;
-}
-
-/* ========== Button Component ========== */
-.btn {
-    font-weight: var(--font-weight-medium);
-    text-transform: none;
-    border-radius: var(--border-radius);
-    padding: 0.5rem 1rem;
-    transition: all 0.2s ease-in-out;
-}
-
-.btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-    color: var(--button-text);
-}
-
-    .btn-primary:hover {
-        background-color: var(--primary-hover);
-        border-color: var(--primary-hover);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow);
+    .navbar-nav .nav-link:hover {
+        color: var(--primary-color) !important;
+        background-color: rgba(0, 173, 181, 0.1);
     }
 
-.btn-secondary {
-    background-color: var(--secondary-color);
-    border-color: var(--secondary-color);
-    color: var(--button-text);
+        .navbar-nav .nav-link.active,
+        .navbar-nav .nav-link:hover::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+/* استایل برای منوی کاربر (Login Partial) */
+.navbar-nav .dropdown-menu {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
 }
 
-.btn-outline-primary {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
+.navbar-nav .dropdown-item {
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
 }
 
-    .btn-outline-primary:hover {
-        color: var(--button-text);
+    .navbar-nav .dropdown-item:hover {
         background-color: var(--primary-color);
+        color: #fff;
     }
 
-/* ========== Form Component ========== */
-.form-control {
-    background-color: var(--input-bg);
-    border: 1px solid var(--input-border);
-    border-radius: var(--border-radius);
-    color: var(--text-primary);
+/* --- کانتینر اصلی داشبورد --- */
+.dashboard-container {
+    padding: 30px 20px;
+    animation: fadeIn 1s ease-out;
 }
 
-    .form-control:focus {
-        border-color: var(--input-focus-border);
-        box-shadow: var(--input-focus-shadow);
-        outline: 0;
+/* --- فوتر --- */
+footer {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--card-border) !important;
+    color: var(--text-secondary);
+    padding: 20px 0;
+    margin-top: 40px;
+}
+
+    footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: color 0.3s ease;
     }
 
-/* ========== Table Component ========== */
+        footer a:hover {
+            color: var(--primary-color-hover);
+            text-decoration: underline;
+        }
+
+/* =============================================
+   کامپوننت‌های قابل استفاده مجدد (Reusable Components)
+   ============================================= */
+
+/* --- کارت‌های آماری (Stat Cards) --- */
+.stat-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid var(--card-border);
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    animation: slideUp 0.6s ease-out;
+    animation-fill-mode: both;
+    position: relative;
+    overflow: hidden;
+}
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        border-color: var(--primary-color);
+    }
+
+    .stat-card:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .stat-card:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .stat-card:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .stat-card:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    margin-left: 20px;
+    background: rgba(0, 173, 181, 0.2);
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    background: var(--primary-color);
+    color: #fff;
+    box-shadow: var(--shadow-glow-primary);
+}
+
+.stat-icon.answered {
+    background: rgba(76, 175, 80, 0.2);
+    color: var(--success-color);
+}
+
+.stat-icon.duration {
+    background: rgba(255, 206, 86, 0.2);
+    color: var(--warning-color);
+}
+
+.stat-icon.rate {
+    background: rgba(153, 102, 255, 0.2);
+    color: var(--info-color);
+}
+
+.stat-card:hover .stat-icon.answered {
+    background: var(--success-color);
+    box-shadow: var(--shadow-glow-success);
+}
+
+.stat-card:hover .stat-icon.duration {
+    background: var(--warning-color);
+    box-shadow: var(--shadow-glow-warning);
+}
+
+.stat-card:hover .stat-icon.rate {
+    background: var(--info-color);
+    box-shadow: var(--shadow-glow-info);
+}
+
+.stat-content h3 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.stat-content p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* --- کانتینرهای نمودار و جدول --- */
+.chart-container, .table-container {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid var(--card-border);
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.8s ease-out;
+    animation-fill-mode: both;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+    .chart-container::before, .table-container::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: conic-gradient(from 0deg, transparent, var(--primary-color), transparent);
+        border-radius: 15px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: -1;
+    }
+
+    .chart-container:hover::before, .table-container:hover::before {
+        opacity: 0.7;
+        filter: blur(5px);
+    }
+
+.chart-container {
+    animation-delay: 0.5s;
+}
+
+.table-container {
+    animation-delay: 0.7s;
+}
+
+    .chart-container h4, .table-container h4 {
+        font-weight: 600;
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+    }
+
+/* --- جداول (Tables) --- */
 .table {
     color: var(--text-primary);
 }
 
     .table thead th {
-        border-bottom: 2px solid var(--border-color);
-        font-weight: var(--font-weight-semibold);
+        border-bottom: 2px solid var(--card-border);
+        color: var(--text-secondary) !important; /* رنگ هدر جدول */
+        font-weight: 500;
+        font-size: 14px;
     }
 
-    .table tbody tr:hover {
-        background-color: var(--primary-light);
+    .table tbody tr {
+        transition: all 0.2s ease;
+        border-radius: 8px;
     }
+
+        .table tbody tr:hover {
+            background-color: rgba(0, 173, 181, 0.1); /* رنگ پس‌زمینه در هاور */
+            transform: scale(1.01);
+        }
+
+    .table td, .table th {
+        border-color: var(--card-border);
+        vertical-align: middle;
+        font-size: 14px;
+        color: #ffffff !important; /* متن سفید برای تمام سلول‌ها */
+    }
+
+/* --- بج‌های وضعیت (Badges) --- */
+.badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+/* --- دکمه‌ها (Buttons) --- */
+.btn {
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+
+    .btn-primary:hover {
+        background-color: var(--primary-color-hover);
+        border-color: var(--primary-color-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
+    }
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-primary:hover::before {
+        left: 100%;
+    }
+
+.btn-secondary {
+    background-color: transparent;
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+}
+
+    .btn-secondary:hover {
+        background-color: var(--text-secondary);
+        color: var(--bg-gradient-start);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(176, 176, 176, 0.3);
+    }
+
+/* --- فرم‌ها (Forms) --- */
+.form-group {
+    margin-bottom: 20px;
+}
+
+    .form-group label {
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+        transition: color 0.3s ease;
+    }
+
+.form-control, .form-select {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    padding: 12px 18px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+    .form-control:focus, .form-select:focus {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(0, 173, 181, 0.25);
+        color: var(--text-primary);
+    }
+
+/* --- مودال‌ها (Modals) --- */
+.modal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--card-border);
+}
+
+.modal-title {
+    color: var(--text-primary);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--card-border);
+}
+
+/* =============================================
+   استایل‌های اختصاصی صفحه لاگین (Page-Specific: Login)
+   ============================================= */
+.login-container {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.login-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 24px;
+    border: 1px solid var(--card-border);
+    padding: 40px;
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+    z-index: 2;
+}
+
+.login-header h3 {
+    text-align: center;
+    font-weight: 700;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* --- بخش لوگو در صفحه لاگین --- */
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.logo-wrapper {
+    width: 130px;
+    height: 130px;
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: logoContainerRotate 15s linear infinite;
+}
+
+    .logo-wrapper::before {
+        content: '';
+        position: absolute;
+        inset: -3px;
+        border-radius: 24px;
+        padding: 3px;
+        background: conic-gradient(from 0deg, transparent, var(--logo-glow-color), transparent, var(--logo-glow-color), transparent);
+        animation: logoGlowRotate 4s linear infinite;
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+    }
+
+.logo-image {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    border-radius: 16px;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 0 12px rgba(0, 173, 181, 0.4));
+    animation: logoImageCounterRotate 15s linear infinite;
+}
+/* =============================================
+   استایل‌های اختصاصی صفحه جستجو (Page-Specific: Search)
+   ============================================= */
+/* --- کانتینر اصلی صفحه جستجو --- */
+.container-fluid {
+    padding: 20px;
+}
+
+/* --- پنل فیلترها --- */
+.card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    animation: slideInRight 0.6s ease-out;
+    overflow: hidden;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+    border-bottom: none;
+    padding: 12px 20px;
+}
+
+    .card-header h4 {
+        color: #fff;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+.card-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* --- استایل‌دهی به فرم و فیلدها در صفحه جستجو --- */
+#filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.filter-section {
+    margin-bottom: 5px;
+}
+
+.filter-section-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.filter-row {
+    display: flex;
+    gap: 10px; /* فاصله بین فیلدها */
+    align-items: flex-end; /* تراز کردن فیلدها از پایین */
+}
+
+.filter-field {
+    flex: 1;
+    min-width: 0; /* *** کلید اصلی: اجازه کوچک شدن به فیلد *** */
+    margin-bottom: 0;
+}
+
+    /* --- برچسب‌ها و ورودی‌ها --- */
+    .filter-field .form-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-bottom: 4px; /* فاصله کمتر بین برچسب و ورودی */
+        font-size: 0.8rem; /* فونت کمی کوچک‌تر */
+        white-space: nowrap; /* جلوگیری از شکستن متن برچسب */
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .filter-field .form-control,
+    .filter-field .form-select {
+        background-color: var(--input-bg);
+        border: 1px solid var(--input-border);
+        border-radius: 8px;
+        color: var(--text-primary);
+        padding: 8px 10px; /* کاهش padding */
+        font-size: 0.85rem; /* فونت کمی کوچک‌تر */
+        transition: all 0.3s ease;
+        width: 100%; /* اطمینان از پر شدن عرض */
+        box-sizing: border-box; /* محاسبه صحیح عرض با padding */
+    }
+
+        .filter-field .form-control:focus,
+        .filter-field .form-select:focus {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(0, 173, 181, 0.25);
+            color: var(--text-primary);
+        }
+
+/* --- کانتینر نتایج جستجو --- */
+#search-results-container {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    padding: 20px;
+    min-height: 400px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    animation: slideInLeft 0.6s ease-out;
+}
+
+    #search-results-container .table-responsive {
+        margin-top: 15px;
+    }
+
+/* --- استایل‌های جزئیات تماس --- */
+.dl-row dt {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.dl-row dd {
+    color: var(--text-primary);
+}
+
+/* --- دکمه‌های فرم جستجو --- */
+#filter-form .btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+/* --- طراحی ریسپانسیو برای فرم جستجو --- */
+@media (max-width: 992px) {
+    .filter-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 20px;
+        max-height: none;
+    }
+
+    .container-fluid {
+        padding: 15px 10px;
+    }
+
+    .card-body {
+        padding: 15px;
+    }
+
+    .form-label {
+        font-size: 0.9rem;
+    }
+
+    .form-control, .form-select {
+        padding: 10px 12px;
+        font-size: 0.95rem;
+    }
+}
+/* =============================================
+   انیمیشن‌ها (Animations)
+   ============================================= */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(100vh) translateX(0);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-100vh) translateX(100px);
+        opacity: 0;
+    }
+}
+
+@keyframes logoGlowRotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes navbarLogoPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+/* انیمیشن‌های چرخش و زوم برای لوگوی صفحه لاگین */
+@keyframes logoContainerRotate {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+
+    50% {
+        transform: rotate(180deg) scale(1.08);
+    }
+
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+@keyframes logoImageCounterRotate {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+
+    50% {
+        transform: rotate(-180deg) scale(0.925);
+    }
+
+    100% {
+        transform: rotate(-360deg) scale(1);
+    }
+}
+
+/* =============================================
+   طراحی ریسپانسیو (Responsive Design)
+   ============================================= */
+@media (max-width: 768px) {
+    .navbar {
+        max-width: 100%;
+        border-radius: 0;
+    }
+
+    .navbar-brand {
+        font-size: 18px;
+    }
+
+    .dashboard-container, .container-fluid {
+        padding: 15px 10px;
+    }
+
+    .stat-card {
+        margin-bottom: 15px;
+    }
+
+    .stat-content h3 {
+        font-size: 24px;
+    }
+
+    .login-card {
+        padding: 30px 20px;
+    }
+
+    .login-header h3 {
+        font-size: 22px;
+    }
+
+    .logo-wrapper {
+        width: 110px;
+        height: 110px;
+    }
+}
+/* کاهش ارتفاع هدر */
+.navbar {
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+    min-height: 60px !important;
+}
+
+/* کوچک‌تر شدن لوگوی داخل هدر */
+.navbar-logo-wrapper {
+    width: 40px !important;
+    height: 40px !important;
+}
+/* =============================================
+   استایل‌های اختصاصی صفحه تحلیل شبکه (Page-Specific: Network Analysis)
+   ============================================= */
+
+/* --- کانتینر اصلی صفحه تحلیل شبکه --- */
+.network-analysis-container {
+    padding: 20px;
+    min-height: calc(100vh - 80px);
+}
+
+/* --- هدر صفحه --- */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.6s ease-out;
+}
+
+    .page-header h3 {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin: 0;
+    }
+
+.page-actions {
+    display: flex;
+    gap: 10px;
+}
+
+    .page-actions .btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .page-actions .btn-outline-secondary {
+        border-color: var(--text-secondary);
+        color: var(--text-secondary);
+    }
+
+        .page-actions .btn-outline-secondary:hover {
+            background-color: var(--text-secondary);
+            color: var(--bg-gradient-start);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(176, 176, 176, 0.3);
+        }
+
+    .page-actions .btn-success {
+        background-color: var(--success-color);
+        border-color: var(--success-color);
+    }
+
+        .page-actions .btn-success:hover {
+            background-color: #3a9b3e;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow-success);
+        }
+
+/* --- پنل کنترل‌ها --- */
+.analysis-controls {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    margin-bottom: 20px;
+    animation: slideInRight 0.6s ease-out;
+    overflow: hidden;
+}
+
+.control-header {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+    padding: 12px 20px;
+}
+
+    .control-header h5 {
+        color: #fff;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1rem;
+    }
+
+.control-body {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+    .control-body::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .control-body::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+    }
+
+    .control-body::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 3px;
+    }
+
+        .control-body::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color-hover);
+        }
+
+/* --- فرم کنترل‌ها --- */
+#network-analysis-form .form-group {
+    margin-bottom: 20px;
+}
+
+#network-analysis-form label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    display: block;
+}
+
+#network-analysis-form .form-control,
+#network-analysis-form .form-select {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+    #network-analysis-form .form-control:focus,
+    #network-analysis-form .form-select:focus {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(0, 173, 181, 0.25);
+        color: var(--text-primary);
+    }
+
+#network-analysis-form textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+
+#network-analysis-form .form-text {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-top: 5px;
+}
+
+#network-analysis-form .form-check {
+    margin-bottom: 10px;
+}
+
+#network-analysis-form .form-check-input {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+}
+
+    #network-analysis-form .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+#network-analysis-form .form-check-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+#network-analysis-form .btn-block {
+    width: 100%;
+    padding: 12px;
+    font-weight: 500;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+#network-analysis-form .btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    position: relative;
+    overflow: hidden;
+}
+
+    #network-analysis-form .btn-primary:hover {
+        background-color: var(--primary-color-hover);
+        border-color: var(--primary-color-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
+    }
+
+    #network-analysis-form .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    #network-analysis-form .btn-primary:hover::before {
+        left: 100%;
+    }
+
+/* --- پنل آمار شبکه --- */
+.network-stats {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    animation: slideInRight 0.8s ease-out;
+    overflow: hidden;
+}
+
+.stats-header {
+    background: linear-gradient(90deg, var(--info-color), #b366ff);
+    padding: 12px 20px;
+}
+
+    .stats-header h5 {
+        color: #fff;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1rem;
+    }
+
+.stats-body {
+    padding: 20px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+    .stat-item:last-child {
+        border-bottom: none;
+    }
+
+    .stat-item:hover {
+        padding-left: 10px;
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover .stat-value {
+    transform: scale(1.1);
+    color: var(--primary-color-hover);
+}
+
+/* --- کانتینر نمودار شبکه --- */
+.network-visualization {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    animation: slideInLeft 0.6s ease-out;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 160px);
+}
+
+.network-graph {
+    flex: 1;
+    min-height: 500px;
+    position: relative;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 15px 15px;
+    overflow: hidden;
+}
+
+    .network-graph::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: radial-gradient(circle at 20% 30%, rgba(0, 173, 181, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(153, 102, 255, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+/* --- کنترل‌های پایین نمودار --- */
+.network-controls-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid var(--card-border);
+}
+
+    .network-controls-bottom .btn-group {
+        display: flex;
+        gap: 5px;
+    }
+
+    .network-controls-bottom .btn-sm {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        border-radius: 6px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: var(--text-secondary);
+        transition: all 0.3s ease;
+    }
+
+        .network-controls-bottom .btn-sm:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .network-controls-bottom .btn-sm.active {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
+        }
+
+/* --- راهنما (Legend) --- */
+.legend {
+    display: flex;
+    gap: 15px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+    .legend-color.node-high {
+        background-color: var(--danger-color);
+        box-shadow: 0 0 5px rgba(255, 77, 77, 0.5);
+    }
+
+    .legend-color.node-medium {
+        background-color: var(--warning-color);
+        box-shadow: 0 0 5px rgba(255, 206, 86, 0.5);
+    }
+
+    .legend-color.node-low {
+        background-color: var(--success-color);
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+    }
+
+/* --- مودال جزئیات گره --- */
+.modal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.modal-header {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+    border-bottom: none;
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-title {
+    color: #fff;
+    font-weight: 600;
+}
+
+.modal-header .close {
+    color: #fff;
+    text-shadow: none;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+    .modal-header .close:hover {
+        opacity: 1;
+        transform: rotate(90deg);
+    }
+
+.modal-body {
+    color: var(--text-primary);
+}
+
+    .modal-body .table {
+        color: var(--text-primary);
+    }
+
+        .modal-body .table th {
+            color: var(--text-secondary);
+            border-color: var(--card-border);
+        }
+
+        .modal-body .table td {
+            border-color: var(--card-border);
+        }
+
+.connected-nodes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+    .connected-nodes .badge {
+        background-color: var(--primary-color);
+        padding: 5px 10px;
+        font-size: 0.8rem;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+
+        .connected-nodes .badge:hover {
+            transform: scale(1.1);
+            background-color: var(--primary-color-hover);
+        }
+
+/* --- انیمیشن‌های جدید --- */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* --- طراحی ریسپانسیو --- */
+@media (max-width: 992px) {
+    .network-analysis-container {
+        padding: 15px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .network-visualization {
+        height: 500px;
+        margin-top: 20px;
+    }
+
+    .network-controls-bottom {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .network-visualization {
+        height: 400px;
+    }
+
+    .legend {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .control-body {
+        max-height: 40vh;
+    }
+}
+
+/* =============================================
+   استایل‌های اختصاصی صفحه تحلیل‌ها (Page-Specific: Analytics Dashboard)
+   ============================================= */
+
+/* --- کانتینر اصلی صفحه تحلیل‌ها --- */
+.analytics-container {
+    padding: 20px;
+    min-height: calc(100vh - 80px);
+    animation: fadeIn 0.8s ease-out;
+}
+
+/* --- هدر صفحه --- */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 15px 25px;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.6s ease-out;
+}
+
+    .page-header h3 {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin: 0;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+.page-actions .btn-outline-primary {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+    .page-actions .btn-outline-primary:hover {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-glow-primary);
+    }
+
+/* --- منوی تحلیل‌ها (بخش چپ) --- */
+.analytics-menu {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    overflow: hidden;
+    animation: slideInRight 0.6s ease-out;
+    position: sticky;
+    top: 90px; /* ثابت کردن منو در هنگام اسکرول */
+}
+
+.menu-header {
+    background: linear-gradient(90deg, var(--info-color), #b366ff);
+    padding: 15px 20px;
+    text-align: center;
+}
+
+    .menu-header h5 {
+        color: #fff;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+.menu-body {
+    padding: 15px 0;
+}
+
+/* --- استایل‌دهی به تب‌ها (Nav Pills) --- */
+.analytics-menu .nav-pills {
+    padding: 0 10px;
+}
+
+.analytics-menu .nav-link {
+    color: var(--text-secondary);
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+    .analytics-menu .nav-link i {
+        font-size: 1rem;
+        width: 20px;
+        text-align: center;
+    }
+
+    .analytics-menu .nav-link:hover {
+        background-color: rgba(0, 173, 181, 0.1);
+        color: var(--primary-color);
+        transform: translateX(5px);
+    }
+
+    .analytics-menu .nav-link.active {
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
+    }
+
+        .analytics-menu .nav-link.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+/* --- محتوای تب‌ها (بخش راست) --- */
+.tab-content {
+    animation: slideInLeft 0.6s ease-out;
+}
+
+.tab-pane .card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+    .tab-pane .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+    }
+
+.tab-pane .card-header {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+    padding: 15px 20px;
+    border-bottom: none;
+}
+
+    .tab-pane .card-header h5 {
+        color: #fff;
+        font-weight: 600;
+        margin: 0;
+    }
+
+.tab-pane .card-body {
+    padding: 25px;
+    color: var(--text-primary);
+}
+
+    .tab-pane .card-body p {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+.tab-pane .alert-info {
+    background-color: rgba(153, 102, 255, 0.15);
+    border-color: var(--info-color);
+    color: #e0d6ff;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+    .tab-pane .alert-info i {
+        color: var(--info-color);
+        margin-right: 10px;
+    }
+
+.tab-pane .img-fluid {
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+    .tab-pane .img-fluid:hover {
+        transform: scale(1.02);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+
+.tab-pane .btn-primary {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+    .tab-pane .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 173, 181, 0.4);
+    }
+
+    .tab-pane .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .tab-pane .btn-primary:hover::before {
+        left: 100%;
+    }
+
+/* --- استایل‌های اعلان (Notification) --- */
+#notification-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1050;
+    max-width: 350px;
+}
+
+    #notification-container .alert {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        margin-bottom: 10px;
+        padding: 15px 20px;
+        animation: slideInNotification 0.5s ease-out;
+        transition: all 0.3s ease;
+    }
+
+    #notification-container .alert-danger {
+        border-left: 4px solid var(--danger-color);
+    }
+
+    #notification-container .alert-success {
+        border-left: 4px solid var(--success-color);
+    }
+
+    #notification-container .alert-info {
+        border-left: 4px solid var(--info-color);
+    }
+
+    #notification-container .btn-close {
+        filter: invert(1);
+        opacity: 0.7;
+    }
+
+        #notification-container .btn-close:hover {
+            opacity: 1;
+        }
+
+/* --- انیمیشن‌های جدید --- */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInNotification {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+
+    20% {
+        left: 100%;
+    }
+
+    100% {
+        left: 100%;
+    }
+}
+
+/* --- طراحی ریسپانسیو --- */
+@media (max-width: 992px) {
+    .analytics-container {
+        padding: 15px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .analytics-menu {
+        position: static;
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .analytics-menu .nav-link {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+
+    .tab-pane .card-body {
+        padding: 20px;
+    }
+
+    #notification-container {
+        left: 10px;
+        right: 10px;
+        max-width: none;
+    }
+}
+/* کاهش فاصله بین لوگو و متن */
+/* =============================================
+   استایل‌های اختصاصی صفحه تحلیل جغرافیایی (Page-Specific: Geographic Analysis)
+   ============================================= */
+
+/* --- کانتینر اصلی صفحه تحلیل جغرافیایی --- */
+.geographic-analysis-container {
+    padding: 20px;
+    min-height: calc(100vh - 80px);
+    animation: fadeIn 0.8s ease-out;
+}
+
+/* --- هدر صفحه --- */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 15px 25px;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.6s ease-out;
+}
+
+    .page-header h3 {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin: 0;
+        background: linear-gradient(90deg, var(--info-color), #b366ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+.page-actions .btn-outline-secondary {
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+    .page-actions .btn-outline-secondary:hover {
+        background-color: var(--text-secondary);
+        color: var(--bg-gradient-start);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(176, 176, 176, 0.3);
+    }
+
+.page-actions .btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+    .page-actions .btn-success:hover {
+        background-color: #3a9b3e;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-glow-success);
+    }
+
+/* --- پنل کنترل‌ها (بخش چپ) --- */
+.analysis-controls {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    margin-bottom: 20px;
+    animation: slideInRight 0.6s ease-out;
+    overflow: hidden;
+}
+
+.control-header {
+    background: linear-gradient(90deg, var(--info-color), #b366ff);
+    padding: 12px 20px;
+}
+
+    .control-header h5 {
+        color: #fff;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1rem;
+    }
+
+.control-body {
+    padding: 20px;
+    max-height: 40vh;
+    overflow-y: auto;
+}
+
+    .control-body::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .control-body::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+    }
+
+    .control-body::-webkit-scrollbar-thumb {
+        background: var(--info-color);
+        border-radius: 3px;
+    }
+
+        .control-body::-webkit-scrollbar-thumb:hover {
+            background: #b366ff;
+        }
+
+/* --- فرم کنترل‌ها --- */
+#geographic-filter-form .form-group {
+    margin-bottom: 20px;
+}
+
+#geographic-filter-form label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    display: block;
+}
+
+#geographic-filter-form .form-control,
+#geographic-filter-form .form-select {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+    #geographic-filter-form .form-control:focus,
+    #geographic-filter-form .form-select:focus {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: var(--info-color);
+        box-shadow: 0 0 0 0.2rem rgba(153, 102, 255, 0.25);
+        color: var(--text-primary);
+    }
+
+#geographic-filter-form .form-text {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-top: 5px;
+}
+
+#geographic-filter-form .btn-block {
+    width: 100%;
+    padding: 12px;
+    font-weight: 500;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+#geographic-filter-form .btn-primary {
+    background: linear-gradient(90deg, var(--info-color), #b366ff);
+    border: none;
+}
+
+    #geographic-filter-form .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(153, 102, 255, 0.3);
+    }
+
+/* --- پنل آمار مناطق --- */
+.region-stats {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    margin-bottom: 20px;
+    animation: slideInRight 0.8s ease-out;
+    overflow: hidden;
+}
+
+.stats-header {
+    background: linear-gradient(90deg, var(--warning-color), #ffdb4d);
+    padding: 12px 20px;
+}
+
+    .stats-header h5 {
+        color: #fff;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1rem;
+    }
+
+.stats-body {
+    padding: 20px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+    .stat-item:last-child {
+        border-bottom: none;
+    }
+
+    .stat-item:hover {
+        padding-left: 10px;
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    color: var(--warning-color);
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover .stat-value {
+    transform: scale(1.1);
+    color: #ffdb4d;
+}
+
+/* --- پنل برترین مناطق --- */
+.top-regions {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    animation: slideInRight 1s ease-out;
+    overflow: hidden;
+}
+
+.top-regions-header {
+    background: linear-gradient(90deg, var(--danger-color), #ff6b6b);
+    padding: 12px 20px;
+}
+
+    .top-regions-header h5 {
+        color: #fff;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1rem;
+    }
+
+.top-regions-body {
+    padding: 15px 0;
+}
+
+.top-region-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+}
+
+    .top-region-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        transform: translateX(5px);
+    }
+
+    .top-region-item .rank {
+        width: 30px;
+        height: 30px;
+        background: linear-gradient(135deg, var(--danger-color), #ff6b6b);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        font-weight: 600;
+        margin-left: 15px;
+        box-shadow: 0 2px 5px rgba(255, 77, 77, 0.3);
+    }
+
+    .top-region-item .info {
+        flex: 1;
+    }
+
+    .top-region-item .name {
+        color: var(--text-primary);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .top-region-item .count {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+
+/* --- کانتینر نقشه --- */
+.map-visualization {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    animation: slideInLeft 0.6s ease-out;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 160px);
+}
+
+.world-map {
+    flex: 1;
+    min-height: 500px;
+    position: relative;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 0 0 15px 15px;
+    overflow: hidden;
+}
+
+    .world-map::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: radial-gradient(circle at 20% 30%, rgba(153, 102, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255, 206, 86, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+/* --- کنترل‌های پایین نقشه --- */
+.map-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid var(--card-border);
+}
+
+    .map-controls .btn-group {
+        display: flex;
+        gap: 5px;
+    }
+
+    .map-controls .btn-sm {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        border-radius: 6px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: var(--text-secondary);
+        transition: all 0.3s ease;
+    }
+
+        .map-controls .btn-sm:hover {
+            background-color: var(--info-color);
+            border-color: var(--info-color);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+/* --- راهنما (Legend) --- */
+.legend {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.legend-title {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
+/* --- بخش نمودارها --- */
+.geographic-analysis-container .card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    margin-bottom: 20px;
+    animation: slideUp 0.8s ease-out;
+    animation-fill-mode: both;
+}
+
+    .geographic-analysis-container .card:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .geographic-analysis-container .card:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .geographic-analysis-container .card:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+.geographic-analysis-container .card-header {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+    padding: 15px 20px;
+    border-bottom: none;
+}
+
+    .geographic-analysis-container .card-header h5 {
+        color: #fff;
+        font-weight: 600;
+        margin: 0;
+    }
+
+.geographic-analysis-container .card-body {
+    padding: 20px;
+}
+
+.chart-container {
+    height: 250px;
+    position: relative;
+}
+
+    .chart-container h6 {
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+/* --- مودال جزئیات منطقه --- */
+.modal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.modal-header {
+    background: linear-gradient(90deg, var(--info-color), #b366ff);
+    border-bottom: none;
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-title {
+    color: #fff;
+    font-weight: 600;
+}
+
+.modal-header .close {
+    color: #fff;
+    text-shadow: none;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+    .modal-header .close:hover {
+        opacity: 1;
+        transform: rotate(90deg);
+    }
+
+.modal-body {
+    color: var(--text-primary);
+}
+
+    .modal-body .table {
+        color: var(--text-primary);
+    }
+
+        .modal-body .table th {
+            color: var(--text-secondary);
+            border-color: var(--card-border);
+        }
+
+        .modal-body .table td {
+            border-color: var(--card-border);
+        }
+
+/* --- طراحی ریسپانسیو --- */
+@media (max-width: 992px) {
+    .geographic-analysis-container {
+        padding: 15px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .map-visualization {
+        height: 400px;
+        margin-top: 20px;
+    }
+
+    .map-controls {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .legend-items {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .map-visualization {
+        height: 350px;
+    }
+
+    .chart-container {
+        height: 200px;
+    }
+}

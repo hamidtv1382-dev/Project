@@ -1,40 +1,4 @@
-﻿/* Network Analysis Page Styles */
-/* Modern Dark Theme with Blue Accents */
-
-/* CSS Variables for Consistent Theming */
-/*:root {
-    --primary-color: #1a3a5f;
-    --secondary-color: #2c5282;
-    --accent-color: #4299e1;
-    --light-accent: #63b3ed;
-    --dark-bg: #0f1419;
-    --card-bg: #1a1f29;
-    --text-primary: #e2e8f0;
-    --text-secondary: #a0aec0;
-    --border-color: #2d3748;
-    --success-color: #48bb78;
-    --warning-color: #ed8936;
-    --danger-color: #f56565;
-    --info-color: #4299e1;
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}*/
-
-/* Base Styles */
-/** {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--dark-bg);
-    color: var(--text-primary);
-    line-height: 1.6;
-    direction: rtl;
-}*/
+﻿
 
 /* Container */
 .network-analysis-container {
@@ -541,3 +505,213 @@ body {
     ::-webkit-scrollbar-thumb:hover {
         background: var(--accent-color);
     }
+/* =============================================
+   Component Styles
+   ============================================= */
+
+/* Page Header */
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+    .page-header h3 {
+        color: var(--text-primary-color);
+        font-weight: 700;
+    }
+
+/* Card Component */
+.card {
+    background-color: var(--secondary-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+
+.card-header {
+    background-color: rgba(0, 168, 255, 0.1);
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 8px 8px 0 0 !important;
+    color: var(--text-primary-color);
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Form Controls */
+.form-control, .form-select {
+    background-color: var(--primary-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    color: var(--text-primary-color);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+    .form-control:focus, .form-select:focus {
+        background-color: var(--primary-bg-color);
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 0.2rem rgba(0, 168, 255, 0.25);
+        color: var(--text-primary-color);
+    }
+
+.form-label {
+    color: var(--text-secondary-color); /* برچسب‌ها کمی کمرنگ‌تر هستند */
+    font-weight: 500;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 5px;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+    .btn-primary:hover {
+        background-color: var(--accent-hover-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 168, 255, 0.3);
+    }
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        transform: translateY(-2px);
+    }
+
+.btn-outline-primary {
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+}
+
+    .btn-outline-primary:hover {
+        background-color: var(--accent-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+/* Badges */
+.badge {
+    font-size: 0.8em;
+    padding: 0.4em 0.6em;
+}
+
+/* Table */
+.table {
+    color: #ffffff; /* فقط رنگ متن را سفید می‌کنیم */
+}
+
+    .table thead th {
+        border-bottom: 2px solid var(--accent-color);
+        color: #ffffff; /* رنگ متن هدر هم سفید */
+        font-weight: 600;
+        vertical-align: middle;
+    }
+
+    /* === این بخش برای ایجاد ردیف‌های راه راه با رنگ‌های تیره است === */
+    .table tbody tr:nth-child(odd) {
+        background-color: #1a2b42; /* ردیف‌های فرد: رنگ تیره */
+    }
+
+    .table tbody tr:nth-child(even) {
+        background-color: #0f1c30; /* ردیف‌های زوج: رنگ تیره‌تر */
+    }
+
+    .table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+        .table tbody tr:hover {
+            background-color: rgba(0, 168, 255, 0.1); /* رنگ مشخص برای هاور */
+        }
+
+    .table td, .table th {
+        vertical-align: middle;
+        border-color: #34495e; /* رنگ حاشیه هم تیره */
+    }
+/* =============================================
+   Pagination Component
+   ============================================= */
+.pagination {
+    display: flex;
+    justify-content: center;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.25rem;
+}
+
+.page-link {
+    position: relative;
+    display: block;
+    color: var(--accent-color);
+    text-decoration: none;
+    background-color: var(--secondary-bg-color);
+    border: 1px solid var(--border-color);
+    margin: 0 2px;
+    transition: all 0.3s ease;
+}
+
+    .page-link:hover {
+        z-index: 2;
+        color: #fff;
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+        transform: translateY(-2px);
+    }
+
+.page-item.active .page-link {
+    z-index: 3;
+    color: #fff;
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.page-item.disabled .page-link {
+    color: var(--text-secondary-color);
+    pointer-events: none;
+    background-color: var(--primary-bg-color);
+    border-color: var(--border-color);
+}
+.table tbody tr td {
+    color: #ffffff !important;
+}
+
+.table thead th {
+    color: #ffffff !important;
+}
+
+/* =============================================
+   Animations
+   ============================================= */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}

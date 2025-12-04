@@ -19,8 +19,8 @@ namespace AnalysisCallUser._01_Domain.Services
         {
             var data = await _unitOfWork.CallDetails
                 .GetAll()
-                .Where(cd => cd.AccountingTime_Date >= filter.StartDate && cd.AccountingTime_Date <= filter.EndDate)
-                .GroupBy(cd => cd.AccountingTime_Date.Date)
+                .Where(cd => cd.AccountingTime >= filter.StartDate && cd.AccountingTime <= filter.EndDate)
+                .GroupBy(cd => cd.AccountingTime.Date)
                 .Select(g => new ChartDataDto.ChartPoint { Label = g.Key.ToString("yyyy-MM-dd"), Value = g.Count() })
                 .ToListAsync();
 

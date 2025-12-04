@@ -14,6 +14,7 @@
     --success-color: #4caf50;
     --input-bg: rgba(255, 255, 255, 0.07);
     --input-border: rgba(255, 255, 255, 0.2);
+    --logo-glow-color: #00d4ff;
 }
 
 body {
@@ -23,264 +24,103 @@ body {
     min-height: 100vh;
 }
 
-/* --- کانتینر اصلی داشبورد --- */
-.dashboard-container {
-    padding: 20px;
-    animation: fadeIn 0.8s ease-out;
+/* --- پس‌زمینه متحرک با ذرات --- */
+.animated-bg {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    overflow: hidden;
 }
 
-/* --- هدر صفحه --- */
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding: 0 10px;
-}
-
-    .page-header h3 {
-        font-weight: 700;
-        font-size: 28px;
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-.page-actions .btn-outline-primary {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    background-color: transparent;
-    border-radius: 8px;
-    padding: 8px 16px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-    .page-actions .btn-outline-primary:hover {
-        background-color: var(--primary-color);
-        color: #fff;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
-    }
-
-/* --- کارت‌های آماری --- */
-.stat-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 15px;
-    border: 1px solid var(--card-border);
-    padding: 25px;
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-    animation: slideUp 0.6s ease-out;
-    animation-fill-mode: both;
-}
-
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        border-color: var(--primary-color);
-    }
-
-    /* ایجاد تاخیر در انیمیشن برای کارت‌ها */
-    .stat-card:nth-child(1) {
-        animation-delay: 0.1s;
-    }
-
-    .stat-card:nth-child(2) {
-        animation-delay: 0.2s;
-    }
-
-    .stat-card:nth-child(3) {
-        animation-delay: 0.3s;
-    }
-
-    .stat-card:nth-child(4) {
-        animation-delay: 0.4s;
-    }
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.5);
     border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 24px;
-    margin-left: 20px;
-    background: rgba(0, 173, 181, 0.2);
-    color: var(--primary-color);
-    transition: all 0.3s ease;
+    animation: float 20s infinite;
 }
 
-.stat-card:hover .stat-icon {
-    background: var(--primary-color);
-    color: #fff;
-}
-
-.stat-icon.answered {
-    background: rgba(76, 175, 80, 0.2);
-    color: var(--success-color);
-}
-
-.stat-card.duration {
-    background: rgba(255, 206, 86, 0.2);
-    color: #ffce56;
-}
-
-.stat-card.rate {
-    background: rgba(153, 102, 255, 0.2);
-    color: #9966ff;
-}
-
-.stat-card:hover .stat-icon.answered {
-    background: var(--success-color);
-    color: #fff;
-}
-
-.stat-card:hover .stat-icon.duration {
-    background: #ffce56;
-    color: #fff;
-}
-
-.stat-card:hover .stat-icon.rate {
-    background: #9966ff;
-    color: #fff;
-}
-
-.stat-content h3 {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 0;
-}
-
-.stat-content p {
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: 14px;
-}
-
-/* --- کانتینرهای نمودار و جدول --- */
-.chart-container, .table-container {
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 15px;
-    border: 1px solid var(--card-border);
-    padding: 25px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    animation: slideUp 0.8s ease-out;
-    animation-fill-mode: both;
-}
-
-.chart-container {
-    animation-delay: 0.5s;
-}
-
-.table-container {
-    animation-delay: 0.7s;
-}
-
-    .chart-container h4, .table-container h4 {
-        font-weight: 600;
-        margin-top: 0;
-        margin-bottom: 20px;
-        color: var(--text-primary);
+    .particle:nth-child(1) {
+        left: 10%;
+        animation-delay: 0s;
     }
 
-    /* --- استایل جدول --- */
-    .table-container .table {
-        color: var(--text-primary);
+    .particle:nth-child(2) {
+        left: 20%;
+        animation-delay: 2s;
+        width: 6px;
+        height: 6px;
+        animation-duration: 22s;
     }
 
-        .table-container .table thead th {
-            border-bottom: 2px solid var(--card-border);
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 14px;
-        }
+    .particle:nth-child(3) {
+        left: 30%;
+        animation-delay: 4s;
+    }
 
-        .table-container .table tbody tr {
-            transition: all 0.2s ease;
-        }
+    .particle:nth-child(4) {
+        left: 40%;
+        animation-delay: 1s;
+        width: 5px;
+        height: 5px;
+        animation-duration: 19s;
+    }
 
-            .table-container .table tbody tr:hover {
-                background-color: rgba(255, 255, 255, 0.05);
-                transform: scale(1.01);
-            }
+    .particle:nth-child(5) {
+        left: 50%;
+        animation-delay: 3s;
+    }
 
-        .table-container .table td {
-            border-color: var(--card-border);
-            vertical-align: middle;
-            font-size: 14px;
-        }
+    .particle:nth-child(6) {
+        left: 60%;
+        animation-delay: 5s;
+    }
 
-/* --- بج‌های وضعیت --- */
-.badge {
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-weight: 500;
-    font-size: 12px;
-}
+    .particle:nth-child(7) {
+        left: 70%;
+        animation-delay: 7s;
+        width: 3px;
+        height: 3px;
+        animation-duration: 25s;
+    }
 
-/* --- انیمیشن‌ها --- */
-@keyframes fadeIn {
-    from {
+@keyframes float {
+    0% {
+        transform: translateY(100vh) translateX(0);
         opacity: 0;
     }
 
-    to {
+    10% {
         opacity: 1;
     }
-}
 
-@keyframes slideUp {
-    from {
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-100vh) translateX(100px);
         opacity: 0;
-        transform: translateY(30px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
     }
 }
 
-/* --- ریسپانسیو --- */
-@media (max-width: 768px) {
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-
-    .stat-card {
-        margin-bottom: 15px;
-    }
-
-    .stat-content h3 {
-        font-size: 24px;
-    }
-}
 /* --- استایل‌های هدر و ناوبری (Navbar) --- */
 header {
     position: sticky;
     top: 0;
-    z-index: 1030; /* برای قرار گرفتن روی سایر عناصر */
+    z-index: 1030;
 }
 
 .navbar {
     background: var(--card-bg) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     border-bottom: 1px solid var(--card-border) !important;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
     padding-top: 10px;
     padding-bottom: 10px;
 }
@@ -290,16 +130,61 @@ header {
     color: var(--text-primary) !important;
     font-weight: 700;
     font-size: 22px;
-    background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     transition: all 0.3s ease;
 }
 
     .navbar-brand:hover {
-        transform: scale(1.05);
+        transform: scale(1.02);
     }
+
+/* استایل برای لوگوی داخل ناوبری */
+.navbar-logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.navbar-logo-wrapper {
+    width: 40px;
+    height: 40px;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* انیمیشن بسیار آرام و ظریف برای لوگوی ناوبری */
+    animation: navbarLogoPulse 10s ease-in-out infinite;
+}
+
+    .navbar-logo-wrapper::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: 12px;
+        padding: 2px;
+        background: conic-gradient(from 0deg, transparent, var(--logo-glow-color), transparent, var(--logo-glow-color), transparent);
+        animation: logoGlowRotate 4s linear infinite;
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+    }
+
+.navbar-logo-image {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    border-radius: 8px;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 0 5px rgba(0, 173, 181, 0.4));
+}
 
 /* استایل برای لینک‌های منو */
 .navbar-nav .nav-link {
@@ -316,7 +201,6 @@ header {
         background-color: rgba(0, 173, 181, 0.1);
     }
 
-        /* افکت زیر خط برای لینک فعال */
         .navbar-nav .nav-link.active,
         .navbar-nav .nav-link:hover::after {
             content: '';
@@ -356,6 +240,217 @@ header {
         color: #fff;
     }
 
+/* --- کانتینر اصلی داشبورد --- */
+.dashboard-container {
+    padding: 30px 20px;
+    animation: fadeIn 1s ease-out;
+}
+
+/* --- کارت‌های آماری --- */
+.stat-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid var(--card-border);
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    animation: slideUp 0.6s ease-out;
+    animation-fill-mode: both;
+    position: relative;
+    overflow: hidden;
+}
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        border-color: var(--primary-color);
+    }
+
+    .stat-card:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .stat-card:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .stat-card:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .stat-card:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    margin-left: 20px;
+    background: rgba(0, 173, 181, 0.2);
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    background: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(0, 173, 181, 0.5);
+}
+
+.stat-icon.answered {
+    background: rgba(76, 175, 80, 0.2);
+    color: var(--success-color);
+}
+
+.stat-icon.duration {
+    background: rgba(255, 206, 86, 0.2);
+    color: #ffce56;
+}
+
+.stat-icon.rate {
+    background: rgba(153, 102, 255, 0.2);
+    color: #9966ff;
+}
+
+.stat-card:hover .stat-icon.answered {
+    background: var(--success-color);
+}
+
+.stat-card:hover .stat-icon.duration {
+    background: #ffce56;
+}
+
+.stat-card:hover .stat-icon.rate {
+    background: #9966ff;
+}
+
+.stat-content h3 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.stat-content p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* --- کانتینرهای نمودار و جدول --- */
+.chart-container, .table-container {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid var(--card-border);
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.8s ease-out;
+    animation-fill-mode: both;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+    .chart-container::before,
+    .table-container::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: conic-gradient(from 0deg, transparent, var(--primary-color), transparent);
+        border-radius: 15px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: -1;
+    }
+
+    .chart-container:hover::before,
+    .table-container:hover::before {
+        opacity: 0.7;
+        filter: blur(5px);
+    }
+
+.chart-container {
+    animation-delay: 0.5s;
+}
+
+.table-container {
+    animation-delay: 0.7s;
+}
+
+    .chart-container h4, .table-container h4 {
+        font-weight: 600;
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+    }
+
+    /* --- استایل جدول --- */
+    .table-container .table {
+        color: var(--text-primary);
+    }
+
+        .table-container .table thead th {
+            border-bottom: 2px solid var(--card-border);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .table-container .table tbody tr {
+            transition: all 0.2s ease;
+            border-radius: 8px;
+        }
+
+            .table-container .table tbody tr:hover {
+                background-color: rgba(0, 173, 181, 0.05);
+                box-shadow: inset 0 0 0 1px var(--primary-color);
+                transform: scale(1.01);
+            }
+
+        .table-container .table td {
+            border-color: var(--card-border);
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+/* --- بج‌های وضعیت --- */
+.badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 12px;
+}
 
 /* --- استایل‌های فوتر --- */
 footer {
@@ -378,3 +473,65 @@ footer {
             color: var(--primary-color-hover);
             text-decoration: underline;
         }
+
+/* --- انیمیشن‌ها --- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes logoGlowRotate {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes navbarLogoPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* --- ریسپانسیو --- */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 18px;
+    }
+
+    .dashboard-container {
+        padding: 15px 10px;
+    }
+
+    .stat-card {
+        margin-bottom: 15px;
+    }
+
+    .stat-content h3 {
+        font-size: 24px;
+    }
+}

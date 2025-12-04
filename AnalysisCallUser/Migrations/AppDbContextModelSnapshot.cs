@@ -168,21 +168,13 @@ namespace AnalysisCallUser.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<DateTime>("AccountingTime_Date")
+                    b.Property<DateTime>("AccountingTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("AccountingTime_SH_Date")
+                    b.Property<string>("AccountingTime_SH")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("AccountingTime_SH_Time")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
-
-                    b.Property<TimeSpan>("AccountingTime_Time")
-                        .HasColumnType("time");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("Answer")
                         .HasColumnType("int");

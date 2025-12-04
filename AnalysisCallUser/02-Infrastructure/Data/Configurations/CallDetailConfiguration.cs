@@ -12,8 +12,7 @@ namespace AnalysisCallUser._02_Infrastructure.Data.Configurations
 
             builder.Property(e => e.ANumber).IsRequired().HasMaxLength(20);
             builder.Property(e => e.BNumber).IsRequired().HasMaxLength(20);
-            builder.Property(e => e.AccountingTime_SH_Date).HasMaxLength(10);
-            builder.Property(e => e.AccountingTime_SH_Time).HasMaxLength(8);
+            builder.Property(e => e.AccountingTime_SH).HasMaxLength(50);
 
             builder.HasOne(e => e.OriginCountry)
                 .WithMany(c => c.OriginCallDetails)

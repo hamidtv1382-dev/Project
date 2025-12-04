@@ -12,7 +12,6 @@
     <Folder Include="wwwroot\exports\json\" />
     <Folder Include="wwwroot\fonts\iransans\" />
     <Folder Include="wwwroot\fonts\icons\" />
-    <Folder Include="wwwroot\images\logos\" />
     <Folder Include="wwwroot\images\icons\" />
     <Folder Include="wwwroot\images\avatars\" />
     <Folder Include="wwwroot\images\flags\" />

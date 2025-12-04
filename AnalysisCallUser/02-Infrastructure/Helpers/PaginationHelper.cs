@@ -16,6 +16,10 @@
         public List<T> Data { get; private set; }
         public int TotalItems { get; private set; }
         public int PageNumber { get; private set; }
+        /// <summary>
+        /// The total number of records in the entire data set (across all pages).
+        /// </summary>
+        public int TotalCount { get; }
         public int PageSize { get; private set; }
         public int TotalPages => (int)Math.Ceiling((double)TotalItems / PageSize);
         public bool HasPreviousPage => PageNumber > 1;

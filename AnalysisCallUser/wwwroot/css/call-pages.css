@@ -1,45 +1,6 @@
 ﻿/* --- استایل‌های عمومی و مشترک با صفحات دیگر --- */
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap');
 
-:root {
-    --bg-gradient-start: #1a1a2e;
-    --bg-gradient-end: #16213e;
-    --card-bg: rgba(255, 255, 255, 0.05);
-    --card-border: rgba(255, 255, 255, 0.1);
-    --text-primary: #ffffff;
-    --text-secondary: #b0b0b0;
-    --primary-color: #00adb5;
-    --primary-color-hover: #00c9d1;
-    --danger-color: #ff4d4d;
-    --success-color: #4caf50;
-    --input-bg: rgba(255, 255, 255, 0.07);
-    --input-border: rgba(255, 255, 255, 0.2);
-}
-
-body {
-    font-family: 'Vazirmatn', sans-serif;
-    background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
-    background-attachment: fixed; /* برای افکت پارالاکس */
-    color: var(--text-primary);
-    min-height: 100vh;
-    overflow-x: hidden;
-}
-
-/* --- کانتینر اصلی صفحات تماس --- */
-.call-details-container, .call-list-container, .call-search-container {
-    padding: 20px;
-    animation: fadeIn 0.8s ease-out;
-}
-
-/* --- هدر صفحه --- */
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding: 0 10px;
-}
-
     .page-header h3 {
         font-weight: 700;
         font-size: 28px;
