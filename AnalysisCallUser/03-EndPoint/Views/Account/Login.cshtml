@@ -12,9 +12,23 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
+    <link rel="icon" type="image/png" href="~/images/logos/fav.png" />
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.rtl.min.css" />
     <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+
+    <style>
+        /* اصلاح راست‌چین بودن ورودی‌ها و لیبل‌ها */
+        .form-control {
+            text-align: right !important;
+        }
+
+        .control-label {
+            text-align: right !important;
+            width: 100%;
+            display: block;
+        }
+    </style>
 </head>
 <body>
 
@@ -27,25 +41,17 @@
     </div>
 
     <div class="login-container">
-        <!-- شخصیت جذاب سمت چپ -->
+
+        <!-- شخصیت سمت چپ -->
         <div class="human-figure left">
             <svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
                 <g id="human-left">
-                    <!-- سایه -->
                     <ellipse cx="60" cy="195" rx="35" ry="8" fill="#000000" opacity="0.2" />
-                    <!-- بدن -->
                     <path d="M 60 80 C 40 80, 30 120, 35 160 C 37 175, 45 185, 60 185 C 75 185, 83 175, 85 160 C 90 120, 80 80, 60 80 Z" fill="#ffffff" opacity="0.9" />
-                    <!-- سر -->
                     <circle cx="60" cy="50" r="30" fill="#ffffff" opacity="0.9" />
-                    <!-- چشم‌ها -->
-                    @* <circle cx="50" cy="48" r="3" fill="#1a1a2e" />
-                    <circle cx="70" cy="48" r="3" fill="#1a1a2e" />
-                    <!-- لبخند -->
-                    <path d="M 50 58 Q 60 65, 70 58" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round" /> *@
-                    <!-- گوشی -->
+
                     <rect x="85" y="60" width="18" height="30" rx="4" fill="#00adb5" opacity="0.9" />
                     <rect x="88" y="65" width="12" height="18" rx="2" fill="#1a1a2e" opacity="0.5" />
-                    <!-- دست -->
                     <path d="M 85 100 C 95 100, 100 70, 90 65" stroke="#ffffff" stroke-width="12" fill="none" opacity="0.9" stroke-linecap="round" />
                 </g>
             </svg>
@@ -60,65 +66,62 @@
                 </div>
                 <h3>ورود به سیستم تحلیل تماس</h3>
             </div>
+
             <div class="login-body">
                 <form asp-action="Login" method="post">
+
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                    <div class="form-group">
+
+                    <div class="form-group mb-3">
                         <label asp-for="Email" class="control-label"></label>
                         <input asp-for="Email" class="form-control" autocomplete="username" aria-required="true" />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
-                    <div class="form-group">
+
+                    <div class="form-group mb-3">
                         <label asp-for="Password" class="control-label"></label>
                         <input asp-for="Password" type="password" class="form-control" autocomplete="current-password" aria-required="true" />
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
-                    <div class="form-group">
+
+                    <div class="form-group mb-3">
                         <div class="form-check">
                             <input asp-for="RememberMe" class="form-check-input" />
                             <label asp-for="RememberMe" class="form-check-label"></label>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary btn-block w-100">ورود</button>
-                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">ورود</button>
                 </form>
             </div>
+
             <div class="login-footer">
                 <p>سیستم تحلیل تماس - نسخه 1.0</p>
             </div>
         </div>
 
-        <!-- شخصیت جذاب سمت راست -->
+        <!-- شخصیت سمت راست -->
         <div class="human-figure right">
             <svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
                 <g id="human-right">
-                    <!-- سایه -->
                     <ellipse cx="60" cy="195" rx="35" ry="8" fill="#000000" opacity="0.2" />
-                    <!-- بدن -->
                     <path d="M 60 80 C 40 80, 30 120, 35 160 C 37 175, 45 185, 60 185 C 75 185, 83 175, 85 160 C 90 120, 80 80, 60 80 Z" fill="#ffffff" opacity="0.9" />
-                    <!-- سر -->
                     <circle cx="60" cy="50" r="30" fill="#ffffff" opacity="0.9" />
-                  @*   <!-- چشم‌ها -->
-                    <circle cx="50" cy="48" r="3" fill="#1a1a2e" />
-                    <circle cx="70" cy="48" r="3" fill="#1a1a2e" />
-                    <!-- لبخند -->
-                    <path d="M 50 58 Q 60 65, 70 58" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round" /> *@
-                    <!-- گوشی -->
+
                     <rect x="17" y="60" width="18" height="30" rx="4" fill="#00adb5" opacity="0.9" />
                     <rect x="20" y="65" width="12" height="18" rx="2" fill="#1a1a2e" opacity="0.5" />
-                    <!-- دست -->
                     <path d="M 35 100 C 25 100, 20 70, 30 65" stroke="#ffffff" stroke-width="12" fill="none" opacity="0.9" stroke-linecap="round" />
                 </g>
             </svg>
         </div>
 
-        <!-- انیمیشن سیگنال بین دو شخصیت -->
+        <!-- انیمیشن موج سیگنال -->
         <div class="signal-container">
             <div class="signal-pulse"></div>
             <div class="signal-pulse"></div>
             <div class="signal-pulse"></div>
         </div>
+
     </div>
 
     @section Scripts {

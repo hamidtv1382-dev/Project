@@ -88,19 +88,6 @@ namespace AnalysisCallUser.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Operators",
-                columns: table => new
-                {
-                    OperatorID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    OperatorName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Operators", x => x.OperatorID);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -334,6 +321,26 @@ namespace AnalysisCallUser.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Operators",
+                columns: table => new
+                {
+                    OperatorID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OperatorName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CountryID = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Operators", x => x.OperatorID);
+                    table.ForeignKey(
+                        name: "FK_Operators_Countries_CountryID",
+                        column: x => x.CountryID,
+                        principalTable: "Countries",
+                        principalColumn: "CountryID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CallDetails",
                 columns: table => new
                 {
@@ -498,6 +505,11 @@ namespace AnalysisCallUser.Migrations
                 name: "IX_LoginHistories_UserId",
                 table: "LoginHistories",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Operators_CountryID",
+                table: "Operators",
+                column: "CountryID");
         }
 
         /// <inheritdoc />

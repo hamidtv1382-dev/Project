@@ -6,32 +6,61 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-3">
-            <div class="card">
-                <div class="card-header">
-                    <h4>فیلترها</h4>
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">فیلترها</h4>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCardBody" aria-expanded="true" aria-controls="filterCardBody">
+                        <i class="fas fa-chevron-up" id="filterToggleIcon"></i>
+                    </button>
                 </div>
-                <div class="card-body">
-                    <form asp-action="Search" method="post" id="filter-form">
+                <div class="card-body collapse show" id="filterCardBody">
+                    <form asp-action="Search" method="post" id="filter-form" novalidate>
                         @Html.AntiForgeryToken()
 
                         <!-- فیلدهای تاریخ -->
                         <div class="filter-section">
-                            <div class="filter-section-title">بازه زمانی</div>
+                            <div class="filter-section-title">
+                                <i class="fas fa-calendar-alt"></i> بازه زمانی
+                                <button type="button" class="btn btn-sm btn-outline-info float-end" id="datePresetsBtn" data-bs-toggle="dropdown">
+                                    <i class="fas fa-clock"></i> پیش‌فرض
+                                </button>
+                                <ul class="dropdown-menu" id="datePresets">
+                                    <li><a class="dropdown-item" href="#" data-days="1">امروز</a></li>
+                                    <li><a class="dropdown-item" href="#" data-days="7">۷ روز گذشته</a></li>
+                                    <li><a class="dropdown-item" href="#" data-days="30">۳۰ روز گذشته</a></li>
+                                    <li><a class="dropdown-item" href="#" data-days="90">۳ ماه گذشته</a></li>
+                                </ul>
+                            </div>
                             <div class="filter-row">
                                 <div class="filter-field">
                                     <label asp-for="Filter.StartDate" class="form-label"></label>
-                                    <input asp-for="Filter.StartDate" type="date" class="form-control" />
+                                    <div class="input-group">
+                                        <input asp-for="Filter.StartDate" type="date" class="form-control" />
+                                        <span class="input-group-text" id="startDateClear">
+                                            <i class="fas fa-times"></i>
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="filter-field">
                                     <label asp-for="Filter.EndDate" class="form-label"></label>
-                                    <input asp-for="Filter.EndDate" type="date" class="form-control" />
+                                    <div class="input-group">
+                                        <input asp-for="Filter.EndDate" type="date" class="form-control" />
+                                        <span class="input-group-text" id="endDateClear">
+                                            <i class="fas fa-times"></i>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- فیلدهای مبدأ -->
                         <div class="filter-section">
-                            <div class="filter-section-title">مبدأ</div>
+                            <div class="filter-section-title">
+                                <i class="fas fa-phone-alt"></i> مبدأ
+                                <button type="button" class="btn btn-sm btn-outline-info float-end" id="swapOriginDest">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </button>
+                            </div>
                             <div class="filter-row">
                                 <div class="filter-field">
                                     <label asp-for="Filter.OriginCountryID" class="form-label"></label>
@@ -55,15 +84,30 @@
                             </div>
                             <div class="filter-row">
                                 <div class="filter-field">
+                                    <label asp-for="Filter.OriginOperatorID" class="form-label"></label>
+                                    <select asp-for="Filter.OriginOperatorID" class="form-select" id="origin-operator-select" disabled>
+                                        <option value="">ابتدا کشور را انتخاب کنید</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-field">
                                     <label asp-for="Filter.ANumber" class="form-label"></label>
-                                    <input asp-for="Filter.ANumber" class="form-control" placeholder="شماره مبدأ را وارد کنید" />
+                                    <div class="input-group">
+                                        <input asp-for="Filter.ANumber" class="form-control" placeholder="شماره مبدأ را وارد کنید" id="anumber-input" />
+                                        <button class="btn btn-outline-secondary" type="button" id="detectOriginBtn" title="تشخیص خودکار کشور و اپراتور">
+                                            <i class="fas fa-magic"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- فیلدهای مقصد -->
                         <div class="filter-section">
-                            <div class="filter-section-title">مقصد</div>
+                            <div class="filter-section-title">
+                                <i class="fas fa-phone-alt"></i> مقصد
+                            </div>
                             <div class="filter-row">
                                 <div class="filter-field">
                                     <label asp-for="Filter.DestCountryID" class="form-label"></label>
@@ -87,15 +131,30 @@
                             </div>
                             <div class="filter-row">
                                 <div class="filter-field">
+                                    <label asp-for="Filter.DestOperatorID" class="form-label"></label>
+                                    <select asp-for="Filter.DestOperatorID" class="form-select" id="dest-operator-select" disabled>
+                                        <option value="">ابتدا کشور را انتخاب کنید</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-field">
                                     <label asp-for="Filter.BNumber" class="form-label"></label>
-                                    <input asp-for="Filter.BNumber" class="form-control" placeholder="شماره مقصد را وارد کنید" />
+                                    <div class="input-group">
+                                        <input asp-for="Filter.BNumber" class="form-control" placeholder="شماره مقصد را وارد کنید" id="bnumber-input" />
+                                        <button class="btn btn-outline-secondary" type="button" id="detectDestBtn" title="تشخیص خودکار کشور و اپراتور">
+                                            <i class="fas fa-magic"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- فیلدهای دیگر -->
                         <div class="filter-section">
-                            <div class="filter-section-title">سایر فیلترها</div>
+                            <div class="filter-section-title">
+                                <i class="fas fa-filter"></i> سایر فیلترها
+                            </div>
                             <div class="filter-row">
                                 <div class="filter-field">
                                     <label asp-for="Filter.Answer" class="form-label"></label>
@@ -118,11 +177,20 @@
                         </div>
 
                         <!-- دکمه‌ها -->
-                        <div class="filter-row">
-                            <button type="submit" class="btn btn-primary flex-fill">
-                                <i class="fas fa-search"></i> جستجو
-                            </button>
-                            <button type="button" id="reset-filter" class="btn btn-secondary flex-fill">بازنشانی</button>
+                        <div class="filter-section">
+                            <div class="filter-row">
+                                <button type="submit" class="btn btn-primary flex-fill">
+                                    <i class="fas fa-search"></i> جستجو
+                                </button>
+                                <button type="button" id="reset-filter" class="btn btn-secondary flex-fill">
+                                    <i class="fas fa-redo"></i> بازنشانی
+                                </button>
+                            </div>
+                            <div class="filter-row mt-2">
+                                <button type="button" id="export-results" class="btn btn-success flex-fill" disabled>
+                                    <i class="fas fa-file-export"></i> خروجی اکسل
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -139,8 +207,109 @@
                     <div class="text-center p-4">
                         <i class="fas fa-search fa-3x text-muted mb-3"></i>
                         <p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p>
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary" id="quickSearchBtn">
+                                <i class="fas fa-bolt"></i> جستجوی سریع (تماس‌های امروز)
+                            </button>
+                        </div>
                     </div>
                 }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="fas fa-info-circle text-primary me-2"></i>
+            <strong class="me-auto">اطلاعیه</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            پیام اطلاع‌رسانی
+        </div>
+    </div>
+</div>
+
+<!-- Modal for export options -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel">اکسپورت نتایج جستجو</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">تعداد کل رکوردها: <span id="totalRecords" class="badge bg-primary">0</span></label>
+                </div>
+
+                <div class="mb-3">
+                    <label for="exportLimit" class="form-label">محدودیت تعداد رکوردها برای اکسپورت</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="exportLimit" min="1" max="10000" value="1000">
+                        <span class="input-group-text">ردیف</span>
+                    </div>
+                    <div class="form-text">حداکثر حجم فایل: <span id="estimatedSize">0</span> MB (حداکثر مجاز: 50MB)</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">ستون‌های مورد نظر برای اکسپورت</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="colDetailID" checked>
+                        <label class="form-check-label" for="colDetailID">شناسه تماس</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="colANumber" checked>
+                        <label class="form-check-label" for="colANumber">شماره مبدأ</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="colBNumber" checked>
+                        <label class="form-check-label" for="colBNumber">شماره مقصد</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="colAccountingTime" checked>
+                        <label class="form-check-label" for="colAccountingTime">تاریخ و زمان</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="colLength" checked>
+                        <label class="form-check-label" for="colLength">مدت زمان (ثانیه)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="colOriginCountry" checked>
+                        <label class="form-check-label" for="colOriginCountry">کشور مبدأ</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="colOriginCity">
+                        <label class="form-check-label" for="colOriginCity">شهر مبدأ</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="colOriginOperator">
+                        <label class="form-check-label" for="colOriginOperator">اپراتور مبدأ</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="colDestCountry" checked>
+                        <label class="form-check-label" for="colDestCountry">کشور مقصد</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="colDestCity">
+                        <label class="form-check-label" for="colDestCity">شهر مقصد</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="colDestOperator">
+                        <label class="form-check-label" for="colDestOperator">اپراتور مقصد</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="colAnswer" checked>
+                        <label class="form-check-label" for="colAnswer">وضعیت پاسخ</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-primary" id="confirmExport">اکسپورت</button>
             </div>
         </div>
     </div>
@@ -149,10 +318,90 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // تعریف متغیرها
             const originCountrySelect = document.getElementById('origin-country-select');
             const originCitySelect = document.getElementById('origin-city-select');
             const destCountrySelect = document.getElementById('dest-country-select');
             const destCitySelect = document.getElementById('dest-city-select');
+            const originOperatorSelect = document.getElementById('origin-operator-select');
+            const destOperatorSelect = document.getElementById('dest-operator-select');
+            const aNumberInput = document.getElementById('anumber-input');
+            const bNumberInput = document.getElementById('bnumber-input');
+            const startDateInput = document.getElementById('Filter_StartDate');
+            const endDateInput = document.getElementById('Filter_EndDate');
+            const resetBtn = document.getElementById('reset-filter');
+            const exportBtn = document.getElementById('export-results');
+            const quickSearchBtn = document.getElementById('quickSearchBtn');
+            const filterForm = document.getElementById('filter-form');
+            const searchResultsContainer = document.getElementById('search-results-container');
+            const filterToggleIcon = document.getElementById('filterToggleIcon');
+            const swapOriginDestBtn = document.getElementById('swapOriginDest');
+            const detectOriginBtn = document.getElementById('detectOriginBtn');
+            const detectDestBtn = document.getElementById('detectDestBtn');
+            const startDateClear = document.getElementById('startDateClear');
+            const endDateClear = document.getElementById('endDateClear');
+            const datePresetsBtn = document.getElementById('datePresetsBtn');
+            const notificationToast = new bootstrap.Toast(document.getElementById('notificationToast'));
+            const toastMessage = document.getElementById('toastMessage');
+
+            // متغیرهای مربوط به مودال اکسپورت
+            const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+            const exportLimitInput = document.getElementById('exportLimit');
+            const totalRecordsSpan = document.getElementById('totalRecords');
+            const estimatedSizeSpan = document.getElementById('estimatedSize');
+            const confirmExportBtn = document.getElementById('confirmExport');
+
+            // متغیر برای نگهداری تعداد کل نتایج
+            let totalResultsCount = 0;
+
+            // تابع برای نمایش اعلان
+            function showToast(message, type = 'info') {
+                toastMessage.textContent = message;
+                const toastHeader = document.querySelector('#notificationToast .toast-header i');
+                toastHeader.className = `fas me-2 ${type === 'success' ? 'fa-check-circle text-success' : type === 'error' ? 'fa-exclamation-circle text-danger' : 'fa-info-circle text-primary'}`;
+                notificationToast.show();
+            }
+
+            // تابع برای تخمین حجم فایل
+            function estimateFileSize(recordCount, columnCount) {
+                const estimatedBytes = recordCount * columnCount * 100;
+                const estimatedMB = (estimatedBytes / (1024 * 1024)).toFixed(2);
+                return estimatedMB;
+            }
+
+            // تابع برای شمارش ستون‌های انتخاب شده
+            function countSelectedColumns() {
+                const checkboxes = document.querySelectorAll('#exportModal .form-check-input');
+                let count = 0;
+                checkboxes.forEach(checkbox => {
+                    if (checkbox.checked) count++;
+                });
+                return count;
+            }
+
+            // تابع برای به‌روزرسانی تخمین حجم فایل
+            function updateEstimatedSize() {
+                const limit = parseInt(exportLimitInput.value) || 0;
+                const columnCount = countSelectedColumns();
+                const estimatedSize = estimateFileSize(limit, columnCount);
+                estimatedSizeSpan.textContent = estimatedSize;
+
+                if (estimatedSize > 50) {
+                    estimatedSizeSpan.classList.add('text-danger');
+                    confirmExportBtn.disabled = true;
+                } else {
+                    estimatedSizeSpan.classList.remove('text-danger');
+                    confirmExportBtn.disabled = false;
+                }
+            }
+
+            // رویداد برای تغییر محدودیت تعداد رکوردها
+            exportLimitInput.addEventListener('input', updateEstimatedSize);
+
+            // رویداد برای تغییر انتخاب ستون‌ها
+            document.querySelectorAll('#exportModal .form-check-input').forEach(checkbox => {
+                checkbox.addEventListener('change', updateEstimatedSize);
+            });
 
             // تابع برای بارگذاری شهرها
             async function loadCities(countrySelect, citySelect) {
@@ -180,54 +429,92 @@
                 } catch (error) {
                     console.error('Error loading cities:', error);
                     citySelect.innerHTML = '<option value="">خطا در بارگذاری</option>';
+                    showToast('خطا در بارگذاری شهرها', 'error');
                 }
             }
 
-            // رویداد برای کشور مبدأ
-            originCountrySelect.addEventListener('change', () => loadCities(originCountrySelect, originCitySelect));
-            // رویداد برای کشور مقصد
-            destCountrySelect.addEventListener('change', () => loadCities(destCountrySelect, destCitySelect));
+            // تابع برای بارگذاری اپراتورها
+            async function loadOperators(countrySelect, operatorSelect) {
+                const countryId = countrySelect.value;
+                operatorSelect.innerHTML = '<option value="">در حال بارگذاری...</option>';
+                operatorSelect.disabled = true;
 
-            // اگر در حالت POST-back هستیم و کشور انتخاب شده، شهرها را بارگذاری کن
-            const originCountryId = '@Model.Filter.OriginCountryID';
-            const destCountryId = '@Model.Filter.DestCountryID';
+                if (!countryId) {
+                    operatorSelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
+                    operatorSelect.disabled = true;
+                    return;
+                }
 
-            if (originCountryId && originCountryId !== '') { // اضافه کردن شرط برای اطمینان از وجود مقدار
-                loadCities(originCountrySelect, originCitySelect).then(() => {
-                    originCitySelect.value = '@Model.Filter.OriginCityID';
-                });
+                try {
+                    const response = await fetch(`/Call/GetOperators?countryId=${countryId}`);
+                    if (!response.ok) throw new Error('Network response was not ok.');
+                    const operators = await response.json();
+
+                    operatorSelect.innerHTML = '<option value="">انتخاب کنید</option>';
+                    operators.forEach(op => {
+                        const option = new Option(op.operatorName, op.operatorID);
+                        operatorSelect.add(option);
+                    });
+                    operatorSelect.disabled = false;
+                } catch (error) {
+                    console.error('Error loading operators:', error);
+                    operatorSelect.innerHTML = '<option value="">خطا در بارگذاری</option>';
+                    showToast('خطا در بارگذاری اپراتورها', 'error');
+                }
             }
-            if (destCountryId && destCountryId !== '') { // اضافه کردن شرط برای اطمینان از وجود مقدار
-                loadCities(destCountrySelect, destCitySelect).then(() => {
-                    destCitySelect.value = '@Model.Filter.DestCityID';
-                });
+
+            // تابع برای پر کردن فیلدها بر اساس اطلاعات شماره
+            async function populateFieldsFromPhoneInfo(phoneNumber, countrySelectId, citySelectId, operatorSelectId) {
+                if (!phoneNumber || phoneNumber.length < 5) return;
+
+                try {
+                    showToast('در حال تشخیص اطلاعات شماره تلفن...');
+                    const response = await fetch(`/Call/GetPhoneInfo?number=${encodeURIComponent(phoneNumber)}`);
+                    if (!response.ok) throw new Error('Network response was not ok.');
+                    const info = await response.json();
+
+                    if (!info.success) {
+                        showToast('اطلاعات شماره تلفن یافت نشد', 'error');
+                        return;
+                    }
+
+                    const countrySelect = document.getElementById(countrySelectId);
+                    const citySelect = document.getElementById(citySelectId);
+                    const operatorSelect = document.getElementById(operatorSelectId);
+
+                    if (info.countryId) {
+                        countrySelect.value = info.countryId;
+                        const countryChangeEvent = new Event('change', { bubbles: true });
+                        countrySelect.dispatchEvent(countryChangeEvent);
+                    }
+
+                    setTimeout(() => {
+                        if (info.cityId) {
+                            citySelect.value = info.cityId;
+                        }
+                        if (info.operatorId) {
+                            operatorSelect.value = info.operatorId;
+                        }
+                        showToast('اطلاعات شماره تلفن با موفقیت تشخیص داده شد', 'success');
+                    }, 400);
+
+                } catch (error) {
+                    console.error('Error fetching phone info:', error);
+                    showToast('خطا در تشخیص اطلاعات شماره تلفن', 'error');
+                }
             }
 
-            // ... بقیه اسکریپت‌های جستجو و ریست (بدون تغییر) ...
-            document.getElementById('reset-filter').addEventListener('click', function() {
-                document.getElementById('filter-form').reset();
-                originCitySelect.disabled = true;
-                originCitySelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
-                destCitySelect.disabled = true;
-                destCitySelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
-                document.getElementById('search-results-container').innerHTML = `
-                    <div class="text-center p-4">
-                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p>
-                    </div>
-                `;
-            });
-
-            document.getElementById('filter-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
+            // تابع برای جستجو
+            async function performSearch() {
+                const formData = new FormData(filterForm);
                 const filterParams = new URLSearchParams();
                 for (const pair of formData.entries()) {
                     if (pair[1]) {
                         filterParams.append(pair[0], pair[1]);
                     }
                 }
-                document.getElementById('search-results-container').innerHTML = `
+
+                searchResultsContainer.innerHTML = `
                     <div class="text-center p-4">
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">در حال بارگذاری...</span>
@@ -235,25 +522,243 @@
                         <p class="mt-2">در حال جستجو...</p>
                     </div>
                 `;
-                fetch('/Call/Search?' + filterParams.toString(), {
-                    method: 'POST',
-                    headers: {
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
-                        'X-Requested-With': 'XMLHttpRequest'
+
+                try {
+                    const response = await fetch(`/Call/Search?${filterParams.toString()}`, {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Network response was not ok.');
+
+                    const html = await response.text();
+                    searchResultsContainer.innerHTML = html;
+                    exportBtn.disabled = false;
+
+                    const totalCountMatch = html.match(/نتایج جستجو \((\d+) رکورد\)/);
+                    if (totalCountMatch) {
+                        totalResultsCount = parseInt(totalCountMatch[1]);
                     }
-                })
-                .then(response => response.text())
-                .then(html => {
-                    document.getElementById('search-results-container').innerHTML = html;
-                })
-                .catch(error => {
+
+                } catch (error) {
                     console.error('Error:', error);
-                    document.getElementById('search-results-container').innerHTML = `
+                    searchResultsContainer.innerHTML = `
                         <div class="alert alert-danger" role="alert">
                             خطا در دریافت نتایج جستجو. لطفاً دوباره تلاش کنید.
                         </div>
                     `;
+                    showToast('خطا در جستجو', 'error');
+                }
+            }
+
+            // تابع برای اکسپورت با گزینه‌های انتخاب شده
+            async function performExportWithOptions() {
+                const formData = new FormData(filterForm);
+                const filterParams = new URLSearchParams();
+                for (const pair of formData.entries()) {
+                    if (pair[1]) {
+                        filterParams.append(pair[0], pair[1]);
+                    }
+                }
+
+                filterParams.append('limit', exportLimitInput.value);
+
+                const columns = [];
+                if (document.getElementById('colDetailID').checked) columns.push('DetailID');
+                if (document.getElementById('colANumber').checked) columns.push('ANumber');
+                if (document.getElementById('colBNumber').checked) columns.push('BNumber');
+                if (document.getElementById('colAccountingTime').checked) columns.push('AccountingTime');
+                if (document.getElementById('colLength').checked) columns.push('Length');
+                if (document.getElementById('colOriginCountry').checked) columns.push('OriginCountryName');
+                if (document.getElementById('colOriginCity').checked) columns.push('OriginCityName');
+                if (document.getElementById('colOriginOperator').checked) columns.push('OriginOperatorName');
+                if (document.getElementById('colDestCountry').checked) columns.push('DestCountryName');
+                if (document.getElementById('colDestCity').checked) columns.push('DestCityName');
+                if (document.getElementById('colDestOperator').checked) columns.push('DestOperatorName');
+                if (document.getElementById('colAnswer').checked) columns.push('Answer');
+
+                filterParams.append('columns', columns.join(','));
+
+                try {
+                    const response = await fetch(`/Call/ExportWithOptions?${filterParams.toString()}`, {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Network response was not ok.');
+
+                    exportModal.hide();
+                    showToast('در حال آماده‌سازی فایل اکسپورت...');
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `CallExport_${new Date().toISOString().slice(0,10)}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showToast('خروجی با موفقیت دانلود شد', 'success');
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast('خطا در آماده‌سازی خروجی', 'error');
+                }
+            }
+
+            // رویداد برای کشور مبدأ
+            originCountrySelect.addEventListener('change', () => {
+                loadCities(originCountrySelect, originCitySelect);
+                loadOperators(originCountrySelect, originOperatorSelect);
+            });
+
+            // رویداد برای کشور مقصد
+            destCountrySelect.addEventListener('change', () => {
+                loadCities(destCountrySelect, destCitySelect);
+                loadOperators(destCountrySelect, destOperatorSelect);
+            });
+
+            // رویداد برای دکمه‌های تشخیص خودکار
+            detectOriginBtn.addEventListener('click', () => {
+                populateFieldsFromPhoneInfo(aNumberInput.value, 'origin-country-select', 'origin-city-select', 'origin-operator-select');
+            });
+
+            detectDestBtn.addEventListener('click', () => {
+                populateFieldsFromPhoneInfo(bNumberInput.value, 'dest-country-select', 'dest-city-select', 'dest-operator-select');
+            });
+
+            // رویداد برای پاک کردن تاریخ‌ها
+            startDateClear.addEventListener('click', () => { startDateInput.value = ''; });
+            endDateClear.addEventListener('click', () => { endDateInput.value = ''; });
+
+            // رویداد برای جابجایی مبدأ و مقصد
+            swapOriginDestBtn.addEventListener('click', () => {
+                const tempCountry = originCountrySelect.value;
+                originCountrySelect.value = destCountrySelect.value;
+                destCountrySelect.value = tempCountry;
+                originCountrySelect.dispatchEvent(new Event('change'));
+                destCountrySelect.dispatchEvent(new Event('change'));
+                setTimeout(() => {
+                    const tempCity = originCitySelect.value;
+                    originCitySelect.value = destCitySelect.value;
+                    destCitySelect.value = tempCity;
+                    const tempOperator = originOperatorSelect.value;
+                    originOperatorSelect.value = destOperatorSelect.value;
+                    destOperatorSelect.value = tempOperator;
+                }, 500);
+                const tempANumber = aNumberInput.value;
+                aNumberInput.value = bNumberInput.value;
+                bNumberInput.value = tempANumber;
+                showToast('مبدأ و مقصد با موفقیت جابجا شدند', 'success');
+            });
+
+            // رویداد برای پیش‌فرض‌های تاریخ
+            document.querySelectorAll('#datePresets .dropdown-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const days = parseInt(this.getAttribute('data-days'));
+                    const endDate = new Date();
+                    const startDate = new Date();
+                    startDate.setDate(endDate.getDate() - days);
+                    endDateInput.value = endDate.toISOString().split('T')[0];
+                    startDateInput.value = startDate.toISOString().split('T')[0];
+                    showToast(`بازه زمانی به ${this.textContent} تنظیم شد`, 'success');
                 });
+            });
+
+            // رویداد برای جستجوی سریع
+            quickSearchBtn.addEventListener('click', () => {
+                const today = new Date().toISOString().split('T')[0];
+                startDateInput.value = today;
+                endDateInput.value = today;
+                performSearch();
+            });
+
+            // رویداد برای بازنشانی فیلترها
+            resetBtn.addEventListener('click', function() {
+                filterForm.reset();
+                originCitySelect.disabled = true; originCitySelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
+                destCitySelect.disabled = true; destCitySelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
+                originOperatorSelect.disabled = true; originOperatorSelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
+                destOperatorSelect.disabled = true; destOperatorSelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
+                exportBtn.disabled = true;
+                searchResultsContainer.innerHTML = `<div class="text-center p-4"><i class="fas fa-search fa-3x text-muted mb-3"></i><p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p><div class="mt-3"><button class="btn btn-outline-primary" id="quickSearchBtn"><i class="fas fa-bolt"></i> جستجوی سریع (تماس‌های امروز)</button></div></div>`;
+                document.getElementById('quickSearchBtn').addEventListener('click', () => {
+                    const today = new Date().toISOString().split('T')[0];
+                    startDateInput.value = today;
+                    endDateInput.value = today;
+                    performSearch();
+                });
+                showToast('فیلترها با موفقیت بازنشانی شدند', 'success');
+            });
+
+            // رویداد برای خروجی گرفتن
+            exportBtn.addEventListener('click', () => {
+                totalRecordsSpan.textContent = totalResultsCount;
+                exportLimitInput.value = Math.min(totalResultsCount, 1000);
+                updateEstimatedSize();
+                exportModal.show();
+            });
+
+            // رویداد برای تأیید اکسپورت در مودال
+            confirmExportBtn.addEventListener('click', () => {
+                performExportWithOptions();
+            });
+
+            // رویداد برای ارسال فرم جستجو
+            filterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                performSearch();
+            });
+
+            // رویداد برای باز و بسته کردن پنل فیلترها
+            document.querySelector('[data-bs-toggle="collapse"]').addEventListener('click', function() {
+                filterToggleIcon.classList.toggle('fa-chevron-up');
+                filterToggleIcon.classList.toggle('fa-chevron-down');
+            });
+
+            // اگر در حالت POST-back هستیم و کشور انتخاب شده، شهرها و اپراتورها را بارگذاری کن
+            const originCountryId = '@Model.Filter.OriginCountryID';
+            const destCountryId = '@Model.Filter.DestCountryID';
+
+            if (originCountryId && originCountryId !== '') {
+                Promise.all([loadCities(originCountrySelect, originCitySelect), loadOperators(originCountrySelect, originOperatorSelect)]).then(() => {
+                    originCitySelect.value = '@Model.Filter.OriginCityID';
+                    originOperatorSelect.value = '@Model.Filter.OriginOperatorID';
+                });
+            }
+            if (destCountryId && destCountryId !== '') {
+                Promise.all([loadCities(destCountrySelect, destCitySelect), loadOperators(destCountrySelect, destOperatorSelect)]).then(() => {
+                    destCitySelect.value = '@Model.Filter.DestCityID';
+                    destOperatorSelect.value = '@Model.Filter.DestOperatorID';
+                });
+            }
+
+            // اگر نتایج وجود دارد، دکمه خروجی را فعال کن و تعداد کل را تنظیم کن
+            @if (Model.Results != null)
+            {
+                    <text>
+                        exportBtn.disabled = false;
+                        totalResultsCount = @Model.Results.TotalCount;
+                    </text>
+            }
+
+            // اضافه کردن رویداد blur به ورودی‌های شماره
+            aNumberInput.addEventListener('blur', () => { populateFieldsFromPhoneInfo(aNumberInput.value, 'origin-country-select', 'origin-city-select', 'origin-operator-select'); });
+            bNumberInput.addEventListener('blur', () => { populateFieldsFromPhoneInfo(bNumberInput.value, 'dest-country-select', 'dest-city-select', 'dest-operator-select'); });
+
+            // اضافه کردن میانبرهای صفحه کلید
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); performSearch(); }
+                if (e.ctrlKey && e.key === 'r') { e.preventDefault(); resetBtn.click(); }
             });
         });
     </script>

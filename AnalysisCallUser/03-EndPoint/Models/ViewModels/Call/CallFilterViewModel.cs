@@ -11,12 +11,16 @@ namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Call
         public TimeSpan? EndTime { get; set; }
         public string ANumber { get; set; }
         public string BNumber { get; set; }
+        [Display(Name = "اپراتور مبدأ")]
+        public int? OriginOperatorID { get; set; }
+
+        [Display(Name = "اپراتور مقصد")]
+        public int? DestOperatorID { get; set; }
         public int? OriginCountryID { get; set; }
         public int? DestCountryID { get; set; }
         public int? OriginCityID { get; set; }
         public int? DestCityID { get; set; }
-        public int? OriginOperatorID { get; set; }
-        public int? DestOperatorID { get; set; }
+   
         public int? TypeID { get; set; }
         public CallAnswerStatus? Answer { get; set; }
 

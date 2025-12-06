@@ -21,27 +21,26 @@ namespace AnalysisCallUser._01_Domain.Services
 
         public async Task<DashboardDto> GetDashboardDataAsync(int userId)
         {
-            // دریافت کل تماس‌ها
             var totalCalls = await _unitOfWork.CallDetails.GetAll().CountAsync();
 
-            // دریافت تماس‌های پاسخ داده شده
             var answeredCalls = await _unitOfWork.CallDetails.GetAll()
                 .Where(cd => cd.Answer == CallAnswerStatus.Answered)
                 .CountAsync();
 
-            // محاسبه میانگین مدت تماس
             var answeredCallsQuery = _unitOfWork.CallDetails.GetAll().Where(cd => cd.Answer == CallAnswerStatus.Answered);
             var averageCallDuration = await answeredCallsQuery.AnyAsync()
                 ? await answeredCallsQuery.AverageAsync(cd => cd.Length)
                 : 0;
 
-            // دریافت کشورهای برتر
-            var topCountriesChart = await _callAnalysisService.GetTopCallingCountriesAsync(5);
+            // متد GetTopCallingCountriesAsync دیگر استفاده نمی‌شود
+            // var topCountriesChart = await _callAnalysisService.GetTopCallingCountriesAsync(5);
 
-            // دریافت فعالیت اخیر (تماس‌های 30 روز گذشته)
-            var recentActivityChart = await GetRecentActivityAsync();
+            // +++ تغییر ۱: دریافت ۵ فعالیت اخیر +++
+            var recentActivityChart = await GetRecentActivityAsync(5);
 
-            // دریافت 100 تماس اخیر
+            // +++ تغییر ۲: دریافت ۳ شهر برتر تماس با ایران +++
+            var topCitiesChart = await GetTopCallingCitiesWithIranAsync(3);
+
             var recentCalls = await GetRecentCallsAsync(100);
 
             return new DashboardDto
@@ -49,21 +48,24 @@ namespace AnalysisCallUser._01_Domain.Services
                 TotalCalls = totalCalls,
                 AnsweredCalls = answeredCalls,
                 AverageCallDuration = averageCallDuration,
-                TopCountries = topCountriesChart?.Data ?? new List<ChartDataDto.ChartPoint>(),
+                // TopCountries = topCountriesChart?.Data ?? new List<ChartDataDto.ChartPoint>(),
+                // +++ تغییر ۳: استفاده از داده‌های جدید شهرها +++
+                TopCities = topCitiesChart?.Data ?? new List<ChartDataDto.ChartPoint>(),
                 RecentActivity = recentActivityChart?.Data ?? new List<ChartDataDto.ChartPoint>(),
                 RecentCalls = recentCalls ?? new List<CallDetailDto>()
             };
         }
 
-        private async Task<ChartDataDto> GetRecentActivityAsync()
+        // +++ متد اصلاح‌شده برای دریافت تعداد مشخصی از فعالیت‌های اخیر +++
+        private async Task<ChartDataDto> GetRecentActivityAsync(int count)
         {
-            // دریافت تماس‌های 30 روز گذشته گروه‌بندی شده بر اساس روز
             var thirtyDaysAgo = DateTime.Today.AddDays(-30);
             var recentActivityQuery = _unitOfWork.CallDetails.GetAll()
                 .Where(cd => cd.AccountingTime >= thirtyDaysAgo)
                 .GroupBy(cd => cd.AccountingTime.Date)
                 .Select(g => new { Date = g.Key, Count = g.Count() })
-                .OrderBy(g => g.Date);
+                .OrderByDescending(g => g.Date) // مرتب‌سازی نزولی برای دریافت آخرین‌ها
+                .Take(count); // گرفتن تعداد مورد نظر
 
             var recentActivity = await recentActivityQuery.ToListAsync();
 
@@ -76,6 +78,47 @@ namespace AnalysisCallUser._01_Domain.Services
                     Value = r.Count
                 }).ToList()
             };
+        }
+
+        // +++ متد جدید برای گرفتن شهرهای برتر تماس با ایران +++
+        // در کلاس DashboardService.cs
+
+        private async Task<ChartDataDto> GetTopCallingCitiesWithIranAsync(int count)
+        {
+            var iranCountry = await _unitOfWork.Countries.GetAll()
+               .FirstOrDefaultAsync(c => c.CountryName == "Iran");
+
+            if (iranCountry == null)
+            {
+                return new ChartDataDto { Data = new List<ChartDataDto.ChartPoint>() };
+            }
+
+            // +++ اصلاح کوئری +++
+            // ابتدا تماس‌هایی را پیدا کنید که مقصدشان ایران است
+            var callsToIran = _unitOfWork.CallDetails.GetAll()
+                .Where(cd => cd.DestCountryID == iranCountry.CountryID);
+
+            var topCitiesQuery = callsToIran
+                // گروه‌بندی را بر اساس کشور مبدأ انجام دهید
+                .GroupBy(cd => cd.OriginCountry)
+                .Select(g => new
+                {
+                    // نام کشور مبدأ را به عنوان برچسب استفاده کنید
+                    Label = g.Key.CountryName,
+                    CallCount = g.Count()
+                })
+                .OrderByDescending(g => g.CallCount)
+                .Take(count);
+
+            var topCities = await topCitiesQuery.ToListAsync();
+
+            var data = topCities.Select(city => new ChartDataDto.ChartPoint
+            {
+                Label = city.Label,
+                Value = city.CallCount
+            }).ToList();
+
+            return new ChartDataDto { Data = data };
         }
 
         private async Task<IEnumerable<CallDetailDto>> GetRecentCallsAsync(int count)
@@ -98,9 +141,9 @@ namespace AnalysisCallUser._01_Domain.Services
             return await recentCallsQuery.ToListAsync();
         }
 
+        // متدهای دیگر بدون تغییر باقی می‌مانند
         public async Task<AnalyticsDto> GetAnalyticsDataAsync(CallFilterDto filter)
         {
-            // اگر filter.StartDate null بود، از 30 روز قبل استفاده کن. اگر filter.EndDate null بود، از امروز استفاده کن.
             var callVolumeChart = await _analyticsService.GetCallVolumeOverTimeAsync(new TimeAnalysisDto
             {
                 StartDate = filter.StartDate ?? DateTime.Today.AddDays(-30),

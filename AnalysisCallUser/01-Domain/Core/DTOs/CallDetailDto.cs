@@ -16,6 +16,8 @@ namespace AnalysisCallUser._01_Domain.Core.DTOs
         public string? DestCityName { get; set; }
         public string? DestOperatorName { get; set; }
         public string? TypeName { get; set; }
+       
+
         public CallAnswerStatus Answer { get; set; }
     }
 }

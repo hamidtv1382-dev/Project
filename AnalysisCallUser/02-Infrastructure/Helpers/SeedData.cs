@@ -21,22 +21,11 @@ namespace AnalysisCallUser._02_Infrastructure.Helpers
                 {
                     context.Database.Migrate();
 
-                    // 1. Seed Countries
                     await SeedCountriesAsync(context, logger);
-
-                    // 2. Seed Cities
                     await SeedCitiesAsync(context, logger);
-
-                    // 3. Seed Operators
                     await SeedOperatorsAsync(context, logger);
-
-                    // 4. Seed Call Types
                     await SeedCallTypesAsync(context, logger);
-
-                    // 5. Seed Roles
                     await SeedRolesAsync(roleManager, logger);
-
-                    // 6. Seed Default Users
                     await SeedDefaultUsersAsync(userManager, logger);
                 }
                 catch (Exception ex)
@@ -66,13 +55,11 @@ namespace AnalysisCallUser._02_Infrastructure.Helpers
         {
             if (!await context.Cities.AnyAsync())
             {
-                // Get country IDs
                 var iran = await context.Countries.FirstOrDefaultAsync(c => c.CountryName == "Iran");
                 var azerbaijan = await context.Countries.FirstOrDefaultAsync(c => c.CountryName == "Azerbaijan");
 
                 var cities = new List<City>();
 
-                // Iran cities
                 if (iran != null)
                 {
                     cities.AddRange(new[]
@@ -96,7 +83,6 @@ namespace AnalysisCallUser._02_Infrastructure.Helpers
                     });
                 }
 
-                // Azerbaijan cities
                 if (azerbaijan != null)
                 {
                     cities.AddRange(new[]
@@ -130,18 +116,33 @@ namespace AnalysisCallUser._02_Infrastructure.Helpers
         {
             if (!await context.Operators.AnyAsync())
             {
-                var operators = new[]
+                var iran = await context.Countries.FirstOrDefaultAsync(c => c.CountryName == "Iran");
+                var azerbaijan = await context.Countries.FirstOrDefaultAsync(c => c.CountryName == "Azerbaijan");
+
+                var operators = new List<Operator>();
+
+                if (iran != null)
                 {
-                    new Operator { OperatorName = "Azercell" },
-                    new Operator { OperatorName = "Bakcell" },
-                    new Operator { OperatorName = "FONEX" },
-                    new Operator { OperatorName = "IR-MCI" },
-                    new Operator { OperatorName = "Irancell" },
-                    new Operator { OperatorName = "Nar Mobile" },
-                    new Operator { OperatorName = "Naxtel" },
-                    new Operator { OperatorName = "Rightel" },
-                    new Operator { OperatorName = "Shatel Mobile" }
-                };
+                    operators.AddRange(new[]
+                    {
+                        new Operator { OperatorName = "IR-MCI", CountryID = iran.CountryID },
+                        new Operator { OperatorName = "Irancell", CountryID = iran.CountryID },
+                        new Operator { OperatorName = "Rightel", CountryID = iran.CountryID },
+                        new Operator { OperatorName = "Shatel Mobile", CountryID = iran.CountryID }
+                    });
+                }
+
+                if (azerbaijan != null)
+                {
+                    operators.AddRange(new[]
+                    {
+                        new Operator { OperatorName = "Azercell", CountryID = azerbaijan.CountryID },
+                        new Operator { OperatorName = "Bakcell", CountryID = azerbaijan.CountryID },
+                        new Operator { OperatorName = "Nar Mobile", CountryID = azerbaijan.CountryID },
+                        new Operator { OperatorName = "Naxtel", CountryID = azerbaijan.CountryID },
+                        new Operator { OperatorName = "FONEX", CountryID = azerbaijan.CountryID }
+                    });
+                }
 
                 await context.Operators.AddRangeAsync(operators);
                 await context.SaveChangesAsync();

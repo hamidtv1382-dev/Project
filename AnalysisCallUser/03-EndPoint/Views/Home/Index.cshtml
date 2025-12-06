@@ -4,13 +4,26 @@
 @{
     ViewData["Title"] = "داشبورد";
 }
-
+@* 
+<form id="anti-forgery-form">
+    @Html.AntiForgeryToken()
+</form>
+ *@
 <div class="dashboard-container">
+       @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+        {
     <div class="page-header">
         <h3>داشبورد</h3>
-      
+        <div class="page-actions">
+            <button id="refresh-dashboard" class="btn btn-outline-primary">
+                <i class="fas fa-sync-alt"></i> به‌روزرسانی
+            </button>
+            <button id="clear-cache" class="btn btn-outline-warning">
+                <i class="fas fa-trash"></i> خالی کردن کش
+            </button>
+        </div>
     </div>
-
+        }
     <div class="row">
         <div class="col-md-3">
             <div class="stat-card">
@@ -57,64 +70,65 @@
             </div>
         </div>
     </div>
-
-    <div class="row mt-4">
-        <div class="col-md-8">
-            <div class="chart-container">
-                <h4>فعالیت اخیر</h4>
-                <canvas id="recent-activity-chart" width="400" height="200"></canvas>
+       @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+    {
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <div class="chart-container">
+                    <h4>فعالیت اخیر (۵ مورد آخر)</h4>
+                    <canvas id="recent-activity-chart" width="400" height="200"></canvas>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-container">
+                    <h4>شهرهای برتر تماس با ایران</h4>
+                    <canvas id="top-cities-chart" width="400" height="200"></canvas>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="chart-container">
-                <h4>کشورهای برتر</h4>
-                <canvas id="top-countries-chart" width="400" height="200"></canvas>
-            </div>
-        </div>
-    </div>
-
+    }
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="table-container">
                 <h4>اخیرین تماس‌ها</h4>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>شماره مبدأ</th>
+                            <th>شماره مقصد</th>
+                            <th>تاریخ</th>
+                            <th>زمان</th>
+                            <th>مدت (ثانیه)</th>
+                            <th>کشور مبدأ</th>
+                            <th>کشور مقصد</th>
+                            <th>وضعیت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var call in Model.RecentCalls)
+                        {
                             <tr>
-                                <th>شماره مبدأ</th>
-                                <th>شماره مقصد</th>
-                                <th>تاریخ</th>
-                                <th>مدت (ثانیه)</th>
-                                <th>کشور مبدأ</th>
-                                <th>کشور مقصد</th>
-                                <th>وضعیت</th>
+                                <td>@call.ANumber</td>
+                                <td>@call.BNumber</td>
+                                <td>@call.AccountingTime.ToString("yyyy/MM/dd")</td>
+                                <td>@call.AccountingTime.ToString("HH:mm:ss")</td>
+                                <td>@call.Length</td>
+                                <td>@call.OriginCountryName</td>
+                                <td>@call.DestCountryName</td>
+                                <td>
+                                    @if (call.Answer == CallAnswerStatus.Answered)
+                                    {
+                                        <span class="badge bg-success">پاسخ داده شده</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">پاسخ داده نشده</span>
+                                    }
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var call in Model.RecentCalls)
-                            {
-                                <tr>
-                                    <td>@call.ANumber</td>
-                                    <td>@call.BNumber</td>
-                                    <td>@call.AccountingTime.ToString("yyyy/MM/dd")</td>
-                                    <td>@call.Length</td>
-                                    <td>@call.OriginCountryName</td>
-                                    <td>@call.DestCountryName</td>
-                                    <td>
-                                        @if (call.Answer == CallAnswerStatus.Answered)
-                                        {
-                                            <span class="badge bg-success">پاسخ داده شده</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-danger">پاسخ داده نشده</span>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -124,7 +138,7 @@
     <script src="~/lib/chartjs/dist/chart.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // نمودار فعالیت اخیر
+
             const recentActivityCtx = document.getElementById('recent-activity-chart').getContext('2d');
             const recentActivityChart = new Chart(recentActivityCtx, {
                 type: 'line',
@@ -139,65 +153,28 @@
                         tension: 0.4,
                         fill: true,
                         pointBackgroundColor: 'rgba(0, 173, 181, 1)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(0, 173, 181, 1)'
+                        pointBorderColor: '#fff'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#b0b0b0' }
-                        },
-                        x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#b0b0b0' }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: { color: '#ffffff' }
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                            titleColor: '#ffffff',
-                            bodyColor: '#ffffff'
-                        }
+                        y: { beginAtZero: true }
                     }
                 }
             });
 
-            // نمودار کشورهای برتر
-            const topCountriesCtx = document.getElementById('top-countries-chart').getContext('2d');
-            const topCountriesChart = new Chart(topCountriesCtx, {
+            const topCitiesCtx = document.getElementById('top-cities-chart').getContext('2d');
+            const topCitiesChart = new Chart(topCitiesCtx, {
                 type: 'bar',
                 data: {
-                    labels: @Html.Raw(Json.Serialize(Model.TopCountries.Select(d => d.Label))),
+                    labels: @Html.Raw(Json.Serialize(Model.TopCities.Select(d => d.Label))),
                     datasets: [{
                         label: 'تعداد تماس‌ها',
-                        data: @Html.Raw(Json.Serialize(Model.TopCountries.Select(d => d.Value))),
-                        backgroundColor: [
-                            'rgba(255, 99, 132, 0.5)',
-                            'rgba(54, 162, 235, 0.5)',
-                            'rgba(255, 206, 86, 0.5)',
-                            'rgba(75, 192, 192, 0.5)',
-                            'rgba(153, 102, 255, 0.5)'
-                        ],
-                        borderColor: [
-                            'rgba(255, 99, 132, 1)',
-                            'rgba(54, 162, 235, 1)',
-                            'rgba(255, 206, 86, 1)',
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(153, 102, 255, 1)'
-                        ],
+                        data: @Html.Raw(Json.Serialize(Model.TopCities.Select(d => d.Value))),
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
                         borderWidth: 1
                     }]
                 },
@@ -205,29 +182,48 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#b0b0b0' }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#b0b0b0' }
-                        }
+                        y: { beginAtZero: true }
                     },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                            titleColor: '#ffffff',
-                            bodyColor: '#ffffff'
-                        }
-                    }
+                    plugins: { legend: { display: false } }
                 }
             });
 
-            // منطق دکمه به‌روزرسانی (اختیاری)
-           
+            document.getElementById('refresh-dashboard').addEventListener('click', function() {
+                location.reload();
+            });
+
+            document.getElementById('clear-cache').addEventListener('click', async function() {
+
+                const clearButton = document.getElementById('clear-cache');
+                const originalText = clearButton.innerHTML;
+                clearButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال انجام...';
+                clearButton.disabled = true;
+
+                try {
+                    const token = document.querySelector('#anti-forgery-form input[name="__RequestVerificationToken"]').value;
+
+                    const response = await fetch('/Home/ClearCache', {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': token
+                        }
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        alert(result.message);
+                        location.reload();
+                    } else {
+                        alert('خطا در خالی کردن کش.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('خطا در ارتباط با سرور.');
+                } finally {
+                    clearButton.innerHTML = originalText;
+                    clearButton.disabled = false;
+                }
+            });
         });
     </script>
 }

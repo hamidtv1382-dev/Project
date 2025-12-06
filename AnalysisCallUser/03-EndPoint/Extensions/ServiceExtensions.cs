@@ -70,7 +70,9 @@ namespace AnalysisCallUser._03_EndPoint.Extensions
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IFilterService, FilterService>();
             services.AddScoped<IAnalyticsService, AnalyticsService>();
-
+            // ...
+            services.AddScoped<IPhoneInfoService, PhoneInfoService>();
+            // ...
             // --------------------------
             // RealTime Service (EndPoint)
             // --------------------------

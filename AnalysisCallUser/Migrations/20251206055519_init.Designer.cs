@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AnalysisCallUser.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251204055703_init")]
+    [Migration("20251206055519_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -442,12 +442,17 @@ namespace AnalysisCallUser.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OperatorID"));
 
+                    b.Property<int>("CountryID")
+                        .HasColumnType("int");
+
                     b.Property<string>("OperatorName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("OperatorID");
+
+                    b.HasIndex("CountryID");
 
                     b.ToTable("Operators");
                 });
@@ -700,6 +705,17 @@ namespace AnalysisCallUser.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AnalysisCallUser._01_Domain.Core.Entities.Operator", b =>
+                {
+                    b.HasOne("AnalysisCallUser._01_Domain.Core.Entities.Country", "Country")
+                        .WithMany()
+                        .HasForeignKey("CountryID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Country");
                 });
 
             modelBuilder.Entity("AnalysisCallUser._01_Domain.Core.Entities.UserLoginHistory", b =>

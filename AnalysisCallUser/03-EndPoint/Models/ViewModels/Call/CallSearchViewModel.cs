@@ -11,5 +11,7 @@ namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Call
         public IEnumerable<Country> Countries { get; set; } = new List<Country>();
         public IEnumerable<City> OriginCities { get; set; } = new List<City>();
         public IEnumerable<City> DestCities { get; set; } = new List<City>();
+        public List<Operator> OriginOperators { get; set; }
+        public List<Operator> DestOperators { get; set; }
     }
 }

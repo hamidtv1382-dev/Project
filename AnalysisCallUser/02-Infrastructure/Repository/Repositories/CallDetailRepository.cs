@@ -30,72 +30,65 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
         }
 
         // متد GetFilteredAsync بدون تغییر باقی می‌ماند
+
         public async Task<IEnumerable<CallDetail>> GetFilteredAsync(CallFilterDto filter)
         {
-            var query = GetAll()
-                .Select(cd => new
-                {
-                    CallDetail = cd,
-                    FullDateTime = cd.AccountingTime
-                });
+            // این کوئری شامل تمام اطلاعات Include شده است
+            var query = GetAll();
 
             if (filter != null)
             {
                 if (filter.StartDate.HasValue)
                 {
-                    var startDateTime =
-                        filter.StartDate.Value.Date +
-                        (filter.StartTime ?? TimeSpan.Zero);
-
-                    query = query.Where(x => x.CallDetail.AccountingTime >= startDateTime);
+                    var startDateTime = filter.StartDate.Value.Date + (filter.StartTime ?? TimeSpan.Zero);
+                    query = query.Where(x => x.AccountingTime >= startDateTime);
                 }
 
                 if (filter.EndDate.HasValue)
                 {
-                    var endDateTime =
-                        filter.EndDate.Value.Date +
-                        (filter.EndTime ?? new TimeSpan(23, 59, 59));
-
-                    query = query.Where(x => x.FullDateTime <= endDateTime);
+                    var endDateTime = filter.EndDate.Value.Date + (filter.EndTime ?? new TimeSpan(23, 59, 59));
+                    query = query.Where(x => x.AccountingTime <= endDateTime);
                 }
 
                 if (!string.IsNullOrEmpty(filter.ANumber))
-                    query = query.Where(x => x.CallDetail.ANumber.Contains(filter.ANumber));
+                    query = query.Where(x => x.ANumber.Contains(filter.ANumber));
 
                 if (!string.IsNullOrEmpty(filter.BNumber))
-                    query = query.Where(x => x.CallDetail.BNumber.Contains(filter.BNumber));
+                    query = query.Where(x => x.BNumber.Contains(filter.BNumber));
 
+                // این فیلترها از قبل در کد شما وجود داشتند و صحیح هستند
                 if (filter.OriginCountryID.HasValue)
-                    query = query.Where(x => x.CallDetail.OriginCountryID == filter.OriginCountryID);
+                    query = query.Where(x => x.OriginCountryID == filter.OriginCountryID);
 
                 if (filter.DestCountryID.HasValue)
-                    query = query.Where(x => x.CallDetail.DestCountryID == filter.DestCountryID);
+                    query = query.Where(x => x.DestCountryID == filter.DestCountryID);
 
                 if (filter.OriginCityID.HasValue)
-                    query = query.Where(x => x.CallDetail.OriginCityID == filter.OriginCityID);
+                    query = query.Where(x => x.OriginCityID == filter.OriginCityID);
 
                 if (filter.DestCityID.HasValue)
-                    query = query.Where(x => x.CallDetail.DestCityID == filter.DestCityID);
+                    query = query.Where(x => x.DestCityID == filter.DestCityID);
 
+                // این فیلترها هم از قبل وجود داشتند و نیازی به اضافه کردن ندارند
                 if (filter.OriginOperatorID.HasValue)
-                    query = query.Where(x => x.CallDetail.OriginOperatorID == filter.OriginOperatorID);
+                    query = query.Where(x => x.OriginOperatorID == filter.OriginOperatorID);
 
                 if (filter.DestOperatorID.HasValue)
-                    query = query.Where(x => x.CallDetail.DestOperatorID == filter.DestOperatorID);
+                    query = query.Where(x => x.DestOperatorID == filter.DestOperatorID);
 
                 if (filter.TypeID.HasValue)
-                    query = query.Where(x => x.CallDetail.TypeID == filter.TypeID);
+                    query = query.Where(x => x.TypeID == filter.TypeID);
 
                 if (filter.Answer.HasValue)
-                    query = query.Where(x => x.CallDetail.Answer == filter.Answer);
+                    query = query.Where(x => x.Answer == filter.Answer);
             }
 
+            // اصلاح اصلی: حذف Select و مرتب‌سازی مستقیم
             return await query
-                .OrderByDescending(x => x.FullDateTime)
+                .OrderByDescending(x => x.AccountingTime) // مرتب‌سازی مستقیم
                 .Skip((filter.Page - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .Select(x => x.CallDetail)
-                .ToListAsync();
+                .ToListAsync(); // ToListAsync مستقیماً روی IQueryable کار می‌کند
         }
 
         // متد GetFilteredCountAsync بدون تغییر باقی می‌ماند

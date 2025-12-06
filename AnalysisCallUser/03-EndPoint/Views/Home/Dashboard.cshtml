@@ -65,14 +65,14 @@
     <div class="row mt-4">
         <div class="col-md-8">
             <div class="chart-container">
-                <h4>فعالیت اخیر</h4>
+                <h4>فعالیت اخیر (۵ مورد آخر)</h4>
                 <canvas id="recent-activity-chart" width="400" height="200"></canvas>
             </div>
         </div>
         <div class="col-md-4">
             <div class="chart-container">
-                <h4>کشورهای برتر</h4>
-                <canvas id="top-countries-chart" width="400" height="200"></canvas>
+                <h4>شهرهای برتر تماس با ایران</h4>
+                <canvas id="top-cities-chart" width="400" height="200"></canvas>
             </div>
         </div>
     </div>
@@ -101,6 +101,7 @@
                                 <td>@call.ANumber</td>
                                 <td>@call.BNumber</td>
                                 <td>@call.AccountingTime.ToString("yyyy/MM/dd")</td>
+                                <td>@call.AccountingTime.ToString("HH:mm:ss")</td>
                                 <td>@call.Length</td>
                                 <td>@call.OriginCountryName</td>
                                 <td>@call.DestCountryName</td>
@@ -113,7 +114,6 @@
                                     {
                                         <span class="badge bg-danger">پاسخ داده نشده</span>
                                     }
-
                                 </td>
                             </tr>
                         }
@@ -127,83 +127,75 @@
 @section Scripts {
     <script src="~/lib/chartjs/dist/chart.min.js"></script>
     <script>
-        // نمودار فعالیت اخیر
-        const recentActivityCtx = document.getElementById('recent-activity-chart').getContext('2d');
-        const recentActivityChart = new Chart(recentActivityCtx, {
-            type: 'line',
-            data: {
-                labels: @Html.Raw(Json.Serialize(Model.RecentActivity.Select(d => d.Label))),
-                datasets: [{
-                    label: 'تعداد تماس‌ها',
-                    data: @Html.Raw(Json.Serialize(Model.RecentActivity.Select(d => d.Value))),
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1,
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
+        document.addEventListener("DOMContentLoaded", function() {
+            // نمودار فعالیت اخیر (بدون تغییر، چون داده‌ها از بک‌اند می‌آیند)
+            const recentActivityCtx = document.getElementById('recent-activity-chart').getContext('2d');
+            const recentActivityChart = new Chart(recentActivityCtx, {
+                type: 'line',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(Model.RecentActivity.Select(d => d.Label))),
+                    datasets: [{
+                        label: 'تعداد تماس‌ها',
+                        data: @Html.Raw(Json.Serialize(Model.RecentActivity.Select(d => d.Value))),
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        tension: 0.4,
+                        fill: true
+                    }]
                 },
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        // نمودار کشورهای برتر
-        const topCountriesCtx = document.getElementById('top-countries-chart').getContext('2d');
-        const topCountriesChart = new Chart(topCountriesCtx, {
-            type: 'bar',
-            data: {
-                labels: @Html.Raw(Json.Serialize(Model.TopCountries.Select(d => d.Label))),
-                datasets: [{
-                    label: 'تعداد تماس‌ها',
-                    data: @Html.Raw(Json.Serialize(Model.TopCountries.Select(d => d.Value))),
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
+            // +++ نمودار شهرهای برتر (کاملاً تغییر کرده) +++
+            const topCitiesCtx = document.getElementById('top-cities-chart').getContext('2d');
+            const topCitiesChart = new Chart(topCitiesCtx, {
+                type: 'bar',
+                data: {
+                    // +++ استفاده از داده‌های TopCities به جای TopCountries +++
+                    labels: @Html.Raw(Json.Serialize(Model.TopCities.Select(d => d.Label))),
+                    datasets: [{
+                        label: 'تعداد تماس‌ها',
+                        // +++ استفاده از داده‌های TopCities به جای TopCountries +++
+                        data: @Html.Raw(Json.Serialize(Model.TopCities.Select(d => d.Value))),
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
                 },
-                plugins: {
-                    legend: {
-                        display: false
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
                     }
                 }
-            }
+            });
         });
     </script>
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - سیستم تحلیل تماس</title>
+    <title>@ViewData["Title"] - آوا نگار</title>
     <link rel="icon" type="image/png" href="~/images/logos/fav.png" />
 
     <!-- لینک فونت و استایل‌های سفارشی -->
@@ -49,9 +49,12 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Call" asp-action="Search">جستجوی تماس</a>
                         </li>
+                         @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                        {
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Dashboard" asp-action="Analytics">داشبورد تحلیلی</a>
                         </li>
+                        }
                         @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
                         {
                             <li class="nav-item">
@@ -73,7 +76,7 @@
 
     <footer>
         <div class="container text-center">
-            <span>&copy; 2023 - سیستم تحلیل تماس - تمام حقوق محفوظ است.</span>
+            <span>&copy; 2026 - سیستم تحلیل تماس - تمام حقوق محفوظ است.</span>
         </div>
     </footer>
 
