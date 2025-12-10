@@ -29,7 +29,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 return Unauthorized();
             }
 
-            // +++ تغییر کلیدی: کلید کش را برای هر کاربر جداگانه می‌سازیم +++
             string cacheKey = $"DashboardData_{userId}";
             DashboardDto dashboardDto;
 
@@ -47,7 +46,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
                     if (dashboardDto == null)
                     {
-                        // اگر سرویس نال برگرداند، یک مدل خالی به ویو ارسال می‌کنیم
                         return View(new DashboardViewModel());
                     }
 
@@ -61,8 +59,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             }
             catch (Exception ex)
             {
-                // در صورت بروز خطا در کش یا سرویس، لاگ گرفته و یک ویو خالی نمایش دهید
-                // _logger.LogError(ex, "Error loading dashboard data for user {UserId}", userId);
                 return View(new DashboardViewModel());
             }
 
@@ -119,14 +115,12 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
             try
             {
-                // +++ تغییر کلیدی: کلید کش را برای هر کاربر جداگانه پاک می‌کنیم +++
                 string cacheKey = $"DashboardData_{userId}";
                 await _distributedCache.RemoveAsync(cacheKey);
                 return Json(new { success = true, message = "کش با موفقیت خالی شد. صفحه به‌روزرسانی می‌شود..." });
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error clearing cache for user {UserId}", userId);
                 return Json(new { success = false, message = "خطا در خالی کردن کش." });
             }
         }

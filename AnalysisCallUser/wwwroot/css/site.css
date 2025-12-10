@@ -131,7 +131,6 @@ header {
     height: 60px;
 }
 
-
 .navbar-brand {
     color: var(--text-primary) !important;
     font-weight: 700;
@@ -445,7 +444,7 @@ footer {
 
     .table thead th {
         border-bottom: 2px solid var(--card-border);
-        color: var(--text-secondary) !important; /* رنگ هدر جدول */
+        color: var(--text-secondary) !important;
         font-weight: 500;
         font-size: 14px;
     }
@@ -456,7 +455,7 @@ footer {
     }
 
         .table tbody tr:hover {
-            background-color: rgba(0, 173, 181, 0.1); /* رنگ پس‌زمینه در هاور */
+            background-color: rgba(0, 173, 181, 0.1);
             transform: scale(1.01);
         }
 
@@ -464,7 +463,40 @@ footer {
         border-color: var(--card-border);
         vertical-align: middle;
         font-size: 14px;
-        color: #ffffff !important; /* متن سفید برای تمام سلول‌ها */
+        color: #ffffff !important;
+    }
+
+        /* --- استایل‌های خاص برای ستون عملیات --- */
+        .table td:last-child {
+            width: 300px !important; /* افزایش عرض ستون عملیات */
+            min-width: 300px !important; /* حداقل عرض برای جلوگیری از فشرده شدن */
+            text-align: center !important; /* وسط چین کردن محتویات */
+            white-space: nowrap !important; /* جلوگیری از شکستن خط */
+        }
+
+/* استایل برای گروه دکمه‌ها در ستون عملیات */
+.d-flex.gap-1 {
+    display: flex !important;
+    gap: 6px !important; /* فاصله بین دکمه‌ها */
+    justify-content: center !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important; /* جلوگیری از شکستن خط */
+}
+
+/* استایل برای دکمه‌های داخل جدول */
+.table .btn-sm {
+    padding: 6px 10px !important; /* افزایش پدینگ برای دکمه‌ها */
+    font-size: 12px !important;
+    min-width: 38px !important; /* حداقل عرض برای هر دکمه */
+    height: 32px !important; /* ارتفاع ثابت */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+    .table .btn-sm i {
+        font-size: 12px !important;
+        margin: 0 !important; /* حذف margin از آیکون */
     }
 
 /* --- بج‌های وضعیت (Badges) --- */
@@ -867,10 +899,13 @@ footer {
     border: 1px solid var(--card-border);
     border-radius: 15px;
     padding: 25px;
-    min-height: 400px;
+    min-height: 450px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     animation: slideInLeft 0.6s ease-out;
     transition: all 0.3s ease;
+    /* --- تغییرات جدید --- */
+    max-width: 100%; /* اجازه می‌دهد کانتینر تا حد امکان عریض شود */
+    flex-grow: 1; /* اگر در یک کانتینر flex است، فضای خالی را پر می‌کند */
 }
 
     #search-results-container:hover {
@@ -909,6 +944,34 @@ footer {
 
             #search-results-container .table tbody tr:hover {
                 background-color: rgba(var(--primary-color-rgb), 0.05);
+            }
+
+        /* استایل‌های خاص برای ستون عملیات در نتایج جستجو */
+        #search-results-container .table th:last-child,
+        #search-results-container .table td:last-child {
+            width: 220px !important; /* افزایش عرض ستون عملیات */
+            min-width: 220px !important; /* حداقل عرض برای جلوگیری از فشرده شدن */
+            text-align: center !important;
+            white-space: nowrap !important;
+        }
+
+        #search-results-container .table .d-flex.gap-1 {
+            display: flex !important;
+            gap: 8px !important; /* افزایش فاصله بین دکمه‌ها */
+            justify-content: center !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+        }
+
+        #search-results-container .table .btn-sm {
+            padding: 7px 12px !important; /* افزایش پدینگ */
+            font-size: 13px !important;
+            min-width: 42px !important; /* حداقل عرض بیشتر */
+            height: 36px !important; /* ارتفاع بیشتر */
+        }
+
+            #search-results-container .table .btn-sm i {
+                font-size: 14px !important;
             }
 
 /* --- استایل‌های جزئیات تماس --- */
@@ -1102,6 +1165,24 @@ footer {
             align-self: flex-end;
         }
 
+    /* استایل‌های ریسپانسیو برای دکمه‌های داخل جدول */
+    #search-results-container .table th:last-child,
+    #search-results-container .table td:last-child {
+        width: 180px !important; /* کاهش عرض در موبایل */
+        min-width: 180px !important;
+    }
+
+    #search-results-container .table .btn-sm {
+        padding: 5px 8px !important; /* کاهش پدینگ در موبایل */
+        font-size: 12px !important;
+        min-width: 36px !important;
+        height: 32px !important;
+    }
+
+        #search-results-container .table .btn-sm i {
+            font-size: 12px !important;
+        }
+
     #search-results-container {
         padding: 15px;
     }
@@ -1136,7 +1217,22 @@ footer {
     #search-results-container .table-responsive {
         font-size: 0.8rem;
     }
-}/* =============================================
+
+    /* استایل‌های موبایل برای دکمه‌های کوچک */
+    #search-results-container .table th:last-child,
+    #search-results-container .table td:last-child {
+        width: 160px !important; /* کاهش بیشتر عرض در موبایل کوچک */
+        min-width: 160px !important;
+    }
+
+    #search-results-container .table .btn-sm {
+        padding: 4px 6px !important;
+        font-size: 11px !important;
+        min-width: 32px !important;
+        height: 28px !important;
+    }
+}
+/* =============================================
    انیمیشن‌ها (Animations)
    ============================================= */
 @keyframes fadeIn {

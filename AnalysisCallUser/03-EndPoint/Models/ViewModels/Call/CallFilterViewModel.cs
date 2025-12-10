@@ -5,12 +5,12 @@ namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Call
 {
     public class CallFilterViewModel
     {
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
+        public string? StartDate { get; set; }
+        public string? EndDate { get; set; }
         public TimeSpan? StartTime { get; set; }
         public TimeSpan? EndTime { get; set; }
-        public string ANumber { get; set; }
-        public string BNumber { get; set; }
+        public string? ANumber { get; set; }
+        public string? BNumber { get; set; }
         [Display(Name = "اپراتور مبدأ")]
         public int? OriginOperatorID { get; set; }
 

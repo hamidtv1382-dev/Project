@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AnalysisCallUser._03_EndPoint.Controllers
 {
-
     [Authorize]
     public class CallController : Controller
     {
@@ -40,22 +39,60 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         [HttpPost]
         public async Task<IActionResult> Search(CallSearchViewModel model)
         {
+            DateTime? startDateGregorian = null;
+            DateTime? endDateGregorian = null;
+
+            if (!string.IsNullOrEmpty(model.Filter.StartDate))
+            {
+                try
+                {
+                    startDateGregorian = PersianDateHelper.ToGregorian(model.Filter.StartDate);
+                    if (!startDateGregorian.HasValue)
+                        ModelState.AddModelError("Filter.StartDate", "تاریخ شروع نامعتبر است.");
+                }
+                catch
+                {
+                    ModelState.AddModelError("Filter.StartDate", "تاریخ شروع نامعتبر است.");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(model.Filter.EndDate))
+            {
+                try
+                {
+                    endDateGregorian = PersianDateHelper.ToGregorian(model.Filter.EndDate);
+                    if (!endDateGregorian.HasValue)
+                        ModelState.AddModelError("Filter.EndDate", "تاریخ پایان نامعتبر است.");
+                }
+                catch
+                {
+                    ModelState.AddModelError("Filter.EndDate", "تاریخ پایان نامعتبر است.");
+                }
+            }
+
+            // فقط فیلترهای داخل model.Filter را چک می‌کنیم
+            if (!ModelState.IsValid)
+            {
+                // در صورت بروز خطا در اعتبارسنجی، فقط خطا را برمی‌گردانیم
+                var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
+                                      .Select(x => new { x.Key, x.Value.Errors })
+                                      .ToList();
+                return Json(new { success = false, message = "ModelState is invalid.", errors = errors });
+            }
+
             var callFilterDto = new CallFilterDto
             {
-                // ... فیلدهای قبلی ...
                 ANumber = model.Filter.ANumber,
                 BNumber = model.Filter.BNumber,
                 Answer = model.Filter.Answer,
+                StartDate = startDateGregorian,
+                EndDate = endDateGregorian,
                 Page = model.Filter.Page,
                 PageSize = model.Filter.PageSize,
-
-                // فیلدهای کشور و شهر
                 OriginCountryID = model.Filter.OriginCountryID,
                 OriginCityID = model.Filter.OriginCityID,
                 DestCountryID = model.Filter.DestCountryID,
                 DestCityID = model.Filter.DestCityID,
-
-                // +++ فیلدهای جدید اپراتور +++
                 OriginOperatorID = model.Filter.OriginOperatorID,
                 DestOperatorID = model.Filter.DestOperatorID
             };
@@ -74,7 +111,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 OriginCityName = cd.OriginCity?.CityName,
                 DestCountryName = cd.DestCountry?.CountryName,
                 DestCityName = cd.DestCity?.CityName,
-                // +++ نام اپراتورها برای نمایش +++
                 OriginOperatorName = cd.OriginOperator?.OperatorName,
                 DestOperatorName = cd.DestOperator?.OperatorName,
                 Answer = cd.Answer
@@ -82,18 +118,16 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
             model.Results = new PagedResult<CallDetailDto>(callDetailDtos, count, model.Filter.Page, model.Filter.PageSize);
 
-            // پر کردن مجدد لیست‌ها برای POST-back
+            // این داده‌ها برای رندر کردن کامل صفحه در درخواست‌های غیر-Ajax لازم است
             model.Countries = await _context.Countries.OrderBy(c => c.CountryName).ToListAsync();
             if (model.Filter.OriginCountryID.HasValue)
             {
                 model.OriginCities = await _context.Cities.Where(c => c.CountryID == model.Filter.OriginCountryID.Value).ToListAsync();
-                // +++ بارگذاری اپراتورهای مبدأ +++
                 model.OriginOperators = await _context.Operators.Where(o => o.CountryID == model.Filter.OriginCountryID.Value).ToListAsync();
             }
             if (model.Filter.DestCountryID.HasValue)
             {
                 model.DestCities = await _context.Cities.Where(c => c.CountryID == model.Filter.DestCountryID.Value).ToListAsync();
-                // +++ بارگذاری اپراتورهای مقصد +++
                 model.DestOperators = await _context.Operators.Where(o => o.CountryID == model.Filter.DestCountryID.Value).ToListAsync();
             }
 
@@ -104,7 +138,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
             return View(model);
         }
-
         // GET: /Call/Details/5
         public async Task<IActionResult> Details(int id)
         {
@@ -123,7 +156,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 Length = call.Length,
                 OriginCountryName = call.OriginCountry?.CountryName,
                 DestCountryName = call.DestCountry?.CountryName,
-                // +++ نام اپراتورها برای جزئیات +++
                 OriginOperatorName = call.OriginOperator?.OperatorName,
                 DestOperatorName = call.DestOperator?.OperatorName,
                 Answer = call.Answer
@@ -132,7 +164,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             return View(viewModel);
         }
 
-        // +++ اکشن متد جدید برای بارگذاری AJAX اپراتورها +++
         [HttpGet]
         public async Task<JsonResult> GetOperators(int countryId)
         {
@@ -143,7 +174,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             return Json(operators);
         }
 
-        // متدهای قبلی برای بارگذاری شهرها و کشورها بدون تغییر باقی می‌مانند
         [HttpGet]
         public async Task<JsonResult> GetCountries()
         {
@@ -156,10 +186,9 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         {
             var (country, city, op) = await _phoneInfoService.GetPhoneInfoAsync(number);
 
-            // فقط IDها را برای ارسال به کلاینت برمی‌گردانیم
             return Json(new
             {
-                success = (country != null), // یک فلگ برای موفقیت‌آمیز بودن یا نبودن
+                success = (country != null),
                 countryId = country?.CountryID,
                 cityId = city?.CityID,
                 operatorId = op?.OperatorID
@@ -177,20 +206,32 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         [HttpPost]
         public async Task<IActionResult> ExportSearchResults(CallSearchViewModel model)
         {
+            DateTime? startDateGregorian = null;
+            DateTime? endDateGregorian = null;
+
+            if (!string.IsNullOrEmpty(model.Filter.StartDate))
+            {
+                startDateGregorian = PersianDateHelper.ToGregorian(model.Filter.StartDate);
+            }
+
+            if (!string.IsNullOrEmpty(model.Filter.EndDate))
+            {
+                endDateGregorian = PersianDateHelper.ToGregorian(model.Filter.EndDate);
+            }
+
             var callFilterDto = new CallFilterDto
             {
                 ANumber = model.Filter.ANumber,
                 BNumber = model.Filter.BNumber,
                 Answer = model.Filter.Answer,
-                StartDate = model.Filter.StartDate,
-                EndDate = model.Filter.EndDate,
+                StartDate = startDateGregorian,
+                EndDate = endDateGregorian,
                 OriginCountryID = model.Filter.OriginCountryID,
                 OriginCityID = model.Filter.OriginCityID,
                 DestCountryID = model.Filter.DestCountryID,
                 DestCityID = model.Filter.DestCityID,
                 OriginOperatorID = model.Filter.OriginOperatorID,
                 DestOperatorID = model.Filter.DestOperatorID,
-                // برای اکسپورت، تمام رکوردها را دریافت می‌کنیم
                 Page = 1,
                 PageSize = int.MaxValue
             };
@@ -253,30 +294,40 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         [HttpPost]
         public async Task<IActionResult> ExportWithOptions(CallSearchViewModel model, int limit = 1000, string columns = "")
         {
+            DateTime? startDateGregorian = null;
+            DateTime? endDateGregorian = null;
+
+            if (!string.IsNullOrEmpty(model.Filter.StartDate))
+            {
+                startDateGregorian = PersianDateHelper.ToGregorian(model.Filter.StartDate);
+            }
+
+            if (!string.IsNullOrEmpty(model.Filter.EndDate))
+            {
+                endDateGregorian = PersianDateHelper.ToGregorian(model.Filter.EndDate);
+            }
+
             var callFilterDto = new CallFilterDto
             {
                 ANumber = model.Filter.ANumber,
                 BNumber = model.Filter.BNumber,
                 Answer = model.Filter.Answer,
-                StartDate = model.Filter.StartDate,
-                EndDate = model.Filter.EndDate,
+                StartDate = startDateGregorian,
+                EndDate = endDateGregorian,
                 OriginCountryID = model.Filter.OriginCountryID,
                 OriginCityID = model.Filter.OriginCityID,
                 DestCountryID = model.Filter.DestCountryID,
                 DestCityID = model.Filter.DestCityID,
                 OriginOperatorID = model.Filter.OriginOperatorID,
                 DestOperatorID = model.Filter.DestOperatorID,
-                // استفاده از محدودیت تعداد رکوردها
                 Page = 1,
                 PageSize = limit
             };
 
             var data = await _callDetailRepository.GetFilteredAsync(callFilterDto);
 
-            // لیست ستون‌های انتخاب شده
             var selectedColumns = columns.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
 
-            // ایجاد لیست DTO با ستون‌های انتخاب شده
             var callDetailDtos = data.Select(cd => {
                 var dto = new CallDetailDto();
 

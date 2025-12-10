@@ -12,17 +12,16 @@ namespace AnalysisCallUser._01_Domain.Services
     public class FilterService : IFilterService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly AppDbContext _context; // اضافه شدن DbContext
+        private readonly AppDbContext _context;
 
         public FilterService(IUnitOfWork unitOfWork, AppDbContext context)
         {
             _unitOfWork = unitOfWork;
-            _context = context; // تزریق وابستگی
+            _context = context; 
         }
 
         public async Task SaveFilterAsync(FilterHistory filter)
         {
-            // استفاده مستقیم از context برای اضافه کردن FilterHistory
             await _context.Set<FilterHistory>().AddAsync(filter);
             await _unitOfWork.CompleteAsync();
         }

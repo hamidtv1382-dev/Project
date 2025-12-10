@@ -31,11 +31,9 @@ namespace AnalysisCallUser._01_Domain.Services
         {
             var query = _unitOfWork.CallDetails.GetAll();
 
-            // فیلتر کشور
             if (filter.CountryIds?.Any() == true)
                 query = query.Where(cd => filter.CountryIds.Contains(cd.OriginCountryID));
 
-            // گروه‌بندی بر اساس کشور و شهر
             var data = await query
                 .GroupBy(cd => new
                 {
@@ -62,7 +60,6 @@ namespace AnalysisCallUser._01_Domain.Services
             return new MapDataDto { Points = data };
         }
 
-        // در کلاس AnalyticsService
         public async Task<NetworkDto> GetCallNetworkAnalysisAsync(NetworkAnalysisDto filter)
         {
             var query = _unitOfWork.CallDetails.GetAll();
@@ -74,10 +71,8 @@ namespace AnalysisCallUser._01_Domain.Services
 
             var sampleData = await query.Take(200).ToListAsync();
 
-            // تمام شماره‌های منحصر به فرد
             var allNodes = sampleData.SelectMany(cd => new[] { cd.ANumber, cd.BNumber }).Distinct().ToList();
 
-            // محاسبه تعداد ارتباطات برای هر شماره (Degree)
             var nodeDegrees = sampleData
                 .SelectMany(cd => new[] { new { Node = cd.ANumber }, new { Node = cd.BNumber } })
                 .GroupBy(x => x.Node)
@@ -87,18 +82,16 @@ namespace AnalysisCallUser._01_Domain.Services
             {
                 Id = number,
                 Label = number,
-                // اندازه گره بر اساس تعداد کل ارتباطات (ورودی و خروجی)
                 Size = nodeDegrees.ContainsKey(number) ? nodeDegrees[number] : 0
             }).ToList();
 
-            // گروه‌بندی یال‌ها برای محاسبه وزن (تعداد تماس بین دو گره)
             var edges = sampleData
                 .GroupBy(cd => new { From = cd.ANumber, To = cd.BNumber })
                 .Select(g => new NetworkDto.Edge
                 {
                     From = g.Key.From,
                     To = g.Key.To,
-                    Weight = g.Count() // وزن بر اساس تعداد تماس‌ها
+                    Weight = g.Count() 
                 })
                 .ToList();
 

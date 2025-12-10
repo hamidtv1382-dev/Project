@@ -55,7 +55,7 @@
                             <a class="nav-link" asp-area="" asp-controller="Dashboard" asp-action="Analytics">داشبورد تحلیلی</a>
                         </li>
                         }
-                        @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                        @if ( User.IsInRole("SuperAdmin"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="Users">مدیریت کاربران</a>

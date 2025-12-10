@@ -37,7 +37,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         {
             if (ModelState.IsValid)
             {
-                // تبدیل ViewModel به DTO
                 var editProfileDto = new EditProfileDto
                 {
                     Id = model.Id,

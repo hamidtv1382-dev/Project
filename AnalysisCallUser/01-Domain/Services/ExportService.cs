@@ -11,12 +11,12 @@ namespace AnalysisCallUser._01_Domain.Services
     public class ExportService : IExportService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly AppDbContext _context; // اضافه شدن DbContext
+        private readonly AppDbContext _context; 
 
         public ExportService(IUnitOfWork unitOfWork, AppDbContext context)
         {
             _unitOfWork = unitOfWork;
-            _context = context; // تزریق وابستگی
+            _context = context; 
         }
 
         public async Task<ExportHistory> CreateExportRequestAsync(ExportRequestDto model, int userId)
@@ -32,7 +32,6 @@ namespace AnalysisCallUser._01_Domain.Services
                 IsSuccessful = false
             };
 
-            // استفاده مستقیم از context برای اضافه کردن ExportHistory
             await _context.Set<ExportHistory>().AddAsync(exportHistory);
             await _unitOfWork.CompleteAsync();
 

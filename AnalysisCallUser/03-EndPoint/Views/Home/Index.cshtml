@@ -1,29 +1,31 @@
 ﻿@using AnalysisCallUser._01_Domain.Core.Enums
+@using System.Globalization
 @model AnalysisCallUser._03_EndPoint.Models.ViewModels.Dashboard.DashboardViewModel
 
 @{
     ViewData["Title"] = "داشبورد";
 }
-@* 
+
+<!-- فرم مورد نیاز برای توکن امنیتی در درخواست‌های AJAX -->
 <form id="anti-forgery-form">
     @Html.AntiForgeryToken()
 </form>
- *@
+
 <div class="dashboard-container">
-       @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
-        {
-    <div class="page-header">
-        <h3>داشبورد</h3>
-        <div class="page-actions">
-            <button id="refresh-dashboard" class="btn btn-outline-primary">
-                <i class="fas fa-sync-alt"></i> به‌روزرسانی
-            </button>
-            <button id="clear-cache" class="btn btn-outline-warning">
-                <i class="fas fa-trash"></i> خالی کردن کش
-            </button>
+    @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+    {
+        <div class="page-header">
+            <h3>داشبورد</h3>
+            <div class="page-actions">
+                <button id="refresh-dashboard" class="btn btn-outline-primary">
+                    <i class="fas fa-sync-alt"></i> به‌روزرسانی
+                </button>
+                <button id="clear-cache" class="btn btn-outline-warning">
+                    <i class="fas fa-trash"></i> خالی کردن کش
+                </button>
+            </div>
         </div>
-    </div>
-        }
+    }
     <div class="row">
         <div class="col-md-3">
             <div class="stat-card">
@@ -70,7 +72,7 @@
             </div>
         </div>
     </div>
-       @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+    @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
     {
         <div class="row mt-4">
             <div class="col-md-8">
@@ -96,8 +98,7 @@
                         <tr>
                             <th>شماره مبدأ</th>
                             <th>شماره مقصد</th>
-                            <th>تاریخ</th>
-                            <th>زمان</th>
+                            <th>تاریخ و زمان</th>
                             <th>مدت (ثانیه)</th>
                             <th>کشور مبدأ</th>
                             <th>کشور مقصد</th>
@@ -110,8 +111,14 @@
                             <tr>
                                 <td>@call.ANumber</td>
                                 <td>@call.BNumber</td>
-                                <td>@call.AccountingTime.ToString("yyyy/MM/dd")</td>
-                                <td>@call.AccountingTime.ToString("HH:mm:ss")</td>
+                                <td>
+                                    @{
+                                        var pc = new PersianCalendar();
+                                        // تبدیل تاریخ میلادی به شمسی و فرمت‌دهی
+                                        string persianDateTime = $"{pc.GetYear(call.AccountingTime)}/{pc.GetMonth(call.AccountingTime):D2}/{pc.GetDayOfMonth(call.AccountingTime):D2} {call.AccountingTime:HH:mm:ss}";
+                                    }
+                                    @persianDateTime
+                                </td>
                                 <td>@call.Length</td>
                                 <td>@call.OriginCountryName</td>
                                 <td>@call.DestCountryName</td>

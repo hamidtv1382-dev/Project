@@ -21,10 +21,8 @@ namespace AnalysisCallUser._01_Domain.Services
                 return (null, null, null);
             }
 
-            // جستجو در جدول CallDetails برای یافتن رکوردی که با شماره مطابقت دارد
             var callDetail = await _context.CallDetails
                 .Where(cd => cd.ANumber == phoneNumber || cd.BNumber == phoneNumber)
-                // فقط اطلاعات مورد نیاز را Include می‌کنیم تا کوئری بهینه باشد
                 .Include(cd => cd.OriginCountry)
                 .Include(cd => cd.OriginCity)
                 .Include(cd => cd.OriginOperator)
@@ -38,13 +36,11 @@ namespace AnalysisCallUser._01_Domain.Services
                 return (null, null, null);
             }
 
-            // بررسی می‌کنیم که شماره وارد شده به عنوان مبدأ بوده یا مقصد
-            // و اطلاعات مربوطه را برمی‌گردانیم
             if (callDetail.ANumber == phoneNumber)
             {
                 return (callDetail.OriginCountry, callDetail.OriginCity, callDetail.OriginOperator);
             }
-            else // if (callDetail.BNumber == phoneNumber)
+            else 
             {
                 return (callDetail.DestCountry, callDetail.DestCity, callDetail.DestOperator);
             }

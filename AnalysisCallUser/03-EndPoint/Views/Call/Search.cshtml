@@ -1,7 +1,15 @@
-﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Call.CallSearchViewModel
+﻿
+@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Call.CallSearchViewModel
 @{
     ViewData["Title"] = "جستجوی تماس";
 }
+
+<!-- اضافه کردن کتابخانه jQuery که برای تقویم شمسی ضروری است -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- افزودن کتابخانه تقویم شمسی -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@0.4.5/dist/css/persian-datepicker.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/persian-datepicker@0.4.5/dist/js/persian-datepicker.min.js"></script>
 
 <div class="container-fluid">
     <div class="row">
@@ -35,7 +43,7 @@
                                 <div class="filter-field">
                                     <label asp-for="Filter.StartDate" class="form-label"></label>
                                     <div class="input-group">
-                                        <input asp-for="Filter.StartDate" type="date" class="form-control" />
+                                        <input asp-for="Filter.StartDate" type="text" class="form-control persian-date-input" placeholder="تاریخ شروع" />
                                         <span class="input-group-text" id="startDateClear">
                                             <i class="fas fa-times"></i>
                                         </span>
@@ -44,7 +52,7 @@
                                 <div class="filter-field">
                                     <label asp-for="Filter.EndDate" class="form-label"></label>
                                     <div class="input-group">
-                                        <input asp-for="Filter.EndDate" type="date" class="form-control" />
+                                        <input asp-for="Filter.EndDate" type="text" class="form-control persian-date-input" placeholder="تاریخ پایان" />
                                         <span class="input-group-text" id="endDateClear">
                                             <i class="fas fa-times"></i>
                                         </span>
@@ -314,7 +322,6 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -353,6 +360,13 @@
 
             // متغیر برای نگهداری تعداد کل نتایج
             let totalResultsCount = 0;
+
+            // --- تعریف توابع ---
+
+            // تابع کمکی برای تبدیل ارقام فارسی به انگلیسی
+            function toEnglishDigits(s) {
+                return s.toString().replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+            }
 
             // تابع برای نمایش اعلان
             function showToast(message, type = 'info') {
@@ -395,13 +409,20 @@
                 }
             }
 
-            // رویداد برای تغییر محدودیت تعداد رکوردها
-            exportLimitInput.addEventListener('input', updateEstimatedSize);
-
-            // رویداد برای تغییر انتخاب ستون‌ها
-            document.querySelectorAll('#exportModal .form-check-input').forEach(checkbox => {
-                checkbox.addEventListener('change', updateEstimatedSize);
-            });
+            // تابع برای تبدیل تاریخ‌ها به شمسی
+            function convertDatesToPersian() {
+                if (typeof persianDate === 'undefined') {
+                    console.error("persianDate library is not loaded. Dates will not be converted.");
+                    return;
+                }
+                const dateElements = document.querySelectorAll('.datetime-cell, [data-datetime]');
+                dateElements.forEach(element => {
+                    if (element.dataset.datetime) {
+                        const date = new Date(element.dataset.datetime);
+                        element.textContent = new persianDate(date).format('YYYY/MM/DD HH:mm:ss');
+                    }
+                });
+            }
 
             // تابع برای بارگذاری شهرها
             async function loadCities(countrySelect, citySelect) {
@@ -489,12 +510,8 @@
                     }
 
                     setTimeout(() => {
-                        if (info.cityId) {
-                            citySelect.value = info.cityId;
-                        }
-                        if (info.operatorId) {
-                            operatorSelect.value = info.operatorId;
-                        }
+                        if (info.cityId) citySelect.value = info.cityId;
+                        if (info.operatorId) operatorSelect.value = info.operatorId;
                         showToast('اطلاعات شماره تلفن با موفقیت تشخیص داده شد', 'success');
                     }, 400);
 
@@ -507,12 +524,6 @@
             // تابع برای جستجو
             async function performSearch() {
                 const formData = new FormData(filterForm);
-                const filterParams = new URLSearchParams();
-                for (const pair of formData.entries()) {
-                    if (pair[1]) {
-                        filterParams.append(pair[0], pair[1]);
-                    }
-                }
 
                 searchResultsContainer.innerHTML = `
                     <div class="text-center p-4">
@@ -524,19 +535,37 @@
                 `;
 
                 try {
-                    const response = await fetch(`/Call/Search?${filterParams.toString()}`, {
+                    const response = await fetch(`/Call/Search`, {
                         method: 'POST',
                         headers: {
                             'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
                             'X-Requested-With': 'XMLHttpRequest'
-                        }
+                        },
+                        body: formData
                     });
 
-                    if (!response.ok) throw new Error('Network response was not ok.');
+                    if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+
+                    const contentType = response.headers.get("content-type");
+                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                        const errorData = await response.json();
+                        console.error("Server-side validation errors:", errorData);
+                        searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطای اعتبارسنجی در سرور. جزئیات در کنسول.</div>`;
+                        showToast('خطای اعتبارسنجی', 'error');
+                        return;
+                    }
 
                     const html = await response.text();
+                    if (html.includes('<html') || html.includes('<!DOCTYPE')) {
+                        console.error("Error: Received full page HTML instead of partial view.");
+                        searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطا در سرور. (Full page received)</div>`;
+                        showToast('خطا در جستجو', 'error');
+                        return;
+                    }
+
                     searchResultsContainer.innerHTML = html;
                     exportBtn.disabled = false;
+                    convertDatesToPersian();
 
                     const totalCountMatch = html.match(/نتایج جستجو \((\d+) رکورد\)/);
                     if (totalCountMatch) {
@@ -544,12 +573,8 @@
                     }
 
                 } catch (error) {
-                    console.error('Error:', error);
-                    searchResultsContainer.innerHTML = `
-                        <div class="alert alert-danger" role="alert">
-                            خطا در دریافت نتایج جستجو. لطفاً دوباره تلاش کنید.
-                        </div>
-                    `;
+                    console.error('Error during search fetch:', error);
+                    searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطا در دریافت نتایج جستجو. (${error.message})</div>`;
                     showToast('خطا در جستجو', 'error');
                 }
             }
@@ -557,14 +582,7 @@
             // تابع برای اکسپورت با گزینه‌های انتخاب شده
             async function performExportWithOptions() {
                 const formData = new FormData(filterForm);
-                const filterParams = new URLSearchParams();
-                for (const pair of formData.entries()) {
-                    if (pair[1]) {
-                        filterParams.append(pair[0], pair[1]);
-                    }
-                }
-
-                filterParams.append('limit', exportLimitInput.value);
+                formData.append('limit', exportLimitInput.value);
 
                 const columns = [];
                 if (document.getElementById('colDetailID').checked) columns.push('DetailID');
@@ -579,16 +597,16 @@
                 if (document.getElementById('colDestCity').checked) columns.push('DestCityName');
                 if (document.getElementById('colDestOperator').checked) columns.push('DestOperatorName');
                 if (document.getElementById('colAnswer').checked) columns.push('Answer');
-
-                filterParams.append('columns', columns.join(','));
+                formData.append('columns', columns.join(','));
 
                 try {
-                    const response = await fetch(`/Call/ExportWithOptions?${filterParams.toString()}`, {
+                    const response = await fetch(`/Call/ExportWithOptions`, {
                         method: 'POST',
                         headers: {
                             'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
                             'X-Requested-With': 'XMLHttpRequest'
-                        }
+                        },
+                        body: formData
                     });
 
                     if (!response.ok) throw new Error('Network response was not ok.');
@@ -613,6 +631,8 @@
                     showToast('خطا در آماده‌سازی خروجی', 'error');
                 }
             }
+
+            // --- اتصال رویدادها ---
 
             // رویداد برای کشور مبدأ
             originCountrySelect.addEventListener('change', () => {
@@ -665,20 +685,24 @@
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
                     const days = parseInt(this.getAttribute('data-days'));
-                    const endDate = new Date();
-                    const startDate = new Date();
-                    startDate.setDate(endDate.getDate() - days);
-                    endDateInput.value = endDate.toISOString().split('T')[0];
-                    startDateInput.value = startDate.toISOString().split('T')[0];
+                    if (typeof persianDate !== 'undefined') {
+                        const today = new persianDate();
+                        const startDate = new persianDate().subtract('days', days);
+                        startDateInput.value = toEnglishDigits(startDate.format('YYYY/MM/DD'));
+                        endDateInput.value = toEnglishDigits(today.format('YYYY/MM/DD'));
+                    }
                     showToast(`بازه زمانی به ${this.textContent} تنظیم شد`, 'success');
                 });
             });
 
             // رویداد برای جستجوی سریع
             quickSearchBtn.addEventListener('click', () => {
-                const today = new Date().toISOString().split('T')[0];
-                startDateInput.value = today;
-                endDateInput.value = today;
+                if (typeof persianDate !== 'undefined') {
+                    const today = new persianDate();
+                    const dateStr = toEnglishDigits(today.format('YYYY/MM/DD'));
+                    startDateInput.value = dateStr;
+                    endDateInput.value = dateStr;
+                }
                 performSearch();
             });
 
@@ -692,9 +716,12 @@
                 exportBtn.disabled = true;
                 searchResultsContainer.innerHTML = `<div class="text-center p-4"><i class="fas fa-search fa-3x text-muted mb-3"></i><p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p><div class="mt-3"><button class="btn btn-outline-primary" id="quickSearchBtn"><i class="fas fa-bolt"></i> جستجوی سریع (تماس‌های امروز)</button></div></div>`;
                 document.getElementById('quickSearchBtn').addEventListener('click', () => {
-                    const today = new Date().toISOString().split('T')[0];
-                    startDateInput.value = today;
-                    endDateInput.value = today;
+                    if (typeof persianDate !== 'undefined') {
+                        const today = new persianDate();
+                        const dateStr = toEnglishDigits(today.format('YYYY/MM/DD'));
+                        startDateInput.value = dateStr;
+                        endDateInput.value = dateStr;
+                    }
                     performSearch();
                 });
                 showToast('فیلترها با موفقیت بازنشانی شدند', 'success');
@@ -725,6 +752,26 @@
                 filterToggleIcon.classList.toggle('fa-chevron-down');
             });
 
+            // رویداد برای تغییر محدودیت تعداد رکوردها
+            exportLimitInput.addEventListener('input', updateEstimatedSize);
+
+            // رویداد برای تغییر انتخاب ستون‌ها
+            document.querySelectorAll('#exportModal .form-check-input').forEach(checkbox => {
+                checkbox.addEventListener('change', updateEstimatedSize);
+            });
+
+            // اضافه کردن رویداد blur به ورودی‌های شماره
+            aNumberInput.addEventListener('blur', () => { populateFieldsFromPhoneInfo(aNumberInput.value, 'origin-country-select', 'origin-city-select', 'origin-operator-select'); });
+            bNumberInput.addEventListener('blur', () => { populateFieldsFromPhoneInfo(bNumberInput.value, 'dest-country-select', 'dest-city-select', 'dest-operator-select'); });
+
+            // اضافه کردن میانبرهای صفحه کلید
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); performSearch(); }
+                if (e.ctrlKey && e.key === 'r') { e.preventDefault(); resetBtn.click(); }
+            });
+
+            // --- مقداردهی اولیه ---
+
             // اگر در حالت POST-back هستیم و کشور انتخاب شده، شهرها و اپراتورها را بارگذاری کن
             const originCountryId = '@Model.Filter.OriginCountryID';
             const destCountryId = '@Model.Filter.DestCountryID';
@@ -745,21 +792,38 @@
             // اگر نتایج وجود دارد، دکمه خروجی را فعال کن و تعداد کل را تنظیم کن
             @if (Model.Results != null)
             {
-                    <text>
-                        exportBtn.disabled = false;
-                        totalResultsCount = @Model.Results.TotalCount;
-                    </text>
+                        <text>
+                            exportBtn.disabled = false;
+                            totalResultsCount = @Model.Results.TotalCount;
+                        </text>
             }
 
-            // اضافه کردن رویداد blur به ورودی‌های شماره
-            aNumberInput.addEventListener('blur', () => { populateFieldsFromPhoneInfo(aNumberInput.value, 'origin-country-select', 'origin-city-select', 'origin-operator-select'); });
-            bNumberInput.addEventListener('blur', () => { populateFieldsFromPhoneInfo(bNumberInput.value, 'dest-country-select', 'dest-city-select', 'dest-operator-select'); });
+            // مقداردهی اولیه به تقویم‌های شمسی
+            if (typeof $ !== 'undefined' && $.fn.persianDatepicker) {
+                $(startDateInput).persianDatepicker({
+                    format: 'YYYY/MM/DD', autoClose: true, observer: true, initialValue: false,
+                    onSelect: function() {
+                        const persianDateString = $(this).val();
+                        const englishDateString = toEnglishDigits(persianDateString);
+                        $(this).val(englishDateString); // ذخیره با ارقام انگلیسی
+                        $(this).trigger('change');
+                    }
+                });
+                $(endDateInput).persianDatepicker({
+                    format: 'YYYY/MM/DD', autoClose: true, observer: true, initialValue: false,
+                    onSelect: function() {
+                        const persianDateString = $(this).val();
+                        const englishDateString = toEnglishDigits(persianDateString);
+                        $(this).val(englishDateString); // ذخیره با ارقام انگلیسی
+                        $(this).trigger('change');
+                    }
+                });
+            } else {
+                console.warn("jQuery or persianDatepicker is not loaded. Date pickers will not be initialized.");
+            }
 
-            // اضافه کردن میانبرهای صفحه کلید
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); performSearch(); }
-                if (e.ctrlKey && e.key === 'r') { e.preventDefault(); resetBtn.click(); }
-            });
+            // تبدیل تاریخ‌های موجود در صفحه به شمسی
+            convertDatesToPersian();
         });
     </script>
 }

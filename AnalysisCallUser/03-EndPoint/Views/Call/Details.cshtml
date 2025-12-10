@@ -1,4 +1,5 @@
-﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Call.CallDetailsViewModel
+﻿@using System.Globalization @* <-- اضافه شده برای استفاده از PersianCalendar *@
+@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Call.CallDetailsViewModel
 @{
     ViewData["Title"] = "جزئیات تماس";
 }
@@ -28,7 +29,14 @@
                 <dd class="col-sm-9">@Model.BNumber</dd>
 
                 <dt class="col-sm-3">زمان تماس:</dt>
-                <dd class="col-sm-9">@Model.AccountingTime.ToString("yyyy/MM/dd HH:mm:ss")</dd>
+                <dd class="col-sm-9">
+                    @{
+                        var pc = new PersianCalendar();
+                        // تبدیل تاریخ میلادی به شمسی و فرمت‌دهی
+                        string persianDateTime = $"{pc.GetYear(Model.AccountingTime)}/{pc.GetMonth(Model.AccountingTime):D2}/{pc.GetDayOfMonth(Model.AccountingTime):D2} {Model.AccountingTime:HH:mm:ss}";
+                    }
+                    @persianDateTime
+                </dd>
 
                 <dt class="col-sm-3">مدت زمان:</dt>
                 <dd class="col-sm-9">@Model.Length ثانیه</dd>
@@ -50,6 +58,11 @@
                         <span class="badge bg-danger fs-6">پاسخ داده نشده</span>
                     }
                 </dd>
+                <div class="text-center mt-3">
+                    <a asp-action="PlayVoice" asp-route-id="@Model.DetailID" class="btn btn-warning btn-lg" style="width: 120px; height: 50px; font-size: 1.2rem;">
+                        <i class="fas fa-volume-up"></i>
+                    </a>
+                </div>
             </dl>
         </div>
     </div>

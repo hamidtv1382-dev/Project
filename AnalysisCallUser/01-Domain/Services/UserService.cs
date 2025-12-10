@@ -98,8 +98,7 @@ namespace AnalysisCallUser._01_Domain.Services
             var roles = await _userManager.GetRolesAsync(user);
             var firstRoleName = roles.FirstOrDefault();
 
-            // تبدیل رشته به Enum
-            UserRole userRole = UserRole.User; // مقدار پیش‌فرض
+            UserRole userRole = UserRole.User; 
             if (!string.IsNullOrEmpty(firstRoleName) && Enum.TryParse<UserRole>(firstRoleName, true, out var parsedRole))
             {
                 userRole = parsedRole;
@@ -116,7 +115,7 @@ namespace AnalysisCallUser._01_Domain.Services
                 IsActive = user.IsActive,
                 CreatedAt = user.CreatedAt,
                 LastLoginAt = user.LastLoginAt,
-                Role = userRole // مقداردهی با Enum
+                Role = userRole
             };
         }
 
@@ -142,11 +141,8 @@ namespace AnalysisCallUser._01_Domain.Services
 
         public async Task<IEnumerable<UserLoginHistory>> GetUserLoginHistoryAsync(int userId)
         {
-            // این بخش نیاز به ریپازیتوری UserLoginHistory دارد
-            // در اینجا فقط یک ساختار فرضی ارائه می‌شود
-            // var history = await _unitOfWork.LoginHistories.GetByUserIdAsync(userId);
-            // return history;
-            return new List<UserLoginHistory>(); // Placeholder
+           
+            return new List<UserLoginHistory>();
         }
     }
 }

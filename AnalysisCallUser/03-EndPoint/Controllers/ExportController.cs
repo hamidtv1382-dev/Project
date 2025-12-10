@@ -30,12 +30,16 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             {
                 var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
 
+                // تبدیل تاریخ شمسی به میلادی
+                DateTime? startDate = ToGregorian(model.Filter.StartDate);
+                DateTime? endDate = ToGregorian(model.Filter.EndDate);
+
                 var exportRequestDto = new ExportRequestDto
                 {
                     Filter = new CallFilterDto
                     {
-                        StartDate = model.Filter.StartDate,
-                        EndDate = model.Filter.EndDate,
+                        StartDate = startDate,
+                        EndDate = endDate,
                         StartTime = model.Filter.StartTime,
                         EndTime = model.Filter.EndTime,
                         ANumber = model.Filter.ANumber,
@@ -58,7 +62,30 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 await _exportService.CreateExportRequestAsync(exportRequestDto, userId);
                 return RedirectToAction("History");
             }
+
             return View(model);
         }
+
+        private DateTime? ToGregorian(string shamsi)
+        {
+            if (string.IsNullOrWhiteSpace(shamsi))
+                return null;
+
+            try
+            {
+                var parts = shamsi.Split('/');
+                int y = int.Parse(parts[0]);
+                int m = int.Parse(parts[1]);
+                int d = int.Parse(parts[2]);
+
+                var pc = new System.Globalization.PersianCalendar();
+                return pc.ToDateTime(y, m, d, 0, 0, 0, 0);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
     }
 }
