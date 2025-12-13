@@ -558,6 +558,58 @@ footer {
         box-shadow: 0 4px 12px rgba(176, 176, 176, 0.3);
     }
 
+.btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: #fff;
+}
+
+    .btn-success:hover {
+        background-color: #3a9b3e;
+        border-color: #3a9b3e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+
+.btn-warning {
+    background-color: var(--warning-color);
+    border-color: var(--warning-color);
+    color: #fff;
+}
+
+    .btn-warning:hover {
+        background-color: #ffdb4d;
+        border-color: #ffdb4d;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 206, 86, 0.3);
+    }
+
+.btn-danger {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+    color: #fff;
+}
+
+    .btn-danger:hover {
+        background-color: #ff6b6b;
+        border-color: #ff6b6b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 77, 77, 0.3);
+    }
+
+.btn-info {
+    background-color: var(--info-color);
+    border-color: var(--info-color);
+    color: #fff;
+}
+
+    .btn-info:hover {
+        background-color: #b366ff;
+        border-color: #b366ff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(153, 102, 255, 0.3);
+    }
+
 /* --- فرم‌ها (Forms) --- */
 .form-group {
     margin-bottom: 20px;
@@ -1787,8 +1839,50 @@ footer {
     }
 
 /* --- مودال جزئیات گره --- */
+/* =============================================
+   کامپوننت‌های قابل استفاده مجدد (Reusable Components)
+   ============================================= */
+
+/* --- مودال‌ها (Modals) --- */
 .modal-content {
-    background: var(--card-bg);
+    background: #2a2a3e;
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--card-border);
+}
+
+.modal-title {
+    color: var(--text-primary);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--card-border);
+}
+
+/* --- استایل‌های اعلان (Toast) --- */
+#notificationToast {
+    background-color: #2a2a3e;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+    #notificationToast .toast-header {
+        background-color: transparent;
+        border-bottom: 1px solid var(--card-border);
+    }
+
+    #notificationToast .toast-body {
+        color: var(--text-primary);
+    }
+
+/* --- مودال جزئیات گره --- */
+.modal-content {
+    background: #2a2a3e;
     border: 1px solid var(--card-border);
     border-radius: 15px;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
@@ -1796,6 +1890,54 @@ footer {
 
 .modal-header {
     background: linear-gradient(90deg, var(--primary-color), var(--primary-color-hover));
+    border-bottom: none;
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-title {
+    color: #fff;
+    font-weight: 600;
+}
+
+.modal-header .close {
+    color: #fff;
+    text-shadow: none;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+    .modal-header .close:hover {
+        opacity: 1;
+        transform: rotate(90deg);
+    }
+
+.modal-body {
+    color: var(--text-primary);
+}
+
+    .modal-body .table {
+        color: var(--text-primary);
+    }
+
+        .modal-body .table th {
+            color: var(--text-secondary);
+            border-color: var(--card-border);
+        }
+
+        .modal-body .table td {
+            border-color: var(--card-border);
+        }
+
+/* --- مودال جزئیات منطقه --- */
+.modal-content {
+    background: #2a2a3e;
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.modal-header {
+    background: linear-gradient(90deg, var(--info-color), #b366ff);
     border-bottom: none;
     border-radius: 15px 15px 0 0;
 }
@@ -2828,5 +2970,127 @@ footer {
 
     .chart-container {
         height: 200px;
+    }
+}
+
+/* =============================================
+   استایل‌های اختصاصی صفحه جزئیات تماس (Page-Specific: Call Details)
+   ============================================= */
+
+/* --- کانتینر اصلی صفحه جزئیات تماس --- */
+.container.mt-4 {
+    padding: 20px;
+}
+
+/* --- کارت جزئیات تماس --- */
+.card {
+    background: var(--card-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+    .card:hover {
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        transform: translateY(-2px);
+    }
+
+.card-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-color-hover));
+    border-bottom: none;
+    padding: 15px 20px;
+    position: relative;
+}
+
+    .card-header h4 {
+        color: #fff;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+.card-body {
+    padding: 25px;
+    color: var(--text-primary);
+}
+
+    /* --- دکمه‌های صفحه جزئیات تماس --- */
+    .card-header .btn, .card-body .btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+.card-header .btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+    .card-header .btn-success:hover {
+        background-color: #3a9b3e;
+        border-color: #3a9b3e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+
+.card-header .btn-secondary {
+    background-color: transparent;
+    border-color: #fff;
+    color: #fff;
+}
+
+    .card-header .btn-secondary:hover {
+        background-color: #fff;
+        color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+    }
+
+.card-body .btn-warning {
+    background-color: var(--warning-color);
+    border-color: var(--warning-color);
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    width: 120px;
+    height: 50px;
+}
+
+    .card-body .btn-warning:hover {
+        background-color: #ffdb4d;
+        border-color: #ffdb4d;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 206, 86, 0.3);
+    }
+
+/* --- بج‌های وضعیت --- */
+.badge.bg-success {
+    background-color: var(--success-color) !important;
+}
+
+.badge.bg-danger {
+    background-color: var(--danger-color) !important;
+}
+
+/* --- طراحی ریسپانسیو برای صفحه جزئیات تماس --- */
+@media (max-width: 768px) {
+    .card-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+        .card-header .btn {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+    .card-body .btn-warning {
+        width: 100%;
+        margin-top: 15px;
     }
 }

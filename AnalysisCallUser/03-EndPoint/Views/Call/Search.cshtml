@@ -1,5 +1,4 @@
-﻿
-@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Call.CallSearchViewModel
+﻿@model AnalysisCallUser._03_EndPoint.Models.ViewModels.Call.CallSearchViewModel
 @{
     ViewData["Title"] = "جستجوی تماس";
 }
@@ -10,6 +9,20 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@0.4.5/dist/css/persian-datepicker.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@0.4.5/dist/js/persian-datepicker.min.js"></script>
+
+<style>
+    /* استایل برای پس‌زمینه مودال با شفافیت کمتر */
+    .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.7) !important;
+    }
+
+    /* حذف حالت شیشه‌ای از محتوای مودال */
+    .modal-content {
+        background-color: #2a2a3e !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+</style>
 
 <div class="container-fluid">
     <div class="row">
@@ -43,20 +56,22 @@
                                 <div class="filter-field">
                                     <label asp-for="Filter.StartDate" class="form-label"></label>
                                     <div class="input-group">
-                                        <input asp-for="Filter.StartDate" type="text" class="form-control persian-date-input" placeholder="تاریخ شروع" />
+                                        <input asp-for="Filter.StartDate" type="text" class="form-control persian-date-input" placeholder="تاریخ شروع" id="Filter_StartDate" maxlength="10" />
                                         <span class="input-group-text" id="startDateClear">
                                             <i class="fas fa-times"></i>
                                         </span>
                                     </div>
+                                    <div class="text-danger small" id="startDateError"></div>
                                 </div>
                                 <div class="filter-field">
                                     <label asp-for="Filter.EndDate" class="form-label"></label>
                                     <div class="input-group">
-                                        <input asp-for="Filter.EndDate" type="text" class="form-control persian-date-input" placeholder="تاریخ پایان" />
+                                        <input asp-for="Filter.EndDate" type="text" class="form-control persian-date-input" placeholder="تاریخ پایان" id="Filter_EndDate" maxlength="10" />
                                         <span class="input-group-text" id="endDateClear">
                                             <i class="fas fa-times"></i>
                                         </span>
                                     </div>
+                                    <div class="text-danger small" id="endDateError"></div>
                                 </div>
                             </div>
                         </div>
@@ -166,7 +181,7 @@
                             <div class="filter-row">
                                 <div class="filter-field">
                                     <label asp-for="Filter.Answer" class="form-label"></label>
-                                    <select asp-for="Filter.Answer" class="form-select">
+                                    <select asp-for="Filter.Answer" class="form-select" id="answer-select">
                                         <option value="">همه</option>
                                         <option value="@AnalysisCallUser._01_Domain.Core.Enums.CallAnswerStatus.Answered">پاسخ داده شده</option>
                                         <option value="@AnalysisCallUser._01_Domain.Core.Enums.CallAnswerStatus.NotAnswered">پاسخ داده نشده</option>
@@ -250,17 +265,44 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <!-- گزینه‌های اکسپورت -->
                 <div class="mb-3">
-                    <label class="form-label">تعداد کل رکوردها: <span id="totalRecords" class="badge bg-primary">0</span></label>
+                    <label class="form-label">نوع اکسپورت</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="exportType" id="exportAll" value="all" checked>
+                        <label class="form-check-label" for="exportAll">
+                          تمام نتایج فیلتر شده بر اساس تعداد ردیف مشخص شده 
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="exportType" id="exportCurrent" value="current">
+                        <label class="form-check-label" for="exportCurrent">
+                          تمامی نتایج فیلتر شده 
+                        </label>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="exportLimit" class="form-label">محدودیت تعداد رکوردها برای اکسپورت</label>
-                    <div class="input-group">
-                        <input type="number" class="form-control" id="exportLimit" min="1" max="10000" value="1000">
-                        <span class="input-group-text">ردیف</span>
+                <!-- بخش مربوط به تمام نتایج -->
+                <div id="allResultsSection">
+                    <div class="mb-3">
+                        <label class="form-label">تعداد کل رکوردها: <span id="totalRecords" class="badge bg-primary">100</span></label>
                     </div>
-                    <div class="form-text">حداکثر حجم فایل: <span id="estimatedSize">0</span> MB (حداکثر مجاز: 50MB)</div>
+
+                    <div class="mb-3">
+                        <label for="exportLimit" class="form-label">محدودیت تعداد رکوردها برای اکسپورت</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="exportLimit" min="1" max="10000" value="100">
+                            <span class="input-group-text">ردیف</span>
+                        </div>
+                        <div class="form-text">حداکثر حجم فایل: <span id="estimatedSize">0</span> MB (حداکثر مجاز: 50MB)</div>
+                    </div>
+                </div>
+
+                <!-- بخش مربوط به نتایج نمایش داده شده -->
+                <div id="currentResultsSection" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label">تعداد رکوردهای نمایش داده شده: <span id="currentRecords" class="badge bg-info">50</span></label>
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -336,6 +378,9 @@
             const bNumberInput = document.getElementById('bnumber-input');
             const startDateInput = document.getElementById('Filter_StartDate');
             const endDateInput = document.getElementById('Filter_EndDate');
+            const startDateError = document.getElementById('startDateError');
+            const endDateError = document.getElementById('endDateError');
+            const answerSelect = document.getElementById('answer-select');
             const resetBtn = document.getElementById('reset-filter');
             const exportBtn = document.getElementById('export-results');
             const quickSearchBtn = document.getElementById('quickSearchBtn');
@@ -355,11 +400,17 @@
             const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
             const exportLimitInput = document.getElementById('exportLimit');
             const totalRecordsSpan = document.getElementById('totalRecords');
+            const currentRecordsSpan = document.getElementById('currentRecords');
             const estimatedSizeSpan = document.getElementById('estimatedSize');
             const confirmExportBtn = document.getElementById('confirmExport');
+            const exportAllRadio = document.getElementById('exportAll');
+            const exportCurrentRadio = document.getElementById('exportCurrent');
+            const allResultsSection = document.getElementById('allResultsSection');
+            const currentResultsSection = document.getElementById('currentResultsSection');
 
             // متغیر برای نگهداری تعداد کل نتایج
             let totalResultsCount = 0;
+            let currentPageResultsCount = 0;
 
             // --- تعریف توابع ---
 
@@ -385,7 +436,7 @@
 
             // تابع برای شمارش ستون‌های انتخاب شده
             function countSelectedColumns() {
-                const checkboxes = document.querySelectorAll('#exportModal .form-check-input');
+                const checkboxes = document.querySelectorAll('#exportModal .form-check-input[type="checkbox"]');
                 let count = 0;
                 checkboxes.forEach(checkbox => {
                     if (checkbox.checked) count++;
@@ -406,6 +457,27 @@
                 } else {
                     estimatedSizeSpan.classList.remove('text-danger');
                     confirmExportBtn.disabled = false;
+                }
+            }
+
+            // تابع برای به‌روزرسانی تعداد رکوردهای نمایش داده شده
+            function updateCurrentRecordsCount() {
+                // شمارش ردیف‌های جدول در صفحه
+                const tableRows = document.querySelectorAll('#search-results-container .table tbody tr');
+                currentPageResultsCount = tableRows.length;
+                currentRecordsSpan.textContent = currentPageResultsCount;
+            }
+
+            // تابع برای تغییر حالت نمایش بخش‌های مودال بر اساس نوع اکسپورت
+            function toggleExportSections() {
+                if (exportAllRadio.checked) {
+                    allResultsSection.style.display = 'block';
+                    currentResultsSection.style.display = 'none';
+                    updateEstimatedSize();
+                } else {
+                    allResultsSection.style.display = 'none';
+                    currentResultsSection.style.display = 'block';
+                    updateCurrentRecordsCount();
                 }
             }
 
@@ -521,9 +593,14 @@
                 }
             }
 
-            // تابع برای جستجو
+            // تابع برای جستجو (منطق اصلی بدون تغییر)
             async function performSearch() {
                 const formData = new FormData(filterForm);
+
+                // اطمینان از ارسال صحیح مقدار Answer
+                if (answerSelect) {
+                    formData.set('Filter.Answer', answerSelect.value);
+                }
 
                 searchResultsContainer.innerHTML = `
                     <div class="text-center p-4">
@@ -572,6 +649,9 @@
                         totalResultsCount = parseInt(totalCountMatch[1]);
                     }
 
+                    // به‌روزرسانی تعداد رکوردهای نمایش داده شده
+                    updateCurrentRecordsCount();
+
                 } catch (error) {
                     console.error('Error during search fetch:', error);
                     searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطا در دریافت نتایج جستجو. (${error.message})</div>`;
@@ -582,7 +662,20 @@
             // تابع برای اکسپورت با گزینه‌های انتخاب شده
             async function performExportWithOptions() {
                 const formData = new FormData(filterForm);
-                formData.append('limit', exportLimitInput.value);
+                const exportType = document.querySelector('input[name="exportType"]:checked').value;
+
+                // اضافه کردن نوع اکسپورت به فرم
+                formData.append('exportType', exportType);
+
+                // اگر اکسپورت تمام نتایج انتخاب شده باشد
+                if (exportType === 'all') {
+                    formData.append('limit', exportLimitInput.value);
+                }
+
+                // اطمینان از ارسال صحیح مقدار Answer
+                if (answerSelect) {
+                    formData.set('Filter.Answer', answerSelect.value);
+                }
 
                 const columns = [];
                 if (document.getElementById('colDetailID').checked) columns.push('DetailID');
@@ -619,7 +712,8 @@
                     const a = document.createElement('a');
                     a.style.display = 'none';
                     a.href = url;
-                    a.download = `CallExport_${new Date().toISOString().slice(0,10)}.csv`;
+                    const exportTypeText = exportType === 'all' ? 'All' : 'Current';
+                    a.download = `CallExport_${exportTypeText}_${new Date().toISOString().slice(0,10)}.csv`;
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
@@ -630,6 +724,105 @@
                     console.error('Error:', error);
                     showToast('خطا در آماده‌سازی خروجی', 'error');
                 }
+            }
+
+            // تابع برای قالب‌بندی و اعتبارسنجی تاریخ (غیرمسدودکننده)
+            function formatDateInput(input) {
+                // تبدیل ارقام فارسی به انگلیسی
+                let value = toEnglishDigits(input.value);
+
+                // حذف تمام کاراکترهای غیر عددی
+                value = value.replace(/[^\d]/g, '');
+
+                // محدودیت طول به 10 کاراکتر (YYYY/MM/DD)
+                if (value.length > 10) {
+                    value = value.substring(0, 10);
+                }
+
+                // افزودن اسلش بعد از سال و ماه
+                if (value.length > 4) {
+                    value = value.substring(0, 4) + '/' + value.substring(4);
+                }
+                if (value.length > 7) {
+                    value = value.substring(0, 7) + '/' + value.substring(7);
+                }
+
+                input.value = value;
+            }
+
+            // تابع برای اعتبارسنجی و نمایش خطا (غیرمسدودکننده)
+            function validateDate(input, errorElement) {
+                const value = input.value;
+
+                // اگر خالی باشد، خطا را پاک کن و خارج شو
+                if (!value) {
+                    errorElement.textContent = '';
+                    return;
+                }
+
+                // بررسی فرمت YYYY/MM/DD
+                const datePattern = /^(\d{4})\/(\d{2})\/(\d{2})$/;
+                if (!datePattern.test(value)) {
+                    errorElement.textContent = 'فرمت تاریخ باید به صورت YYYY/MM/DD باشد';
+                    return;
+                }
+
+                const match = value.match(datePattern);
+                const year = parseInt(match[1]);
+                const month = parseInt(match[2]);
+                const day = parseInt(match[3]);
+
+                // بررسی سال
+                const currentYear = new persianDate().year();
+                if (year < 1390) {
+                    errorElement.textContent = 'سال نباید کمتر از 1390 باشد';
+                    return;
+                }
+
+                if (year > currentYear) {
+                    errorElement.textContent = 'سال نباید از سال جاری بیشتر باشد';
+                    return;
+                }
+
+                // بررسی ماه
+                if (month < 1 || month > 12) {
+                    errorElement.textContent = 'ماه باید بین 1 تا 12 باشد';
+                    return;
+                }
+
+                // بررسی روز
+                if (day < 1 || day > 31) {
+                    errorElement.textContent = 'روز باید بین 1 تا 31 باشد';
+                    return;
+                }
+
+                // بررسی روزهای مجاز برای ماه‌های مختلف
+                if (month >= 7 && month <= 11 && day > 30) {
+                    errorElement.textContent = 'این ماه حداکثر 30 روز دارد';
+                    return;
+                }
+
+                // بررسی سال کبیسه برای اسفند
+                if (month === 12) {
+                    const isLeapYear = (year % 4 === 3);
+                    const maxDay = isLeapYear ? 30 : 29;
+                    if (day > maxDay) {
+                        errorElement.textContent = `اسفند در سال ${year} حداکثر ${maxDay} روز دارد`;
+                        return;
+                    }
+                }
+
+                // بررسی اینکه تاریخ از امروز بیشتر نباشد
+                const today = new persianDate();
+                const inputDate = new persianDate([year, month, day]);
+
+                if (inputDate.isAfter(today)) {
+                    errorElement.textContent = 'تاریخ نباید از امروز بیشتر باشد';
+                    return;
+                }
+
+                // اگر همه چیز درست بود، خطا را پاک کن
+                errorElement.textContent = '';
             }
 
             // --- اتصال رویدادها ---
@@ -656,8 +849,14 @@
             });
 
             // رویداد برای پاک کردن تاریخ‌ها
-            startDateClear.addEventListener('click', () => { startDateInput.value = ''; });
-            endDateClear.addEventListener('click', () => { endDateInput.value = ''; });
+            startDateClear.addEventListener('click', () => {
+                startDateInput.value = '';
+                startDateError.textContent = '';
+            });
+            endDateClear.addEventListener('click', () => {
+                endDateInput.value = '';
+                endDateError.textContent = '';
+            });
 
             // رویداد برای جابجایی مبدأ و مقصد
             swapOriginDestBtn.addEventListener('click', () => {
@@ -677,10 +876,15 @@
                 const tempANumber = aNumberInput.value;
                 aNumberInput.value = bNumberInput.value;
                 bNumberInput.value = tempANumber;
+
+                // جابجایی خطاهای تاریخ
+                const tempError = startDateError.textContent;
+                startDateError.textContent = endDateError.textContent;
+                endDateError.textContent = tempError;
+
                 showToast('مبدأ و مقصد با موفقیت جابجا شدند', 'success');
             });
 
-            // رویداد برای پیش‌فرض‌های تاریخ
             document.querySelectorAll('#datePresets .dropdown-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -690,23 +894,29 @@
                         const startDate = new persianDate().subtract('days', days);
                         startDateInput.value = toEnglishDigits(startDate.format('YYYY/MM/DD'));
                         endDateInput.value = toEnglishDigits(today.format('YYYY/MM/DD'));
+
+                        // پاک کردن خطاهای تاریخ
+                        startDateError.textContent = '';
+                        endDateError.textContent = '';
                     }
                     showToast(`بازه زمانی به ${this.textContent} تنظیم شد`, 'success');
                 });
             });
 
-            // رویداد برای جستجوی سریع
             quickSearchBtn.addEventListener('click', () => {
                 if (typeof persianDate !== 'undefined') {
                     const today = new persianDate();
                     const dateStr = toEnglishDigits(today.format('YYYY/MM/DD'));
                     startDateInput.value = dateStr;
                     endDateInput.value = dateStr;
+
+                    // پاک کردن خطاهای تاریخ
+                    startDateError.textContent = '';
+                    endDateError.textContent = '';
                 }
                 performSearch();
             });
 
-            // رویداد برای بازنشانی فیلترها
             resetBtn.addEventListener('click', function() {
                 filterForm.reset();
                 originCitySelect.disabled = true; originCitySelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
@@ -714,6 +924,11 @@
                 originOperatorSelect.disabled = true; originOperatorSelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
                 destOperatorSelect.disabled = true; destOperatorSelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
                 exportBtn.disabled = true;
+
+                // پاک کردن خطاهای تاریخ
+                startDateError.textContent = '';
+                endDateError.textContent = '';
+
                 searchResultsContainer.innerHTML = `<div class="text-center p-4"><i class="fas fa-search fa-3x text-muted mb-3"></i><p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p><div class="mt-3"><button class="btn btn-outline-primary" id="quickSearchBtn"><i class="fas fa-bolt"></i> جستجوی سریع (تماس‌های امروز)</button></div></div>`;
                 document.getElementById('quickSearchBtn').addEventListener('click', () => {
                     if (typeof persianDate !== 'undefined') {
@@ -727,52 +942,63 @@
                 showToast('فیلترها با موفقیت بازنشانی شدند', 'success');
             });
 
-            // رویداد برای خروجی گرفتن
             exportBtn.addEventListener('click', () => {
                 totalRecordsSpan.textContent = totalResultsCount;
-                exportLimitInput.value = Math.min(totalResultsCount, 1000);
+                exportLimitInput.value = totalResultsCount > 0 ? Math.min(totalResultsCount, 1000) : 100;
+                updateCurrentRecordsCount();
                 updateEstimatedSize();
                 exportModal.show();
             });
 
-            // رویداد برای تأیید اکسپورت در مودال
             confirmExportBtn.addEventListener('click', () => {
                 performExportWithOptions();
             });
 
-            // رویداد برای ارسال فرم جستجو
             filterForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 performSearch();
             });
 
-            // رویداد برای باز و بسته کردن پنل فیلترها
             document.querySelector('[data-bs-toggle="collapse"]').addEventListener('click', function() {
                 filterToggleIcon.classList.toggle('fa-chevron-up');
                 filterToggleIcon.classList.toggle('fa-chevron-down');
             });
 
-            // رویداد برای تغییر محدودیت تعداد رکوردها
             exportLimitInput.addEventListener('input', updateEstimatedSize);
 
-            // رویداد برای تغییر انتخاب ستون‌ها
-            document.querySelectorAll('#exportModal .form-check-input').forEach(checkbox => {
+            document.querySelectorAll('#exportModal .form-check-input[type="checkbox"]').forEach(checkbox => {
                 checkbox.addEventListener('change', updateEstimatedSize);
             });
 
-            // اضافه کردن رویداد blur به ورودی‌های شماره
+            // رویدادهای مربوط به تغییر نوع اکسپورت
+            exportAllRadio.addEventListener('change', toggleExportSections);
+            exportCurrentRadio.addEventListener('change', toggleExportSections);
+
             aNumberInput.addEventListener('blur', () => { populateFieldsFromPhoneInfo(aNumberInput.value, 'origin-country-select', 'origin-city-select', 'origin-operator-select'); });
             bNumberInput.addEventListener('blur', () => { populateFieldsFromPhoneInfo(bNumberInput.value, 'dest-country-select', 'dest-city-select', 'dest-operator-select'); });
 
-            // اضافه کردن میانبرهای صفحه کلید
             document.addEventListener('keydown', function(e) {
                 if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); performSearch(); }
                 if (e.ctrlKey && e.key === 'r') { e.preventDefault(); resetBtn.click(); }
             });
 
-            // --- مقداردهی اولیه ---
+            // رویدادهای مربوط به ورود تاریخ
+            startDateInput.addEventListener('input', function() {
+                formatDateInput(this);
+            });
 
-            // اگر در حالت POST-back هستیم و کشور انتخاب شده، شهرها و اپراتورها را بارگذاری کن
+            startDateInput.addEventListener('blur', function() {
+                validateDate(this, startDateError);
+            });
+
+            endDateInput.addEventListener('input', function() {
+                formatDateInput(this);
+            });
+
+            endDateInput.addEventListener('blur', function() {
+                validateDate(this, endDateError);
+            });
+
             const originCountryId = '@Model.Filter.OriginCountryID';
             const destCountryId = '@Model.Filter.DestCountryID';
 
@@ -789,24 +1015,23 @@
                 });
             }
 
-            // اگر نتایج وجود دارد، دکمه خروجی را فعال کن و تعداد کل را تنظیم کن
             @if (Model.Results != null)
             {
-                        <text>
-                            exportBtn.disabled = false;
-                            totalResultsCount = @Model.Results.TotalCount;
-                        </text>
+                                                <text>
+                                                    exportBtn.disabled = false;
+                                                    totalResultsCount = @Model.Results.TotalCount;
+                                                </text>
             }
 
-            // مقداردهی اولیه به تقویم‌های شمسی
             if (typeof $ !== 'undefined' && $.fn.persianDatepicker) {
                 $(startDateInput).persianDatepicker({
                     format: 'YYYY/MM/DD', autoClose: true, observer: true, initialValue: false,
                     onSelect: function() {
                         const persianDateString = $(this).val();
                         const englishDateString = toEnglishDigits(persianDateString);
-                        $(this).val(englishDateString); // ذخیره با ارقام انگلیسی
+                        $(this).val(englishDateString);
                         $(this).trigger('change');
+                        validateDate(this, startDateError);
                     }
                 });
                 $(endDateInput).persianDatepicker({
@@ -814,15 +1039,15 @@
                     onSelect: function() {
                         const persianDateString = $(this).val();
                         const englishDateString = toEnglishDigits(persianDateString);
-                        $(this).val(englishDateString); // ذخیره با ارقام انگلیسی
+                        $(this).val(englishDateString);
                         $(this).trigger('change');
+                        validateDate(this, endDateError);
                     }
                 });
             } else {
                 console.warn("jQuery or persianDatepicker is not loaded. Date pickers will not be initialized.");
             }
 
-            // تبدیل تاریخ‌های موجود در صفحه به شمسی
             convertDatesToPersian();
         });
     </script>

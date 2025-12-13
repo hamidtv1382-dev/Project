@@ -7,6 +7,7 @@ using AnalysisCallUser._03_EndPoint.Models.ViewModels.Call;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace AnalysisCallUser._03_EndPoint.Controllers
 {
@@ -138,6 +139,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
             return View(model);
         }
+
         // GET: /Call/Details/5
         public async Task<IActionResult> Details(int id)
         {
@@ -182,6 +184,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                                           .ToListAsync();
             return Json(countries);
         }
+
         public async Task<JsonResult> GetPhoneInfo(string number)
         {
             var (country, city, op) = await _phoneInfoService.GetPhoneInfoAsync(number);
@@ -194,6 +197,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 operatorId = op?.OperatorID
             });
         }
+
         [HttpGet]
         public async Task<JsonResult> GetCities(int countryId)
         {
@@ -203,6 +207,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                                        .ToListAsync();
             return Json(cities);
         }
+
         [HttpPost]
         public async Task<IActionResult> ExportSearchResults(CallSearchViewModel model)
         {
@@ -254,10 +259,21 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 Answer = cd.Answer
             }).ToList();
 
-            var csv = ExportHelper.GenerateCsv(callDetailDtos);
+            // دریافت بایت‌های CSV از helper
+            byte[] csvBytes = ExportHelper.GenerateCsv(callDetailDtos);
             var fileName = $"CallSearchResults_{DateTime.Now:yyyyMMddHHmmss}.csv";
 
-            return File(csv, "text/csv", fileName);
+            // اضافه کردن UTF-8 BOM در صورتی که موجود نباشد
+            var utf8Bom = new byte[] { 0xEF, 0xBB, 0xBF };
+            if (!(csvBytes.Length >= 3 && csvBytes[0] == utf8Bom[0] && csvBytes[1] == utf8Bom[1] && csvBytes[2] == utf8Bom[2]))
+            {
+                var withBom = new byte[csvBytes.Length + 3];
+                Buffer.BlockCopy(utf8Bom, 0, withBom, 0, 3);
+                Buffer.BlockCopy(csvBytes, 0, withBom, 3, csvBytes.Length);
+                csvBytes = withBom;
+            }
+
+            return File(csvBytes, "text/csv; charset=utf-8", fileName);
         }
 
         // GET: /Call/ExportDetails/5
@@ -286,11 +302,22 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 Answer = call.Answer
             };
 
-            var csv = ExportHelper.GenerateCsv(new List<CallDetailDto> { callDetailDto });
+            byte[] csvBytes = ExportHelper.GenerateCsv(new List<CallDetailDto> { callDetailDto });
             var fileName = $"CallDetails_{call.DetailID}_{DateTime.Now:yyyyMMddHHmmss}.csv";
 
-            return File(csv, "text/csv", fileName);
+            // اضافه کردن UTF-8 BOM در صورتی که موجود نباشد
+            var utf8Bom = new byte[] { 0xEF, 0xBB, 0xBF };
+            if (!(csvBytes.Length >= 3 && csvBytes[0] == utf8Bom[0] && csvBytes[1] == utf8Bom[1] && csvBytes[2] == utf8Bom[2]))
+            {
+                var withBom = new byte[csvBytes.Length + 3];
+                Buffer.BlockCopy(utf8Bom, 0, withBom, 0, 3);
+                Buffer.BlockCopy(csvBytes, 0, withBom, 3, csvBytes.Length);
+                csvBytes = withBom;
+            }
+
+            return File(csvBytes, "text/csv; charset=utf-8", fileName);
         }
+
         [HttpPost]
         public async Task<IActionResult> ExportWithOptions(CallSearchViewModel model, int limit = 1000, string columns = "")
         {
@@ -370,10 +397,20 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 return dto;
             }).ToList();
 
-            var csv = ExportHelper.GenerateCsv(callDetailDtos, selectedColumns);
+            byte[] csvBytes = ExportHelper.GenerateCsv(callDetailDtos, selectedColumns);
             var fileName = $"CallExport_{DateTime.Now:yyyyMMddHHmmss}.csv";
 
-            return File(csv, "text/csv", fileName);
+            // اضافه کردن UTF-8 BOM در صورتی که موجود نباشد
+            var utf8Bom = new byte[] { 0xEF, 0xBB, 0xBF };
+            if (!(csvBytes.Length >= 3 && csvBytes[0] == utf8Bom[0] && csvBytes[1] == utf8Bom[1] && csvBytes[2] == utf8Bom[2]))
+            {
+                var withBom = new byte[csvBytes.Length + 3];
+                Buffer.BlockCopy(utf8Bom, 0, withBom, 0, 3);
+                Buffer.BlockCopy(csvBytes, 0, withBom, 3, csvBytes.Length);
+                csvBytes = withBom;
+            }
+
+            return File(csvBytes, "text/csv; charset=utf-8", fileName);
         }
     }
 }
