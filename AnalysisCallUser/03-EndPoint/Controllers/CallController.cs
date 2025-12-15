@@ -30,7 +30,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         {
             var model = new CallSearchViewModel
             {
-                Filter = new CallFilterViewModel(),
+                Filter = new CallFilterViewModel { Page = 1, PageSize = 50 }, // Default values
                 Countries = await _context.Countries.OrderBy(c => c.CountryName).ToListAsync()
             };
             return View(model);
@@ -71,10 +71,8 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 }
             }
 
-            // فقط فیلترهای داخل model.Filter را چک می‌کنیم
             if (!ModelState.IsValid)
             {
-                // در صورت بروز خطا در اعتبارسنجی، فقط خطا را برمی‌گردانیم
                 var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
                                       .Select(x => new { x.Key, x.Value.Errors })
                                       .ToList();
@@ -98,28 +96,39 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 DestOperatorID = model.Filter.DestOperatorID
             };
 
-            var data = await _callDetailRepository.GetFilteredAsync(callFilterDto);
+            // Get the total count of records matching the filter
             var count = await _callDetailRepository.GetFilteredCountAsync(callFilterDto);
 
-            var callDetailDtos = data.Select(cd => new CallDetailDto
+            // If there are no results, return an empty paged result
+            if (count == 0)
             {
-                DetailID = cd.DetailID,
-                ANumber = cd.ANumber,
-                BNumber = cd.BNumber,
-                AccountingTime = cd.AccountingTime,
-                Length = cd.Length,
-                OriginCountryName = cd.OriginCountry?.CountryName,
-                OriginCityName = cd.OriginCity?.CityName,
-                DestCountryName = cd.DestCountry?.CountryName,
-                DestCityName = cd.DestCity?.CityName,
-                OriginOperatorName = cd.OriginOperator?.OperatorName,
-                DestOperatorName = cd.DestOperator?.OperatorName,
-                Answer = cd.Answer
-            }).ToList();
+                model.Results = new PagedResult<CallDetailDto>(new List<CallDetailDto>(), 0, model.Filter.Page, model.Filter.PageSize);
+            }
+            else
+            {
+                // Get only the records for the current page
+                var data = await _callDetailRepository.GetFilteredAsync(callFilterDto);
 
-            model.Results = new PagedResult<CallDetailDto>(callDetailDtos, count, model.Filter.Page, model.Filter.PageSize);
+                var callDetailDtos = data.Select(cd => new CallDetailDto
+                {
+                    DetailID = cd.DetailID,
+                    ANumber = cd.ANumber,
+                    BNumber = cd.BNumber,
+                    AccountingTime = cd.AccountingTime,
+                    Length = cd.Length,
+                    OriginCountryName = cd.OriginCountry?.CountryName,
+                    OriginCityName = cd.OriginCity?.CityName,
+                    DestCountryName = cd.DestCountry?.CountryName,
+                    DestCityName = cd.DestCity?.CityName,
+                    OriginOperatorName = cd.OriginOperator?.OperatorName,
+                    DestOperatorName = cd.DestOperator?.OperatorName,
+                    Answer = cd.Answer
+                }).ToList();
 
-            // این داده‌ها برای رندر کردن کامل صفحه در درخواست‌های غیر-Ajax لازم است
+                model.Results = new PagedResult<CallDetailDto>(callDetailDtos, count, model.Filter.Page, model.Filter.PageSize);
+            }
+
+            // This data is necessary for rendering the full page on non-Ajax requests
             model.Countries = await _context.Countries.OrderBy(c => c.CountryName).ToListAsync();
             if (model.Filter.OriginCountryID.HasValue)
             {
@@ -238,7 +247,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 OriginOperatorID = model.Filter.OriginOperatorID,
                 DestOperatorID = model.Filter.DestOperatorID,
                 Page = 1,
-                PageSize = int.MaxValue
+                PageSize = int.MaxValue // Export all results
             };
 
             var data = await _callDetailRepository.GetFilteredAsync(callFilterDto);
@@ -259,11 +268,9 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 Answer = cd.Answer
             }).ToList();
 
-            // دریافت بایت‌های CSV از helper
             byte[] csvBytes = ExportHelper.GenerateCsv(callDetailDtos);
             var fileName = $"CallSearchResults_{DateTime.Now:yyyyMMddHHmmss}.csv";
 
-            // اضافه کردن UTF-8 BOM در صورتی که موجود نباشد
             var utf8Bom = new byte[] { 0xEF, 0xBB, 0xBF };
             if (!(csvBytes.Length >= 3 && csvBytes[0] == utf8Bom[0] && csvBytes[1] == utf8Bom[1] && csvBytes[2] == utf8Bom[2]))
             {
@@ -276,7 +283,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             return File(csvBytes, "text/csv; charset=utf-8", fileName);
         }
 
-        // GET: /Call/ExportDetails/5
         [HttpGet]
         public async Task<IActionResult> ExportDetails(int id)
         {
@@ -305,7 +311,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             byte[] csvBytes = ExportHelper.GenerateCsv(new List<CallDetailDto> { callDetailDto });
             var fileName = $"CallDetails_{call.DetailID}_{DateTime.Now:yyyyMMddHHmmss}.csv";
 
-            // اضافه کردن UTF-8 BOM در صورتی که موجود نباشد
             var utf8Bom = new byte[] { 0xEF, 0xBB, 0xBF };
             if (!(csvBytes.Length >= 3 && csvBytes[0] == utf8Bom[0] && csvBytes[1] == utf8Bom[1] && csvBytes[2] == utf8Bom[2]))
             {
@@ -357,50 +362,24 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
             var callDetailDtos = data.Select(cd => {
                 var dto = new CallDetailDto();
-
-                if (selectedColumns.Contains("DetailID") || selectedColumns.Count == 0)
-                    dto.DetailID = cd.DetailID;
-
-                if (selectedColumns.Contains("ANumber") || selectedColumns.Count == 0)
-                    dto.ANumber = cd.ANumber;
-
-                if (selectedColumns.Contains("BNumber") || selectedColumns.Count == 0)
-                    dto.BNumber = cd.BNumber;
-
-                if (selectedColumns.Contains("AccountingTime") || selectedColumns.Count == 0)
-                    dto.AccountingTime = cd.AccountingTime;
-
-                if (selectedColumns.Contains("Length") || selectedColumns.Count == 0)
-                    dto.Length = cd.Length;
-
-                if (selectedColumns.Contains("OriginCountryName") || selectedColumns.Count == 0)
-                    dto.OriginCountryName = cd.OriginCountry?.CountryName;
-
-                if (selectedColumns.Contains("OriginCityName") || selectedColumns.Count == 0)
-                    dto.OriginCityName = cd.OriginCity?.CityName;
-
-                if (selectedColumns.Contains("OriginOperatorName") || selectedColumns.Count == 0)
-                    dto.OriginOperatorName = cd.OriginOperator?.OperatorName;
-
-                if (selectedColumns.Contains("DestCountryName") || selectedColumns.Count == 0)
-                    dto.DestCountryName = cd.DestCountry?.CountryName;
-
-                if (selectedColumns.Contains("DestCityName") || selectedColumns.Count == 0)
-                    dto.DestCityName = cd.DestCity?.CityName;
-
-                if (selectedColumns.Contains("DestOperatorName") || selectedColumns.Count == 0)
-                    dto.DestOperatorName = cd.DestOperator?.OperatorName;
-
-                if (selectedColumns.Contains("Answer") || selectedColumns.Count == 0)
-                    dto.Answer = cd.Answer;
-
+                if (selectedColumns.Contains("DetailID") || selectedColumns.Count == 0) dto.DetailID = cd.DetailID;
+                if (selectedColumns.Contains("ANumber") || selectedColumns.Count == 0) dto.ANumber = cd.ANumber;
+                if (selectedColumns.Contains("BNumber") || selectedColumns.Count == 0) dto.BNumber = cd.BNumber;
+                if (selectedColumns.Contains("AccountingTime") || selectedColumns.Count == 0) dto.AccountingTime = cd.AccountingTime;
+                if (selectedColumns.Contains("Length") || selectedColumns.Count == 0) dto.Length = cd.Length;
+                if (selectedColumns.Contains("OriginCountryName") || selectedColumns.Count == 0) dto.OriginCountryName = cd.OriginCountry?.CountryName;
+                if (selectedColumns.Contains("OriginCityName") || selectedColumns.Count == 0) dto.OriginCityName = cd.OriginCity?.CityName;
+                if (selectedColumns.Contains("OriginOperatorName") || selectedColumns.Count == 0) dto.OriginOperatorName = cd.OriginOperator?.OperatorName;
+                if (selectedColumns.Contains("DestCountryName") || selectedColumns.Count == 0) dto.DestCountryName = cd.DestCountry?.CountryName;
+                if (selectedColumns.Contains("DestCityName") || selectedColumns.Count == 0) dto.DestCityName = cd.DestCity?.CityName;
+                if (selectedColumns.Contains("DestOperatorName") || selectedColumns.Count == 0) dto.DestOperatorName = cd.DestOperator?.OperatorName;
+                if (selectedColumns.Contains("Answer") || selectedColumns.Count == 0) dto.Answer = cd.Answer;
                 return dto;
             }).ToList();
 
             byte[] csvBytes = ExportHelper.GenerateCsv(callDetailDtos, selectedColumns);
             var fileName = $"CallExport_{DateTime.Now:yyyyMMddHHmmss}.csv";
 
-            // اضافه کردن UTF-8 BOM در صورتی که موجود نباشد
             var utf8Bom = new byte[] { 0xEF, 0xBB, 0xBF };
             if (!(csvBytes.Length >= 3 && csvBytes[0] == utf8Bom[0] && csvBytes[1] == utf8Bom[1] && csvBytes[2] == utf8Bom[2]))
             {

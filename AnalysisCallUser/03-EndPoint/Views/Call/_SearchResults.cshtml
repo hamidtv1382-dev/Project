@@ -69,64 +69,8 @@
     </table>
 </div>
 
-@* نمایش بخش صفحه‌بندی اگر نتایج وجود داشته باشد *@
-@if (Model != null && Model.TotalCount > 0)
+@* نمایش بخش صفحه‌بندی برای تست *@
+@if (Model != null)
 {
     <partial name="_Pagination" model="Model" />
-}
-
-@section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // تابع برای تبدیل تاریخ‌ها به شمسی
-            function convertDatesToPersian() {
-                // پیدا کردن تمام عناصر حاوی تاریخ
-                const dateElements = document.querySelectorAll('.datetime-cell');
-
-                dateElements.forEach(element => {
-                    // اگر عنصر دارای ویژگی data-datetime است
-                    if (element.dataset.datetime) {
-                        const date = new Date(element.dataset.datetime);
-                        const persianDate = new persianDate(date).format('YYYY/MM/DD HH:mm:ss');
-                        element.textContent = persianDate;
-                    }
-                });
-            }
-
-            // تبدیل تاریخ‌ها به شمسی پس از بارگذاری صفحه
-            convertDatesToPersian();
-
-            document.getElementById('export-search-results')?.addEventListener('click', function() {
-                const form = document.getElementById('filter-form');
-                const formData = new FormData(form);
-
-                fetch('/Call/ExportSearchResults', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                    }
-                })
-                .then(response => {
-                    if (response.ok) return response.blob();
-                    throw new Error('Network response was not ok.');
-                })
-                .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = `CallSearchResults_${new Date().toISOString().slice(0,10)}.csv`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('خطا در اکسپورت کردن نتایج. لطفاً دوباره تلاش کنید.');
-                });
-            });
-        });
-    </script>
 }

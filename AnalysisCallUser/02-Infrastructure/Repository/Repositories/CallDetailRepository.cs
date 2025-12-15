@@ -12,29 +12,24 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
 {
     public class CallDetailRepository : Repository<CallDetail>, ICallDetailRepository
     {
+        private readonly AppDbContext _context;
         public CallDetailRepository(AppDbContext context) : base(context)
         {
+            _context = context;
         }
 
-        // متد GetAll بدون تغییر باقی می‌ماند تا سایر بخش‌های برنامه دچار مشکل نشوند
+        // متد GetAll را با AsNoTracking بازنویسی می‌کنیم
+        // این متد دیگر شامل Includeها نیست تا بتوانیم در متدهای دیگر به صورت داینامیک Includeها را اعمال کنیم
         public IQueryable<CallDetail> GetAll()
         {
-            return _context.CallDetails
-                .Include(cd => cd.OriginCountry)
-                .Include(cd => cd.OriginCity)
-                .Include(cd => cd.OriginOperator)
-                .Include(cd => cd.DestCountry)
-                .Include(cd => cd.DestCity)
-                .Include(cd => cd.DestOperator)
-                .Include(cd => cd.CallType);
+            return _context.CallDetails.AsNoTracking();
         }
 
-        // متد GetFilteredAsync بدون تغییر باقی می‌ماند
-
+        // متد GetFilteredAsync را بهینه می‌کنیم
         public async Task<IEnumerable<CallDetail>> GetFilteredAsync(CallFilterDto filter)
         {
-            // این کوئری شامل تمام اطلاعات Include شده است
-            var query = GetAll();
+            // ابتدا کوئری پایه را بدون Include می‌گیریم تا فیلترها در سطح دیتابیس اعمال شوند
+            var query = _context.CallDetails.AsNoTracking();
 
             if (filter != null)
             {
@@ -56,7 +51,6 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                 if (!string.IsNullOrEmpty(filter.BNumber))
                     query = query.Where(x => x.BNumber.Contains(filter.BNumber));
 
-                // این فیلترها از قبل در کد شما وجود داشتند و صحیح هستند
                 if (filter.OriginCountryID.HasValue)
                     query = query.Where(x => x.OriginCountryID == filter.OriginCountryID);
 
@@ -69,7 +63,6 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                 if (filter.DestCityID.HasValue)
                     query = query.Where(x => x.DestCityID == filter.DestCityID);
 
-                // این فیلترها هم از قبل وجود داشتند و نیازی به اضافه کردن ندارند
                 if (filter.OriginOperatorID.HasValue)
                     query = query.Where(x => x.OriginOperatorID == filter.OriginOperatorID);
 
@@ -83,36 +76,41 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                     query = query.Where(x => x.Answer == filter.Answer);
             }
 
-            // اصلاح اصلی: حذف Select و مرتب‌سازی مستقیم
+            // حالا که فیلترها اعمال شد، Includeها را اضافه می‌کنیم
+            // این کار باعث می‌شود فقط رکوردهای فیلتر شده به همراه اطلاعات مرتبطشان لود شوند
+            query = query
+                .Include(cd => cd.OriginCountry)
+                .Include(cd => cd.OriginCity)
+                .Include(cd => cd.OriginOperator)
+                .Include(cd => cd.DestCountry)
+                .Include(cd => cd.DestCity)
+                .Include(cd => cd.DestOperator)
+                .Include(cd => cd.CallType);
+
+            // در نهایت، مرتب‌سازی و صفحه‌بندی را اعمال می‌کنیم
             return await query
-                .OrderByDescending(x => x.AccountingTime) // مرتب‌سازی مستقیم
+                .OrderByDescending(x => x.AccountingTime)
                 .Skip((filter.Page - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .ToListAsync(); // ToListAsync مستقیماً روی IQueryable کار می‌کند
+                .ToListAsync();
         }
 
-        // متد GetFilteredCountAsync بدون تغییر باقی می‌ماند
+        // متد GetFilteredCountAsync بدون تغییر باقی می‌ماند، چون بهینه است
         public async Task<int> GetFilteredCountAsync(CallFilterDto filter)
         {
-            var query = GetAll();
+            var query = _context.CallDetails.AsNoTracking();
 
             if (filter != null)
             {
                 if (filter.StartDate.HasValue)
                 {
-                    var startDateTime =
-                        filter.StartDate.Value.Date +
-                        (filter.StartTime ?? TimeSpan.Zero);
-
+                    var startDateTime = filter.StartDate.Value.Date + (filter.StartTime ?? TimeSpan.Zero);
                     query = query.Where(cd => cd.AccountingTime >= startDateTime);
                 }
 
                 if (filter.EndDate.HasValue)
                 {
-                    var endDateTime =
-                        filter.EndDate.Value.Date +
-                        (filter.EndTime ?? new TimeSpan(23, 59, 59));
-
+                    var endDateTime = filter.EndDate.Value.Date + (filter.EndTime ?? new TimeSpan(23, 59, 59));
                     query = query.Where(cd => cd.AccountingTime <= endDateTime);
                 }
 
@@ -149,11 +147,12 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
 
             return await query.CountAsync();
         }
-        // این متد جدید برای حل مشکل NullReferenceException اضافه می‌شود
+
+        // متد GetByIdAsync را نیز برای یکپارچگی با AsNoTracking اصلاح می‌کنیم
         public async Task<CallDetail> GetByIdAsync(int id)
         {
-            // برای این متد، فقط روابط مورد نیاز را Include می‌کنیم تا کوئری بهینه باشد
             return await _context.CallDetails
+                .AsNoTracking()
                 .Include(cd => cd.OriginCountry)
                 .Include(cd => cd.DestCountry)
                 .FirstOrDefaultAsync(cd => cd.DetailID == id);

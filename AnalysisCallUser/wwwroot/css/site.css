@@ -240,6 +240,19 @@ header {
     padding: 30px 20px;
     animation: fadeIn 1s ease-out;
 }
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
 
 /* --- فوتر --- */
 footer {
@@ -3092,5 +3105,158 @@ footer {
     .card-body .btn-warning {
         width: 100%;
         margin-top: 15px;
+    }
+}
+/* =============================================
+   استایل‌های صفحه‌بندی (Pagination)
+   ============================================= */
+
+.pagination {
+    display: flex;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.375rem;
+    margin-top: 20px;
+    justify-content: center;
+}
+
+.page-link {
+    position: relative;
+    display: block;
+    color: var(--text-secondary);
+    text-decoration: none;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    transition: all 0.3s ease;
+    margin: 0 2px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+    .page-link:hover {
+        z-index: 2;
+        color: #fff;
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
+    }
+
+.page-item.active .page-link {
+    z-index: 3;
+    color: #fff;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px rgba(0, 173, 181, 0.5);
+}
+
+.page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: transparent;
+    border-color: var(--card-border);
+}
+/* =============================================
+   استایل‌های صفحه‌بندی (Pagination)
+   ============================================= */
+
+.pagination {
+    display: flex;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.375rem;
+    margin-top: 20px;
+    justify-content: center;
+    flex-wrap: wrap; /* اجازه می‌دهد در صورت لزوم به خط بعد برود */
+}
+
+.page-link {
+    position: relative;
+    display: block;
+    color: var(--text-secondary);
+    text-decoration: none;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    transition: all 0.3s ease;
+    margin: 0 2px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+    .page-link:hover {
+        z-index: 2;
+        color: #fff;
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
+    }
+
+.page-item.active .page-link {
+    z-index: 3;
+    color: #fff;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px rgba(0, 173, 181, 0.5);
+}
+
+/* استایل برای آیتم غیرفعال (علامت ...) */
+.page-item.disabled .page-link {
+    color: var(--text-secondary);
+    background-color: transparent;
+    border-color: transparent;
+    cursor: default;
+    pointer-events: none; /* جلوگیری از کلیک روی ... */
+}
+@keyframes scanlines {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 0 10px;
+    }
+}
+@keyframes project-panel {
+    0% {
+        opacity: 0;
+        transform: rotateY(var(--rotation-y, 0deg)) rotateX(var(--rotation-x, 0deg)) translateZ(-200px) scale(0.5);
+    }
+
+    50% {
+        opacity: 1;
+        transform: rotateY(var(--rotation-y, 0deg)) rotateX(var(--rotation-x, 0deg)) translateZ(50px) scale(1);
+    }
+
+    90% {
+        opacity: 1;
+        transform: rotateY(var(--rotation-y, 0deg)) rotateX(var(--rotation-x, 0deg)) translateZ(50px) scale(1) rotateZ(2deg);
+    }
+
+    100% {
+        opacity: 0;
+        transform: rotateY(var(--rotation-y, 0deg)) rotateX(var(--rotation-x, 0deg)) translateZ(50px) scale(1) rotateZ(2deg);
+    }
+}
+@keyframes pulse-ring {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+@keyframes pulse-core {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 20px #00d4ff, 0 0 40px #7b2ff7;
+    }
+
+    100% {
+        transform: scale(1.1);
+        box-shadow: 0 0 30px #00d4ff, 0 0 60px #7b2ff7;
     }
 }

@@ -1,74 +1,77 @@
-﻿@model AnalysisCallUser._02_Infrastructure.Helpers.PagedResult<AnalysisCallUser._01_Domain.Core.DTOs.UserDto>
+﻿@model AnalysisCallUser._02_Infrastructure.Helpers.PagedResult<AnalysisCallUser._01_Domain.Core.DTOs.CallDetailDto>
 
-<div class="pagination-container">
-    <div class="pagination-info">
-        نمایش @(Model.PageSize * (Model.PageNumber - 1) + 1) تا @(Math.Min(Model.PageSize * Model.PageNumber, Model.TotalItems)) 
-        از @Model.TotalItems مورد
-    </div>
-    
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-            @if (Model.HasPreviousPage)
-            {
-                <li class="page-item">
-                    <a class="page-link" href="#" data-page="@(Model.PageNumber - 1)" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="page-item disabled">
-                    <span class="page-link" aria-hidden="true">&laquo;</span>
-                </li>
-            }
+@{
+    // تعداد صفحاتی که در هر سمت صفحه فعلی نمایش داده می‌شوند
+    int delta = 2;
+    var currentPage = Model.PageNumber;
+    var totalPages = Model.TotalPages;
 
-            @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
-            {
-                if (i == Model.PageNumber)
-                {
-                    <li class="page-item active">
-                        <span class="page-link">@i</span>
-                    </li>
-                }
-                else
-                {
-                    <li class="page-item">
-                        <a class="page-link" href="#" data-page="@i">@i</a>
-                    </li>
-                }
-            }
+    // محاسبه بازه صفحاتی که باید نمایش داده شوند
+    var rangeStart = Math.Max(1, currentPage - delta);
+    var rangeEnd = Math.Min(totalPages, currentPage + delta);
+}
 
-            @if (Model.HasNextPage)
-            {
-                <li class="page-item">
-                    <a class="page-link" href="#" data-page="@(Model.PageNumber + 1)" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="page-item disabled">
-                    <span class="page-link" aria-hidden="true">&raquo;</span>
-                </li>
-            }
-        </ul>
-    </nav>
-    
-    <div class="page-size-selector">
-        <label for="page-size">تعداد نمایش در صفحه:</label>
-        @{
-            var pageSizes = new List<SelectListItem>
-                {
-                new SelectListItem { Value = "10", Text = "10", Selected = Model.PageSize == 10 },
-                new SelectListItem { Value = "25", Text = "25", Selected = Model.PageSize == 25 },
-                new SelectListItem { Value = "50", Text = "50", Selected = Model.PageSize == 50 },
-                new SelectListItem { Value = "100", Text = "100", Selected = Model.PageSize == 100 },
-                };
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        @if (Model.HasPreviousPage)
+        {
+            <li class="page-item">
+                <a class="page-link" href="#" data-page="@(currentPage - 1)" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
         }
 
-        <select asp-for="PageSize" asp-items="pageSizes" class="form-select form-select-sm"></select>
+        @* نمایش صفحه اول *@
+        <li class="page-item @(1 == currentPage ? "active" : "")">
+            <a class="page-link" href="#" data-page="1">1</a>
+        </li>
 
-    </div>
-</div>
+        @* نمایش "..." اگر بین صفحه اول و بازه فعلی فاصله وجود داشته باشد *@
+        @if (rangeStart > 2)
+        {
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+        }
+
+        @* نمایش صفحات در بازه محاسبه شده *@
+        @for (int i = rangeStart; i <= rangeEnd; i++)
+        {
+            // از تکرار نمایش صفحه اول و آخر خودداری می‌کنیم
+            if (i == 1 || i == totalPages)
+            {
+                continue;
+            }
+
+            <li class="page-item @(i == currentPage ? "active" : "")">
+                <a class="page-link" href="#" data-page="@i">@i</a>
+            </li>
+        }
+
+        @* نمایش "..." اگر بین بازه فعلی و صفحه آخر فاصله وجود داشته باشد *@
+        @if (rangeEnd < totalPages - 1)
+        {
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+        }
+
+        @* نمایش صفحه آخر (اگر با صفحه اول یکی نباشد) *@
+        @if (totalPages > 1)
+        {
+            <li class="page-item @(totalPages == currentPage ? "active" : "")">
+                <a class="page-link" href="#" data-page="@totalPages">@totalPages</a>
+            </li>
+        }
+
+        @if (Model.HasNextPage)
+        {
+            <li class="page-item">
+                <a class="page-link" href="#" data-page="@(currentPage + 1)" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        }
+    </ul>
+</nav>

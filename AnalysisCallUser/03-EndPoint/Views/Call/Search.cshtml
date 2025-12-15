@@ -22,6 +22,139 @@
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
     }
+
+    /* استایل‌های سفارشی برای Dropdown به جای Select */
+    .custom-dropdown {
+        width: 100%;
+    }
+
+        .custom-dropdown .dropdown-toggle {
+            background-color: #1f2a44 !important;
+            color: #ffffff !important;
+            border: 1px solid #2f80ed !important;
+            text-align: right;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            /* استایل برای حالت فوکوس و هاور روی دکمه */
+            .custom-dropdown .dropdown-toggle:hover,
+            .custom-dropdown .dropdown-toggle:focus,
+            .custom-dropdown .dropdown-toggle:active {
+                background-color: #1f2a44 !important;
+                color: #ffffff !important;
+                border-color: #56ccf2 !important;
+                box-shadow: 0 0 0 0.15rem rgba(47, 128, 237, 0.35) !important;
+            }
+
+            /* استایل برای فلش dropdown */
+            .custom-dropdown .dropdown-toggle::after {
+                color: #ffffff;
+            }
+
+        .custom-dropdown .dropdown-menu {
+            background-color: #1f2a44 !important;
+            border: 1px solid #2f80ed !important;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .custom-dropdown .dropdown-item {
+            color: #ffffff !important;
+            padding: 0.5rem 1rem;
+        }
+
+            .custom-dropdown .dropdown-item:hover,
+            .custom-dropdown .dropdown-item:focus {
+                background-color: #2f80ed !important;
+                color: #ffffff !important;
+            }
+
+            .custom-dropdown .dropdown-item.active {
+                background-color: #1e4c8a !important;
+                color: #ffffff !important;
+            }
+
+    /* برای input-group */
+    .call-search-filters .input-group-text {
+        background-color: #1f2a44;
+        color: #ffffff;
+        border-color: #2f80ed;
+    }
+
+    /* استایل برای انیمیشن جهانی تماس */
+    .global-animation-container {
+        width: 100%;
+        height: 300px;
+        position: relative;
+        margin: 20px 0;
+        overflow: hidden;
+        border-radius: 8px;
+        background-color: #0a0e27;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        perspective: 1000px; /* برای افکت سه‌بعدی */
+    }
+
+    .animation-text {
+        position: absolute;
+        top: 20px;
+        width: 100%;
+        text-align: center;
+        color: #fff;
+        font-size: 16px;
+        font-weight: bold;
+        z-index: 10;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+    }
+
+    /* انیمیشن پالس سیگنال بهبود یافته */
+    .signal-pulse-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 1;
+    }
+
+    .signal-pulse-point {
+        width: 20px;
+        height: 20px;
+        background: radial-gradient(circle, #00d4ff, #7b2ff7);
+        border-radius: 50%;
+        box-shadow: 0 0 20px #00d4ff, 0 0 40px #7b2ff7;
+        position: relative;
+        animation: pulse-core 2s infinite alternate;
+    }
+
+
+    .signal-pulse-ring {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 2px solid #00d4ff;
+        animation: pulse-ring 2s infinite;
+    }
+
+        .signal-pulse-ring:nth-child(2) {
+            border-color: #7b2ff7;
+            animation-delay: 0.5s;
+        }
+
+        .signal-pulse-ring:nth-child(3) {
+            border-color: #00ff88;
+            animation-delay: 1s;
+        }
+
 </style>
 
 <div class="container-fluid">
@@ -37,20 +170,13 @@
                 <div class="card-body collapse show" id="filterCardBody">
                     <form asp-action="Search" method="post" id="filter-form" novalidate>
                         @Html.AntiForgeryToken()
+                        <!-- Hidden input for page number, crucial for pagination -->
+                        <input type="hidden" asp-for="Filter.Page" id="Filter_Page" value="1" />
 
                         <!-- فیلدهای تاریخ -->
                         <div class="filter-section">
                             <div class="filter-section-title">
                                 <i class="fas fa-calendar-alt"></i> بازه زمانی
-                                <button type="button" class="btn btn-sm btn-outline-info float-end" id="datePresetsBtn" data-bs-toggle="dropdown">
-                                    <i class="fas fa-clock"></i> پیش‌فرض
-                                </button>
-                                <ul class="dropdown-menu" id="datePresets">
-                                    <li><a class="dropdown-item" href="#" data-days="1">امروز</a></li>
-                                    <li><a class="dropdown-item" href="#" data-days="7">۷ روز گذشته</a></li>
-                                    <li><a class="dropdown-item" href="#" data-days="30">۳۰ روز گذشته</a></li>
-                                    <li><a class="dropdown-item" href="#" data-days="90">۳ ماه گذشته</a></li>
-                                </ul>
                             </div>
                             <div class="filter-row">
                                 <div class="filter-field">
@@ -87,30 +213,43 @@
                             <div class="filter-row">
                                 <div class="filter-field">
                                     <label asp-for="Filter.OriginCountryID" class="form-label"></label>
-                                    <select asp-for="Filter.OriginCountryID" class="form-select" id="origin-country-select">
-                                        <option value="">انتخاب کنید</option>
-                                        @if (Model.Countries != null)
-                                        {
-                                            @foreach (var country in Model.Countries)
+                                    <input type="hidden" asp-for="Filter.OriginCountryID" id="origin-country-input" />
+                                    <div class="dropdown custom-dropdown" id="origin-country-dropdown">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="origin-country-button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            انتخاب کنید
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="origin-country-button">
+                                            @if (Model.Countries != null)
                                             {
-                                                <option value="@country.CountryID">@country.CountryName</option>
+                                                @foreach (var country in Model.Countries)
+                                                {
+                                                    <li><a class="dropdown-item" href="#" data-value="@country.CountryID">@country.CountryName</a></li>
+                                                }
                                             }
-                                        }
-                                    </select>
+                                        </ul>
+                                    </div>
                                 </div>
                                 <div class="filter-field">
                                     <label asp-for="Filter.OriginCityID" class="form-label"></label>
-                                    <select asp-for="Filter.OriginCityID" class="form-select" id="origin-city-select" disabled>
-                                        <option value="">ابتدا کشور را انتخاب کنید</option>
-                                    </select>
+                                    <input type="hidden" asp-for="Filter.OriginCityID" id="origin-city-input" />
+                                    <div class="dropdown custom-dropdown" id="origin-city-dropdown">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="origin-city-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                                            ابتدا کشور را انتخاب کنید
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="origin-city-button"></ul>
+                                    </div>
                                 </div>
                             </div>
                             <div class="filter-row">
                                 <div class="filter-field">
                                     <label asp-for="Filter.OriginOperatorID" class="form-label"></label>
-                                    <select asp-for="Filter.OriginOperatorID" class="form-select" id="origin-operator-select" disabled>
-                                        <option value="">ابتدا کشور را انتخاب کنید</option>
-                                    </select>
+                                    <input type="hidden" asp-for="Filter.OriginOperatorID" id="origin-operator-input" />
+                                    <div class="dropdown custom-dropdown" id="origin-operator-dropdown">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="origin-operator-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                                            ابتدا کشور را انتخاب کنید
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="origin-operator-button"></ul>
+                                    </div>
                                 </div>
                             </div>
                             <div class="filter-row">
@@ -134,30 +273,43 @@
                             <div class="filter-row">
                                 <div class="filter-field">
                                     <label asp-for="Filter.DestCountryID" class="form-label"></label>
-                                    <select asp-for="Filter.DestCountryID" class="form-select" id="dest-country-select">
-                                        <option value="">انتخاب کنید</option>
-                                        @if (Model.Countries != null)
-                                        {
-                                            @foreach (var country in Model.Countries)
+                                    <input type="hidden" asp-for="Filter.DestCountryID" id="dest-country-input" />
+                                    <div class="dropdown custom-dropdown" id="dest-country-dropdown">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dest-country-button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            انتخاب کنید
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="dest-country-button">
+                                            @if (Model.Countries != null)
                                             {
-                                                <option value="@country.CountryID">@country.CountryName</option>
+                                                @foreach (var country in Model.Countries)
+                                                {
+                                                    <li><a class="dropdown-item" href="#" data-value="@country.CountryID">@country.CountryName</a></li>
+                                                }
                                             }
-                                        }
-                                    </select>
+                                        </ul>
+                                    </div>
                                 </div>
                                 <div class="filter-field">
                                     <label asp-for="Filter.DestCityID" class="form-label"></label>
-                                    <select asp-for="Filter.DestCityID" class="form-select" id="dest-city-select" disabled>
-                                        <option value="">ابتدا کشور را انتخاب کنید</option>
-                                    </select>
+                                    <input type="hidden" asp-for="Filter.DestCityID" id="dest-city-input" />
+                                    <div class="dropdown custom-dropdown" id="dest-city-dropdown">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dest-city-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                                            ابتدا کشور را انتخاب کنید
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="dest-city-button"></ul>
+                                    </div>
                                 </div>
                             </div>
                             <div class="filter-row">
                                 <div class="filter-field">
                                     <label asp-for="Filter.DestOperatorID" class="form-label"></label>
-                                    <select asp-for="Filter.DestOperatorID" class="form-select" id="dest-operator-select" disabled>
-                                        <option value="">ابتدا کشور را انتخاب کنید</option>
-                                    </select>
+                                    <input type="hidden" asp-for="Filter.DestOperatorID" id="dest-operator-input" />
+                                    <div class="dropdown custom-dropdown" id="dest-operator-dropdown">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dest-operator-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                                            ابتدا کشور را انتخاب کنید
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="dest-operator-button"></ul>
+                                    </div>
                                 </div>
                             </div>
                             <div class="filter-row">
@@ -181,20 +333,32 @@
                             <div class="filter-row">
                                 <div class="filter-field">
                                     <label asp-for="Filter.Answer" class="form-label"></label>
-                                    <select asp-for="Filter.Answer" class="form-select" id="answer-select">
-                                        <option value="">همه</option>
-                                        <option value="@AnalysisCallUser._01_Domain.Core.Enums.CallAnswerStatus.Answered">پاسخ داده شده</option>
-                                        <option value="@AnalysisCallUser._01_Domain.Core.Enums.CallAnswerStatus.NotAnswered">پاسخ داده نشده</option>
-                                    </select>
+                                    <input type="hidden" asp-for="Filter.Answer" id="answer-input" />
+                                    <div class="dropdown custom-dropdown" id="answer-dropdown">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="answer-button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            همه
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="answer-button">
+                                            <li><a class="dropdown-item" href="#" data-value="">همه</a></li>
+                                            <li><a class="dropdown-item" href="#" data-value="@AnalysisCallUser._01_Domain.Core.Enums.CallAnswerStatus.Answered">پاسخ داده شده</a></li>
+                                            <li><a class="dropdown-item" href="#" data-value="@AnalysisCallUser._01_Domain.Core.Enums.CallAnswerStatus.NotAnswered">پاسخ داده نشده</a></li>
+                                        </ul>
+                                    </div>
                                 </div>
                                 <div class="filter-field">
                                     <label asp-for="Filter.PageSize" class="form-label"></label>
-                                    <select asp-for="Filter.PageSize" class="form-select">
-                                        <option value="10">10</option>
-                                        <option value="25">25</option>
-                                        <option value="50" selected>50</option>
-                                        <option value="100">100</option>
-                                    </select>
+                                    <input type="hidden" asp-for="Filter.PageSize" id="pagesize-input" value="50" />
+                                    <div class="dropdown custom-dropdown" id="pagesize-dropdown">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="pagesize-button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            50
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="pagesize-button">
+                                            <li><a class="dropdown-item" href="#" data-value="10">10</a></li>
+                                            <li><a class="dropdown-item" href="#" data-value="25">25</a></li>
+                                            <li><a class="dropdown-item active" href="#" data-value="50">50</a></li>
+                                            <li><a class="dropdown-item" href="#" data-value="100">100</a></li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -230,10 +394,18 @@
                     <div class="text-center p-4">
                         <i class="fas fa-search fa-3x text-muted mb-3"></i>
                         <p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p>
-                        <div class="mt-3">
-                            <button class="btn btn-outline-primary" id="quickSearchBtn">
-                                <i class="fas fa-bolt"></i> جستجوی سریع (تماس‌های امروز)
-                            </button>
+
+                        <div class="global-animation-container" id="globalAnimation">
+                            <div class="animation-text" id="animationText">...در حال انتظار برای جستجو</div>
+
+                            <!-- انیمیشن پالس سیگنال -->
+                            <div class="signal-pulse-container" id="signalPulse">
+                                <div class="signal-pulse-point">
+                                    <div class="signal-pulse-ring"></div>
+                                    <div class="signal-pulse-ring"></div>
+                                    <div class="signal-pulse-ring"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 }
@@ -271,13 +443,13 @@
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="exportType" id="exportAll" value="all" checked>
                         <label class="form-check-label" for="exportAll">
-                          تمام نتایج فیلتر شده بر اساس تعداد ردیف مشخص شده 
+                            تمام نتایج فیلتر شده بر اساس تعداد ردیف مشخص شده
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="exportType" id="exportCurrent" value="current">
                         <label class="form-check-label" for="exportCurrent">
-                          تمامی نتایج فیلتر شده 
+                            تمامی نتایج فیلتر شده
                         </label>
                     </div>
                 </div>
@@ -287,7 +459,6 @@
                     <div class="mb-3">
                         <label class="form-label">تعداد کل رکوردها: <span id="totalRecords" class="badge bg-primary">100</span></label>
                     </div>
-
                     <div class="mb-3">
                         <label for="exportLimit" class="form-label">محدودیت تعداد رکوردها برای اکسپورت</label>
                         <div class="input-group">
@@ -364,26 +535,37 @@
         </div>
     </div>
 </div>
+
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // تعریف متغیرها
-            const originCountrySelect = document.getElementById('origin-country-select');
-            const originCitySelect = document.getElementById('origin-city-select');
-            const destCountrySelect = document.getElementById('dest-country-select');
-            const destCitySelect = document.getElementById('dest-city-select');
-            const originOperatorSelect = document.getElementById('origin-operator-select');
-            const destOperatorSelect = document.getElementById('dest-operator-select');
+            const originCountryInput = document.getElementById('origin-country-input');
+            const originCityInput = document.getElementById('origin-city-input');
+            const destCountryInput = document.getElementById('dest-country-input');
+            const destCityInput = document.getElementById('dest-city-input');
+            const originOperatorInput = document.getElementById('origin-operator-input');
+            const destOperatorInput = document.getElementById('dest-operator-input');
+            const answerInput = document.getElementById('answer-input');
+            const pageSizeInput = document.getElementById('pagesize-input');
+
+            const originCountryButton = document.getElementById('origin-country-button');
+            const originCityButton = document.getElementById('origin-city-button');
+            const destCountryButton = document.getElementById('dest-country-button');
+            const destCityButton = document.getElementById('dest-city-button');
+            const originOperatorButton = document.getElementById('origin-operator-button');
+            const destOperatorButton = document.getElementById('dest-operator-button');
+            const answerButton = document.getElementById('answer-button');
+            const pageSizeButton = document.getElementById('pagesize-button');
+
             const aNumberInput = document.getElementById('anumber-input');
             const bNumberInput = document.getElementById('bnumber-input');
             const startDateInput = document.getElementById('Filter_StartDate');
             const endDateInput = document.getElementById('Filter_EndDate');
             const startDateError = document.getElementById('startDateError');
             const endDateError = document.getElementById('endDateError');
-            const answerSelect = document.getElementById('answer-select');
             const resetBtn = document.getElementById('reset-filter');
             const exportBtn = document.getElementById('export-results');
-            const quickSearchBtn = document.getElementById('quickSearchBtn');
             const filterForm = document.getElementById('filter-form');
             const searchResultsContainer = document.getElementById('search-results-container');
             const filterToggleIcon = document.getElementById('filterToggleIcon');
@@ -392,9 +574,13 @@
             const detectDestBtn = document.getElementById('detectDestBtn');
             const startDateClear = document.getElementById('startDateClear');
             const endDateClear = document.getElementById('endDateClear');
-            const datePresetsBtn = document.getElementById('datePresetsBtn');
             const notificationToast = new bootstrap.Toast(document.getElementById('notificationToast'));
             const toastMessage = document.getElementById('toastMessage');
+
+            // متغیرهای مربوط به انیمیشن جهانی
+            const globalAnimation = document.getElementById('globalAnimation');
+            const animationText = document.getElementById('animationText');
+            const signalPulse = document.getElementById('signalPulse');
 
             // متغیرهای مربوط به مودال اکسپورت
             const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
@@ -410,7 +596,6 @@
 
             // متغیر برای نگهداری تعداد کل نتایج
             let totalResultsCount = 0;
-            let currentPageResultsCount = 0;
 
             // --- تعریف توابع ---
 
@@ -425,6 +610,20 @@
                 const toastHeader = document.querySelector('#notificationToast .toast-header i');
                 toastHeader.className = `fas me-2 ${type === 'success' ? 'fa-check-circle text-success' : type === 'error' ? 'fa-exclamation-circle text-danger' : 'fa-info-circle text-primary'}`;
                 notificationToast.show();
+            }
+
+            // تابع برای راه‌اندازی انیمیشن جهانی
+            function startGlobalAnimation() {
+                if (!globalAnimation) return;
+                signalPulse.style.opacity = '1';
+                animationText.textContent = 'در حال انتظار برای جستجو...';
+            }
+
+            // تابع برای توقف انیمیشن جهانی
+            function stopGlobalAnimation() {
+                if (signalPulse) {
+                    signalPulse.style.opacity = '0';
+                }
             }
 
             // تابع برای تخمین حجم فایل
@@ -460,14 +659,6 @@
                 }
             }
 
-            // تابع برای به‌روزرسانی تعداد رکوردهای نمایش داده شده
-            function updateCurrentRecordsCount() {
-                // شمارش ردیف‌های جدول در صفحه
-                const tableRows = document.querySelectorAll('#search-results-container .table tbody tr');
-                currentPageResultsCount = tableRows.length;
-                currentRecordsSpan.textContent = currentPageResultsCount;
-            }
-
             // تابع برای تغییر حالت نمایش بخش‌های مودال بر اساس نوع اکسپورت
             function toggleExportSections() {
                 if (exportAllRadio.checked) {
@@ -477,7 +668,6 @@
                 } else {
                     allResultsSection.style.display = 'none';
                     currentResultsSection.style.display = 'block';
-                    updateCurrentRecordsCount();
                 }
             }
 
@@ -496,15 +686,46 @@
                 });
             }
 
+            // تابع برای مدیریت کلیک روی آیتم‌های dropdown
+            function setupDropdownListener(buttonId, inputId, menuId) {
+                const button = document.getElementById(buttonId);
+                const input = document.getElementById(inputId);
+                const menu = document.querySelector(`#${menuId} .dropdown-menu`);
+
+                menu.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (e.target.classList.contains('dropdown-item')) {
+                        const value = e.target.getAttribute('data-value');
+                        const text = e.target.textContent;
+
+                        input.value = value;
+                        button.textContent = text;
+                        button.classList.remove('placeholder');
+
+                        menu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+                        e.target.classList.add('active');
+
+                        const event = new Event('change', { bubbles: true });
+                        input.dispatchEvent(event);
+                    }
+                });
+            }
+
             // تابع برای بارگذاری شهرها
-            async function loadCities(countrySelect, citySelect) {
-                const countryId = countrySelect.value;
-                citySelect.innerHTML = '<option value="">در حال بارگذاری...</option>';
-                citySelect.disabled = true;
+            async function loadCities(countryInputId, cityButtonId, cityInputId, cityMenuId) {
+                const countryId = document.getElementById(countryInputId).value;
+                const cityButton = document.getElementById(cityButtonId);
+                const cityInput = document.getElementById(cityInputId);
+                const cityMenu = document.querySelector(`#${cityMenuId} .dropdown-menu`);
+
+                cityButton.textContent = 'در حال بارگذاری...';
+                cityButton.disabled = true;
+                cityMenu.innerHTML = '';
 
                 if (!countryId) {
-                    citySelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
-                    citySelect.disabled = true;
+                    cityButton.textContent = 'ابتدا کشور را انتخاب کنید';
+                    cityButton.disabled = true;
+                    cityInput.value = '';
                     return;
                 }
 
@@ -513,28 +734,45 @@
                     if (!response.ok) throw new Error('Network response was not ok.');
                     const cities = await response.json();
 
-                    citySelect.innerHTML = '<option value="">انتخاب کنید</option>';
+                    cityMenu.innerHTML = '';
                     cities.forEach(city => {
-                        const option = new Option(city.cityName, city.cityID);
-                        citySelect.add(option);
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.className = 'dropdown-item';
+                        a.href = '#';
+                        a.setAttribute('data-value', city.cityID);
+                        a.textContent = city.cityName;
+                        li.appendChild(a);
+                        cityMenu.appendChild(li);
                     });
-                    citySelect.disabled = false;
+
+                    cityButton.textContent = 'انتخاب کنید';
+                    cityButton.disabled = false;
+                    cityInput.value = '';
+
                 } catch (error) {
                     console.error('Error loading cities:', error);
-                    citySelect.innerHTML = '<option value="">خطا در بارگذاری</option>';
+                    cityButton.textContent = 'خطا در بارگذاری';
+                    cityButton.disabled = true;
                     showToast('خطا در بارگذاری شهرها', 'error');
                 }
             }
 
             // تابع برای بارگذاری اپراتورها
-            async function loadOperators(countrySelect, operatorSelect) {
-                const countryId = countrySelect.value;
-                operatorSelect.innerHTML = '<option value="">در حال بارگذاری...</option>';
-                operatorSelect.disabled = true;
+            async function loadOperators(countryInputId, operatorButtonId, operatorInputId, operatorMenuId) {
+                const countryId = document.getElementById(countryInputId).value;
+                const operatorButton = document.getElementById(operatorButtonId);
+                const operatorInput = document.getElementById(operatorInputId);
+                const operatorMenu = document.querySelector(`#${operatorMenuId} .dropdown-menu`);
+
+                operatorButton.textContent = 'در حال بارگذاری...';
+                operatorButton.disabled = true;
+                operatorMenu.innerHTML = '';
 
                 if (!countryId) {
-                    operatorSelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
-                    operatorSelect.disabled = true;
+                    operatorButton.textContent = 'ابتدا کشور را انتخاب کنید';
+                    operatorButton.disabled = true;
+                    operatorInput.value = '';
                     return;
                 }
 
@@ -543,21 +781,32 @@
                     if (!response.ok) throw new Error('Network response was not ok.');
                     const operators = await response.json();
 
-                    operatorSelect.innerHTML = '<option value="">انتخاب کنید</option>';
+                    operatorMenu.innerHTML = '';
                     operators.forEach(op => {
-                        const option = new Option(op.operatorName, op.operatorID);
-                        operatorSelect.add(option);
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.className = 'dropdown-item';
+                        a.href = '#';
+                        a.setAttribute('data-value', op.operatorID);
+                        a.textContent = op.operatorName;
+                        li.appendChild(a);
+                        operatorMenu.appendChild(li);
                     });
-                    operatorSelect.disabled = false;
+
+                    operatorButton.textContent = 'انتخاب کنید';
+                    operatorButton.disabled = false;
+                    operatorInput.value = '';
+
                 } catch (error) {
                     console.error('Error loading operators:', error);
-                    operatorSelect.innerHTML = '<option value="">خطا در بارگذاری</option>';
+                    operatorButton.textContent = 'خطا در بارگذاری';
+                    operatorButton.disabled = true;
                     showToast('خطا در بارگذاری اپراتورها', 'error');
                 }
             }
 
             // تابع برای پر کردن فیلدها بر اساس اطلاعات شماره
-            async function populateFieldsFromPhoneInfo(phoneNumber, countrySelectId, citySelectId, operatorSelectId) {
+            async function populateFieldsFromPhoneInfo(phoneNumber, countryInputId, cityButtonId, cityInputId, cityMenuId, operatorButtonId, operatorInputId, operatorMenuId) {
                 if (!phoneNumber || phoneNumber.length < 5) return;
 
                 try {
@@ -571,19 +820,42 @@
                         return;
                     }
 
-                    const countrySelect = document.getElementById(countrySelectId);
-                    const citySelect = document.getElementById(citySelectId);
-                    const operatorSelect = document.getElementById(operatorSelectId);
+                    const countryInput = document.getElementById(countryInputId);
+                    const countryButton = document.getElementById(countryInputId.replace('-input', '-button'));
+                    const countryMenu = document.querySelector(`#${countryInputId.replace('-input', '-dropdown')} .dropdown-menu`);
 
                     if (info.countryId) {
-                        countrySelect.value = info.countryId;
-                        const countryChangeEvent = new Event('change', { bubbles: true });
-                        countrySelect.dispatchEvent(countryChangeEvent);
+                        countryInput.value = info.countryId;
+                        const selectedOption = countryMenu.querySelector(`a[data-value="${info.countryId}"]`);
+                        if (selectedOption) {
+                            countryButton.textContent = selectedOption.textContent;
+                            countryMenu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+                            selectedOption.classList.add('active');
+                        }
+                        countryInput.dispatchEvent(new Event('change'));
                     }
 
                     setTimeout(() => {
-                        if (info.cityId) citySelect.value = info.cityId;
-                        if (info.operatorId) operatorSelect.value = info.operatorId;
+                        if (info.cityId) {
+                            const cityMenu = document.querySelector(`#${cityMenuId} .dropdown-menu`);
+                            const selectedCityOption = cityMenu.querySelector(`a[data-value="${info.cityId}"]`);
+                            if (selectedCityOption) {
+                                document.getElementById(cityInputId).value = info.cityId;
+                                document.getElementById(cityButtonId).textContent = selectedCityOption.textContent;
+                                cityMenu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+                                selectedCityOption.classList.add('active');
+                            }
+                        }
+                        if (info.operatorId) {
+                            const operatorMenu = document.querySelector(`#${operatorMenuId} .dropdown-menu`);
+                            const selectedOperatorOption = operatorMenu.querySelector(`a[data-value="${info.operatorId}"]`);
+                            if (selectedOperatorOption) {
+                                document.getElementById(operatorInputId).value = info.operatorId;
+                                document.getElementById(operatorButtonId).textContent = selectedOperatorOption.textContent;
+                                operatorMenu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+                                selectedOperatorOption.classList.add('active');
+                            }
+                        }
                         showToast('اطلاعات شماره تلفن با موفقیت تشخیص داده شد', 'success');
                     }, 400);
 
@@ -593,14 +865,28 @@
                 }
             }
 
-            // تابع برای جستجو (منطق اصلی بدون تغییر)
-            async function performSearch() {
-                const formData = new FormData(filterForm);
+            // تابع برای اتصال رویداد کلیک به لینک‌های صفحه‌بندی
+            function setupPaginationListeners() {
+                document.querySelectorAll('#search-results-container .pagination .page-link').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const page = this.getAttribute('data-page');
+                        if (page) {
+                            performSearch(parseInt(page));
+                        }
+                    });
+                });
+            }
 
-                // اطمینان از ارسال صحیح مقدار Answer
-                if (answerSelect) {
-                    formData.set('Filter.Answer', answerSelect.value);
-                }
+            // تابع برای جستجو (منطق اصلی با تغییرات جزئی)
+            async function performSearch(page = 1) {
+                stopGlobalAnimation();
+
+                // مقدار صفحه را در فیلد مخفی فرم تنظیم می‌کنیم
+                document.getElementById('Filter_Page').value = page;
+
+                const formData = new FormData(filterForm);
+                // نیازی به تنظیم مجدد Page نیست چون در فرم تنظیم شده است
 
                 searchResultsContainer.innerHTML = `
                     <div class="text-center p-4">
@@ -644,13 +930,14 @@
                     exportBtn.disabled = false;
                     convertDatesToPersian();
 
+                    // استخراج تعداد کل نتایج از HTML بازگشتی
                     const totalCountMatch = html.match(/نتایج جستجو \((\d+) رکورد\)/);
                     if (totalCountMatch) {
                         totalResultsCount = parseInt(totalCountMatch[1]);
                     }
 
-                    // به‌روزرسانی تعداد رکوردهای نمایش داده شده
-                    updateCurrentRecordsCount();
+                    // اتصال مجدد رویدادهای صفحه‌بندی
+                    setupPaginationListeners();
 
                 } catch (error) {
                     console.error('Error during search fetch:', error);
@@ -663,18 +950,9 @@
             async function performExportWithOptions() {
                 const formData = new FormData(filterForm);
                 const exportType = document.querySelector('input[name="exportType"]:checked').value;
-
-                // اضافه کردن نوع اکسپورت به فرم
                 formData.append('exportType', exportType);
-
-                // اگر اکسپورت تمام نتایج انتخاب شده باشد
                 if (exportType === 'all') {
                     formData.append('limit', exportLimitInput.value);
-                }
-
-                // اطمینان از ارسال صحیح مقدار Answer
-                if (answerSelect) {
-                    formData.set('Filter.Answer', answerSelect.value);
                 }
 
                 const columns = [];
@@ -728,42 +1006,132 @@
 
             // تابع برای قالب‌بندی و اعتبارسنجی تاریخ (غیرمسدودکننده)
             function formatDateInput(input) {
-                // تبدیل ارقام فارسی به انگلیسی
                 let value = toEnglishDigits(input.value);
-
-                // حذف تمام کاراکترهای غیر عددی
                 value = value.replace(/[^\d]/g, '');
-
-                // محدودیت طول به 10 کاراکتر (YYYY/MM/DD)
-                if (value.length > 10) {
-                    value = value.substring(0, 10);
-                }
-
-                // افزودن اسلش بعد از سال و ماه
-                if (value.length > 4) {
-                    value = value.substring(0, 4) + '/' + value.substring(4);
-                }
-                if (value.length > 7) {
-                    value = value.substring(0, 7) + '/' + value.substring(7);
-                }
-
+                if (value.length > 10) value = value.substring(0, 10);
+                if (value.length > 4) value = value.substring(0, 4) + '/' + value.substring(4);
+                if (value.length > 7) value = value.substring(0, 7) + '/' + value.substring(7);
                 input.value = value;
             }
 
-            // تابع برای اعتبارسنجی و نمایش خطا (غیرمسدودکننده)
+            // تابع کمکی برای تبدیل تاریخ شمسی به آرایه [سال, ماه, روز]
+            function parsePersianDate(dateString) {
+                if (!dateString || dateString.length !== 10) return null;
+                const parts = dateString.split('/');
+                if (parts.length !== 3) return null;
+                const year = parseInt(parts[0]);
+                const month = parseInt(parts[1]);
+                const day = parseInt(parts[2]);
+                if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+                return [year, month, day];
+            }
+
+            /**
+             * تابع جدید برای مقایسه مرحله‌ای تاریخ شروع و پایان
+             */
+            function validateDateRangeStepByStep() {
+                const startDateValue = startDateInput.value;
+                const endDateValue = endDateInput.value;
+                const dateRangeErrorElement = document.getElementById('dateRangeError');
+
+                // اگر یکی از تاریخ‌ها خالی باشد، خطای محدوده را پاک کن و معتبر در نظر بگیر
+                if (!startDateValue || !endDateValue) {
+                    if (dateRangeErrorElement) {
+                        dateRangeErrorElement.textContent = '';
+                    }
+                    return { isValid: true, message: '' };
+                }
+
+                const start = parsePersianDate(startDateValue);
+                const end = parsePersianDate(endDateValue);
+
+                // اگر فرمت تاریخ‌ها نامعتبر بود، خطا را پاک کن (خطای فرمت در جای دیگر نمایش داده می‌شود)
+                if (!start || !end) {
+                    if (dateRangeErrorElement) {
+                        dateRangeErrorElement.textContent = '';
+                    }
+                    return { isValid: true, message: '' };
+                }
+
+                const [startYear, startMonth, startDay] = start;
+                const [endYear, endMonth, endDay] = end;
+
+                // 1. بررسی سال
+                if (startYear > endYear) {
+                    return { isValid: false, message: 'سال شروع نباید از سال پایان بزرگتر باشد.' };
+                }
+                if (startYear < endYear) {
+                    // سال شروع کوچکتر است، نیازی به بررسی ماه و روز نیست
+                    return { isValid: true, message: '' };
+                }
+
+                // سال‌ها برابر است، به سراغ بررسی ماه برویم
+                // 2. بررسی ماه
+                if (startMonth > endMonth) {
+                    return { isValid: false, message: 'ماه شروع نباید از ماه پایان بزرگتر باشد.' };
+                }
+                if (startMonth < endMonth) {
+                    // ماه شروع کوچکتر است، نیازی به بررسی روز نیست
+                    return { isValid: true, message: '' };
+                }
+
+                // ماه‌ها نیز برابر است، به سراغ بررسی روز برویم
+                // 3. بررسی روز
+                if (startDay > endDay) {
+                    return { isValid: false, message: 'روز شروع نباید از روز پایان بزرگتر باشد.' };
+                }
+
+                // همه چیز برابر یا صحیح است
+                return { isValid: true, message: '' };
+            }
+
+            // تابع برای به‌روزرسانی وضعیت دکمه جستجو و نمایش خطای محدوده
+            function updateSearchButtonState() {
+                const submitButton = document.querySelector('button[type="submit"]');
+                const dateRangeErrorElement = document.getElementById('dateRangeError');
+
+                // ابتدا خطاهای تک تک فیلدها را بررسی کن
+                const hasStartDateError = startDateError.textContent.trim() !== '';
+                const hasEndDateError = endDateError.textContent.trim() !== '';
+
+                // سپس خطای محدوده را بررسی کن
+                const rangeValidation = validateDateRangeStepByStep();
+                const hasDateRangeError = !rangeValidation.isValid;
+
+                // نمایش یا پنهان کردن پیام خطای محدوده
+                if (dateRangeErrorElement) {
+                    dateRangeErrorElement.textContent = rangeValidation.message;
+                } else if (!rangeValidation.isValid) {
+                    // اگر عنصر خطا وجود ندارد و خطایی رخ داده، آن را بساز
+                    const errorDiv = document.createElement('div');
+                    errorDiv.id = 'dateRangeError';
+                    errorDiv.className = 'text-danger small mt-1';
+                    // این عنصر باید بعد از input-group تاریخ پایان قرار گیرد
+                    endDateInput.closest('.filter-field').appendChild(errorDiv);
+                    errorDiv.textContent = rangeValidation.message;
+                }
+
+                // غیرفعال کردن دکمه جستجو اگر هر نوع خطایی وجود داشته باشد
+                if (hasStartDateError || hasEndDateError || hasDateRangeError) {
+                    submitButton.disabled = true;
+                } else {
+                    submitButton.disabled = false;
+                }
+            }
+
+            // تابع برای اعتبارسنجی و نمایش خطا (غیرمسدودکننده) - این تابع را جایگزین کنید
             function validateDate(input, errorElement) {
                 const value = input.value;
-
-                // اگر خالی باشد، خطا را پاک کن و خارج شو
                 if (!value) {
                     errorElement.textContent = '';
+                    updateSearchButtonState(); // همیشه وضعیت دکمه را به‌روز کن
                     return;
                 }
 
-                // بررسی فرمت YYYY/MM/DD
                 const datePattern = /^(\d{4})\/(\d{2})\/(\d{2})$/;
                 if (!datePattern.test(value)) {
                     errorElement.textContent = 'فرمت تاریخ باید به صورت YYYY/MM/DD باشد';
+                    updateSearchButtonState();
                     return;
                 }
 
@@ -771,261 +1139,345 @@
                 const year = parseInt(match[1]);
                 const month = parseInt(match[2]);
                 const day = parseInt(match[3]);
-
-                // بررسی سال
                 const currentYear = new persianDate().year();
+
                 if (year < 1390) {
                     errorElement.textContent = 'سال نباید کمتر از 1390 باشد';
+                    updateSearchButtonState();
                     return;
                 }
-
                 if (year > currentYear) {
                     errorElement.textContent = 'سال نباید از سال جاری بیشتر باشد';
+                    updateSearchButtonState();
                     return;
                 }
-
-                // بررسی ماه
                 if (month < 1 || month > 12) {
                     errorElement.textContent = 'ماه باید بین 1 تا 12 باشد';
+                    updateSearchButtonState();
                     return;
                 }
-
-                // بررسی روز
                 if (day < 1 || day > 31) {
                     errorElement.textContent = 'روز باید بین 1 تا 31 باشد';
+                    updateSearchButtonState();
                     return;
                 }
-
-                // بررسی روزهای مجاز برای ماه‌های مختلف
                 if (month >= 7 && month <= 11 && day > 30) {
                     errorElement.textContent = 'این ماه حداکثر 30 روز دارد';
+                    updateSearchButtonState();
                     return;
                 }
-
-                // بررسی سال کبیسه برای اسفند
                 if (month === 12) {
                     const isLeapYear = (year % 4 === 3);
                     const maxDay = isLeapYear ? 30 : 29;
                     if (day > maxDay) {
                         errorElement.textContent = `اسفند در سال ${year} حداکثر ${maxDay} روز دارد`;
+                        updateSearchButtonState();
                         return;
                     }
                 }
 
-                // بررسی اینکه تاریخ از امروز بیشتر نباشد
                 const today = new persianDate();
                 const inputDate = new persianDate([year, month, day]);
-
                 if (inputDate.isAfter(today)) {
                     errorElement.textContent = 'تاریخ نباید از امروز بیشتر باشد';
+                    updateSearchButtonState();
                     return;
                 }
 
-                // اگر همه چیز درست بود، خطا را پاک کن
                 errorElement.textContent = '';
+                updateSearchButtonState(); // بعد از پاک کردن خطا، وضعیت دکمه را به‌روز کن
+            }
+
+            // تابع برای بازنشانی کامل فرم
+            function resetForm() {
+                filterForm.reset();
+                // Reset page to 1
+                document.getElementById('Filter_Page').value = 1;
+
+                document.getElementById('origin-country-input').value = '';
+                document.getElementById('origin-city-input').value = '';
+                document.getElementById('origin-operator-input').value = '';
+                document.getElementById('dest-country-input').value = '';
+                document.getElementById('dest-city-input').value = '';
+                document.getElementById('dest-operator-input').value = '';
+                document.getElementById('answer-input').value = '';
+                document.getElementById('pagesize-input').value = '50';
+
+                document.querySelectorAll('.custom-dropdown .dropdown-toggle').forEach(button => {
+                    if (button.id.includes('country')) {
+                        button.textContent = 'انتخاب کنید';
+                    } else if (button.id.includes('city') || button.id.includes('operator')) {
+                        button.textContent = 'ابتدا کشور را انتخاب کنید';
+                    } else if (button.id === 'answer-button') {
+                        button.textContent = 'همه';
+                    } else if (button.id === 'pagesize-button') {
+                        button.textContent = '50';
+                    }
+                    button.disabled = button.id.includes('city') || button.id.includes('operator');
+                });
+
+                document.querySelectorAll('.custom-dropdown .dropdown-menu').forEach(menu => {
+                    menu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+                    if (menu.closest('#pagesize-dropdown')) {
+                        const defaultItem = menu.querySelector('a[data-value="50"]');
+                        if (defaultItem) {
+                            defaultItem.classList.add('active');
+                        }
+                    }
+                });
+
+                startDateError.textContent = '';
+                endDateError.textContent = '';
+                // پاک کردن خطای محدوده در هنگام بازنشانی
+                const dateRangeError = document.getElementById('dateRangeError');
+                if (dateRangeError) {
+                    dateRangeError.textContent = '';
+                }
+
+                exportBtn.disabled = true;
+
+                searchResultsContainer.innerHTML = `
+                    <div class="text-center p-4">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p>
+                        <div class="global-animation-container" id="globalAnimation">
+                            <div class="animation-text" id="animationText">در انتظار برای انجام جستجو</div>
+                            <div class="signal-pulse-container" id="signalPulse">
+                                <div class="signal-pulse-point">
+                                    <div class="signal-pulse-ring"></div>
+                                    <div class="signal-pulse-ring"></div>
+                                    <div class="signal-pulse-ring"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                setTimeout(() => {
+                    startGlobalAnimation();
+                }, 100);
+
+                showToast('فیلترها با موفقیت بازنشانی شدند', 'success');
             }
 
             // --- اتصال رویدادها ---
+            setupDropdownListener('origin-country-button', 'origin-country-input', 'origin-country-dropdown');
+            setupDropdownListener('origin-city-button', 'origin-city-input', 'origin-city-dropdown');
+            setupDropdownListener('dest-country-button', 'dest-country-input', 'dest-country-dropdown');
+            setupDropdownListener('dest-city-button', 'dest-city-input', 'dest-city-dropdown');
+            setupDropdownListener('origin-operator-button', 'origin-operator-input', 'origin-operator-dropdown');
+            setupDropdownListener('dest-operator-button', 'dest-operator-input', 'dest-operator-dropdown');
+            setupDropdownListener('answer-button', 'answer-input', 'answer-dropdown');
+            setupDropdownListener('pagesize-button', 'pagesize-input', 'pagesize-dropdown');
 
-            // رویداد برای کشور مبدأ
-            originCountrySelect.addEventListener('change', () => {
-                loadCities(originCountrySelect, originCitySelect);
-                loadOperators(originCountrySelect, originOperatorSelect);
+            originCountryInput.addEventListener('change', () => {
+                loadCities('origin-country-input', 'origin-city-button', 'origin-city-input', 'origin-city-dropdown');
+                loadOperators('origin-country-input', 'origin-operator-button', 'origin-operator-input', 'origin-operator-dropdown');
             });
 
-            // رویداد برای کشور مقصد
-            destCountrySelect.addEventListener('change', () => {
-                loadCities(destCountrySelect, destCitySelect);
-                loadOperators(destCountrySelect, destOperatorSelect);
+            destCountryInput.addEventListener('change', () => {
+                loadCities('dest-country-input', 'dest-city-button', 'dest-city-input', 'dest-city-dropdown');
+                loadOperators('dest-country-input', 'dest-operator-button', 'dest-operator-input', 'dest-operator-dropdown');
             });
 
-            // رویداد برای دکمه‌های تشخیص خودکار
             detectOriginBtn.addEventListener('click', () => {
-                populateFieldsFromPhoneInfo(aNumberInput.value, 'origin-country-select', 'origin-city-select', 'origin-operator-select');
+                populateFieldsFromPhoneInfo(aNumberInput.value, 'origin-country-input', 'origin-city-button', 'origin-city-input', 'origin-city-dropdown', 'origin-operator-button', 'origin-operator-input', 'origin-operator-dropdown');
             });
 
             detectDestBtn.addEventListener('click', () => {
-                populateFieldsFromPhoneInfo(bNumberInput.value, 'dest-country-select', 'dest-city-select', 'dest-operator-select');
+                populateFieldsFromPhoneInfo(bNumberInput.value, 'dest-country-input', 'dest-city-button', 'dest-city-input', 'dest-city-dropdown', 'dest-operator-button', 'dest-operator-input', 'dest-operator-dropdown');
             });
 
-            // رویداد برای پاک کردن تاریخ‌ها
             startDateClear.addEventListener('click', () => {
                 startDateInput.value = '';
                 startDateError.textContent = '';
+                updateSearchButtonState(); // وضعیت دکمه را به‌روز کن
             });
             endDateClear.addEventListener('click', () => {
                 endDateInput.value = '';
                 endDateError.textContent = '';
+                updateSearchButtonState(); // وضعیت دکمه را به‌روز کن
             });
 
-            // رویداد برای جابجایی مبدأ و مقصد
             swapOriginDestBtn.addEventListener('click', () => {
-                const tempCountry = originCountrySelect.value;
-                originCountrySelect.value = destCountrySelect.value;
-                destCountrySelect.value = tempCountry;
-                originCountrySelect.dispatchEvent(new Event('change'));
-                destCountrySelect.dispatchEvent(new Event('change'));
+                const tempCountry = originCountryInput.value;
+                originCountryInput.value = destCountryInput.value;
+                destCountryInput.value = tempCountry;
+                originCountryInput.dispatchEvent(new Event('change'));
+                destCountryInput.dispatchEvent(new Event('change'));
+
                 setTimeout(() => {
-                    const tempCity = originCitySelect.value;
-                    originCitySelect.value = destCitySelect.value;
-                    destCitySelect.value = tempCity;
-                    const tempOperator = originOperatorSelect.value;
-                    originOperatorSelect.value = destOperatorSelect.value;
-                    destOperatorSelect.value = tempOperator;
+                    const tempCity = originCityInput.value;
+                    originCityInput.value = destCityInput.value;
+                    destCityInput.value = tempCity;
+                    const tempOperator = originOperatorInput.value;
+                    originOperatorInput.value = destOperatorInput.value;
+                    destOperatorInput.value = tempOperator;
                 }, 500);
+
+                const tempButtonText = originCountryButton.textContent;
+                originCountryButton.textContent = destCountryButton.textContent;
+                destCountryButton.textContent = tempButtonText;
+                const tempCityButtonText = originCityButton.textContent;
+                originCityButton.textContent = destCityButton.textContent;
+                destCityButton.textContent = tempCityButtonText;
+                const tempOperatorButtonText = originOperatorButton.textContent;
+                originOperatorButton.textContent = destOperatorButton.textContent;
+                destOperatorButton.textContent = tempOperatorButtonText;
                 const tempANumber = aNumberInput.value;
                 aNumberInput.value = bNumberInput.value;
                 bNumberInput.value = tempANumber;
 
-                // جابجایی خطاهای تاریخ
-                const tempError = startDateError.textContent;
-                startDateError.textContent = endDateError.textContent;
-                endDateError.textContent = tempError;
-
                 showToast('مبدأ و مقصد با موفقیت جابجا شدند', 'success');
             });
 
-            document.querySelectorAll('#datePresets .dropdown-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const days = parseInt(this.getAttribute('data-days'));
-                    if (typeof persianDate !== 'undefined') {
-                        const today = new persianDate();
-                        const startDate = new persianDate().subtract('days', days);
-                        startDateInput.value = toEnglishDigits(startDate.format('YYYY/MM/DD'));
-                        endDateInput.value = toEnglishDigits(today.format('YYYY/MM/DD'));
-
-                        // پاک کردن خطاهای تاریخ
-                        startDateError.textContent = '';
-                        endDateError.textContent = '';
-                    }
-                    showToast(`بازه زمانی به ${this.textContent} تنظیم شد`, 'success');
-                });
-            });
-
-            quickSearchBtn.addEventListener('click', () => {
-                if (typeof persianDate !== 'undefined') {
-                    const today = new persianDate();
-                    const dateStr = toEnglishDigits(today.format('YYYY/MM/DD'));
-                    startDateInput.value = dateStr;
-                    endDateInput.value = dateStr;
-
-                    // پاک کردن خطاهای تاریخ
-                    startDateError.textContent = '';
-                    endDateError.textContent = '';
-                }
-                performSearch();
-            });
-
-            resetBtn.addEventListener('click', function() {
-                filterForm.reset();
-                originCitySelect.disabled = true; originCitySelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
-                destCitySelect.disabled = true; destCitySelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
-                originOperatorSelect.disabled = true; originOperatorSelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
-                destOperatorSelect.disabled = true; destOperatorSelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
-                exportBtn.disabled = true;
-
-                // پاک کردن خطاهای تاریخ
-                startDateError.textContent = '';
-                endDateError.textContent = '';
-
-                searchResultsContainer.innerHTML = `<div class="text-center p-4"><i class="fas fa-search fa-3x text-muted mb-3"></i><p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p><div class="mt-3"><button class="btn btn-outline-primary" id="quickSearchBtn"><i class="fas fa-bolt"></i> جستجوی سریع (تماس‌های امروز)</button></div></div>`;
-                document.getElementById('quickSearchBtn').addEventListener('click', () => {
-                    if (typeof persianDate !== 'undefined') {
-                        const today = new persianDate();
-                        const dateStr = toEnglishDigits(today.format('YYYY/MM/DD'));
-                        startDateInput.value = dateStr;
-                        endDateInput.value = dateStr;
-                    }
-                    performSearch();
-                });
-                showToast('فیلترها با موفقیت بازنشانی شدند', 'success');
-            });
-
+            resetBtn.addEventListener('click', resetForm);
             exportBtn.addEventListener('click', () => {
                 totalRecordsSpan.textContent = totalResultsCount;
                 exportLimitInput.value = totalResultsCount > 0 ? Math.min(totalResultsCount, 1000) : 100;
-                updateCurrentRecordsCount();
                 updateEstimatedSize();
                 exportModal.show();
             });
-
-            confirmExportBtn.addEventListener('click', () => {
-                performExportWithOptions();
-            });
-
+            confirmExportBtn.addEventListener('click', () => { performExportWithOptions(); });
             filterForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                performSearch();
+                // فقط در صورتی که اعتبارسنجی موفقیت‌آمیز بود، جستجو را انجام بده
+                if (!document.querySelector('button[type="submit"]').disabled) {
+                    // Reset page to 1 on new search
+                    document.getElementById('Filter_Page').value = 1;
+                    performSearch(1);
+                }
             });
-
             document.querySelector('[data-bs-toggle="collapse"]').addEventListener('click', function() {
                 filterToggleIcon.classList.toggle('fa-chevron-up');
                 filterToggleIcon.classList.toggle('fa-chevron-down');
             });
-
             exportLimitInput.addEventListener('input', updateEstimatedSize);
-
             document.querySelectorAll('#exportModal .form-check-input[type="checkbox"]').forEach(checkbox => {
                 checkbox.addEventListener('change', updateEstimatedSize);
             });
-
-            // رویدادهای مربوط به تغییر نوع اکسپورت
             exportAllRadio.addEventListener('change', toggleExportSections);
             exportCurrentRadio.addEventListener('change', toggleExportSections);
 
-            aNumberInput.addEventListener('blur', () => { populateFieldsFromPhoneInfo(aNumberInput.value, 'origin-country-select', 'origin-city-select', 'origin-operator-select'); });
-            bNumberInput.addEventListener('blur', () => { populateFieldsFromPhoneInfo(bNumberInput.value, 'dest-country-select', 'dest-city-select', 'dest-operator-select'); });
+            aNumberInput.addEventListener('blur', () => {
+                populateFieldsFromPhoneInfo(
+                    aNumberInput.value,
+                    'origin-country-input',
+                    'origin-city-button',
+                    'origin-city-input',
+                    'origin-city-dropdown',
+                    'origin-operator-button',
+                    'origin-operator-input',
+                    'origin-operator-dropdown'
+                );
+            });
+
+            bNumberInput.addEventListener('blur', () => {
+                populateFieldsFromPhoneInfo(
+                    bNumberInput.value,
+                    'dest-country-input',
+                    'dest-city-button',
+                    'dest-city-input',
+                    'dest-city-dropdown',
+                    'dest-operator-button',
+                    'dest-operator-input',
+                    'dest-operator-dropdown'
+                );
+            });
 
             document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); performSearch(); }
-                if (e.ctrlKey && e.key === 'r') { e.preventDefault(); resetBtn.click(); }
+                if (e.ctrlKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    // فقط در صورتی که اعتبارسنجی موفقیت‌آمیز بود، جستجو را انجام بده
+                    if (!document.querySelector('button[type="submit"]').disabled) {
+                        // Reset page to 1 on new search
+                        document.getElementById('Filter_Page').value = 1;
+                        performSearch(1);
+                    }
+                }
+                if (e.ctrlKey && e.key === 'r') { e.preventDefault(); resetForm(); }
             });
 
-            // رویدادهای مربوط به ورود تاریخ
+            // رویدادهای مربوط به تاریخ‌ها را به‌روز کنید
             startDateInput.addEventListener('input', function() {
                 formatDateInput(this);
+                // در حین تایپ، وضعیت دکمه را به‌روز کن تا کاربر بازخورد فوری ببیند
+                updateSearchButtonState();
             });
-
             startDateInput.addEventListener('blur', function() {
                 validateDate(this, startDateError);
             });
-
             endDateInput.addEventListener('input', function() {
                 formatDateInput(this);
+                // در حین تایپ، وضعیت دکمه را به‌روز کن
+                updateSearchButtonState();
             });
-
             endDateInput.addEventListener('blur', function() {
                 validateDate(this, endDateError);
             });
 
-            const originCountryId = '@Model.Filter.OriginCountryID';
-            const destCountryId = '@Model.Filter.DestCountryID';
-
-            if (originCountryId && originCountryId !== '') {
-                Promise.all([loadCities(originCountrySelect, originCitySelect), loadOperators(originCountrySelect, originOperatorSelect)]).then(() => {
-                    originCitySelect.value = '@Model.Filter.OriginCityID';
-                    originOperatorSelect.value = '@Model.Filter.OriginOperatorID';
-                });
+            // مقداردهی اولیه از مدل
+            function setInitialDropdown(inputId, buttonId) {
+                const input = document.getElementById(inputId);
+                const button = document.getElementById(buttonId);
+                if (input.value) {
+                    const menu = button.nextElementSibling;
+                    const item = menu.querySelector(`a[data-value="${input.value}"]`);
+                    if (item) {
+                        button.textContent = item.textContent;
+                        menu.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                    }
+                }
             }
-            if (destCountryId && destCountryId !== '') {
-                Promise.all([loadCities(destCountrySelect, destCitySelect), loadOperators(destCountrySelect, destOperatorSelect)]).then(() => {
-                    destCitySelect.value = '@Model.Filter.DestCityID';
-                    destOperatorSelect.value = '@Model.Filter.DestOperatorID';
-                });
+
+            setInitialDropdown('origin-country-input', 'origin-country-button');
+            setInitialDropdown('dest-country-input', 'dest-country-button');
+            setInitialDropdown('answer-input', 'answer-button');
+            setInitialDropdown('pagesize-input', 'pagesize-button');
+
+            const initialOriginCountryId = '@Model.Filter.OriginCountryID';
+            const initialDestCountryId = '@Model.Filter.DestCountryID';
+
+            if (initialOriginCountryId) {
+                originCountryInput.dispatchEvent(new Event('change'));
+                setTimeout(() => {
+                    setInitialDropdown('origin-city-input', 'origin-city-button');
+                    setInitialDropdown('origin-operator-input', 'origin-operator-button');
+                }, 500);
+            }
+
+            if (initialDestCountryId) {
+                destCountryInput.dispatchEvent(new Event('change'));
+                setTimeout(() => {
+                    setInitialDropdown('dest-city-input', 'dest-city-button');
+                    setInitialDropdown('dest-operator-input', 'dest-operator-button');
+                }, 500);
             }
 
             @if (Model.Results != null)
             {
-                                                <text>
-                                                    exportBtn.disabled = false;
-                                                    totalResultsCount = @Model.Results.TotalCount;
-                                                </text>
+                                <text>
+                                    exportBtn.disabled = false;
+                                    totalResultsCount = @Model.Results.TotalCount;
+                                    setupPaginationListeners();
+                                </text>
+            }
+            else
+            {
+                                <text>
+                                    setTimeout(() => {
+                                        startGlobalAnimation();
+                                    }, 100);
+                                </text>
             }
 
             if (typeof $ !== 'undefined' && $.fn.persianDatepicker) {
                 $(startDateInput).persianDatepicker({
-                    format: 'YYYY/MM/DD', autoClose: true, observer: true, initialValue: false,
+                    format: 'YYYY/MM/DD',
+                    autoClose: true,
+                    observer: true,
+                    initialValue: false,
                     onSelect: function() {
                         const persianDateString = $(this).val();
                         const englishDateString = toEnglishDigits(persianDateString);
@@ -1035,7 +1487,10 @@
                     }
                 });
                 $(endDateInput).persianDatepicker({
-                    format: 'YYYY/MM/DD', autoClose: true, observer: true, initialValue: false,
+                    format: 'YYYY/MM/DD',
+                    autoClose: true,
+                    observer: true,
+                    initialValue: false,
                     onSelect: function() {
                         const persianDateString = $(this).val();
                         const englishDateString = toEnglishDigits(persianDateString);
@@ -1049,6 +1504,12 @@
             }
 
             convertDatesToPersian();
+
+            // در انتهای اسکریپت، این خط را برای بررسی اولیه اضافه کنید:
+            // این کار باعث می‌شود اگر فرم با مقادیر اولیه لود شده، دکمه جستجو وضعیت درستی داشته باشد.
+            if (startDateInput.value || endDateInput.value) {
+                updateSearchButtonState();
+            }
         });
     </script>
 }

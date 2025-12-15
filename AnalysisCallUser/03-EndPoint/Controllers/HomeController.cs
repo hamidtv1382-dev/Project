@@ -51,7 +51,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
                     var cacheOptions = new DistributedCacheEntryOptions
                     {
-                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
                     };
 
                     await _distributedCache.SetStringAsync(cacheKey, JsonSerializer.Serialize(dashboardDto), cacheOptions);
