@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
 {
@@ -47,13 +48,104 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                     query = query.Where(x => x.AccountingTime <= endDateTime);
                 }
 
-                // سپس سایر فیلترها را اعمال کنید
-                if (!string.IsNullOrEmpty(filter.ANumber))
-                    query = query.Where(x => x.ANumber.StartsWith(filter.ANumber));
+                // فیلتر شماره‌های مبدأ
+                if (filter.ANumbers != null && filter.ANumbers.Any())
+                {
+                    // ایجاد یک عبارت برای فیلتر کردن شماره‌های مبدأ
+                    var parameter = Expression.Parameter(typeof(CallDetail), "x");
+                    var aNumberProperty = Expression.Property(parameter, "ANumber");
 
-                if (!string.IsNullOrEmpty(filter.BNumber))
-                    query = query.Where(x => x.BNumber.StartsWith(filter.BNumber));
+                    Expression aNumberFilter = null;
+                    foreach (var number in filter.ANumbers)
+                    {
+                        if (!string.IsNullOrEmpty(number))
+                        {
+                            var startsWithMethod = typeof(string).GetMethod("StartsWith", new[] { typeof(string) });
+                            var constant = Expression.Constant(number, typeof(string));
+                            var startsWithExpression = Expression.Call(aNumberProperty, startsWithMethod, constant);
 
+                            aNumberFilter = aNumberFilter == null
+                                ? startsWithExpression
+                                : Expression.OrElse(aNumberFilter, startsWithExpression);
+                        }
+                    }
+
+                    if (aNumberFilter != null)
+                    {
+                        var lambda = Expression.Lambda<Func<CallDetail, bool>>(aNumberFilter, parameter);
+                        query = query.Where(lambda);
+                    }
+                }
+
+                // فیلتر شماره‌های مقصد
+                if (filter.BNumbers != null && filter.BNumbers.Any())
+                {
+                    // ایجاد یک عبارت برای فیلتر کردن شماره‌های مقصد
+                    var parameter = Expression.Parameter(typeof(CallDetail), "x");
+                    var bNumberProperty = Expression.Property(parameter, "BNumber");
+
+                    Expression bNumberFilter = null;
+                    foreach (var number in filter.BNumbers)
+                    {
+                        if (!string.IsNullOrEmpty(number))
+                        {
+                            var startsWithMethod = typeof(string).GetMethod("StartsWith", new[] { typeof(string) });
+                            var constant = Expression.Constant(number, typeof(string));
+                            var startsWithExpression = Expression.Call(bNumberProperty, startsWithMethod, constant);
+
+                            bNumberFilter = bNumberFilter == null
+                                ? startsWithExpression
+                                : Expression.OrElse(bNumberFilter, startsWithExpression);
+                        }
+                    }
+
+                    if (bNumberFilter != null)
+                    {
+                        var lambda = Expression.Lambda<Func<CallDetail, bool>>(bNumberFilter, parameter);
+                        query = query.Where(lambda);
+                    }
+                }
+
+                // فیلتر ترکیبی شماره‌ها
+                if (filter.NumberPairs != null && filter.NumberPairs.Any())
+                {
+                    var parameter = Expression.Parameter(typeof(CallDetail), "x");
+                    var aNumberProperty = Expression.Property(parameter, "ANumber");
+                    var bNumberProperty = Expression.Property(parameter, "BNumber");
+
+                    Expression numberPairFilter = null;
+                    foreach (var pair in filter.NumberPairs)
+                    {
+                        if (pair.AIndex >= 0 && pair.AIndex < filter.ANumbers.Count &&
+                            pair.BIndex >= 0 && pair.BIndex < filter.BNumbers.Count)
+                        {
+                            var aNumber = filter.ANumbers[pair.AIndex];
+                            var bNumber = filter.BNumbers[pair.BIndex];
+
+                            if (!string.IsNullOrEmpty(aNumber) && !string.IsNullOrEmpty(bNumber))
+                            {
+                                var aNumberConstant = Expression.Constant(aNumber, typeof(string));
+                                var bNumberConstant = Expression.Constant(bNumber, typeof(string));
+
+                                var aNumberEqual = Expression.Equal(aNumberProperty, aNumberConstant);
+                                var bNumberEqual = Expression.Equal(bNumberProperty, bNumberConstant);
+                                var pairExpression = Expression.AndAlso(aNumberEqual, bNumberEqual);
+
+                                numberPairFilter = numberPairFilter == null
+                                    ? pairExpression
+                                    : Expression.OrElse(numberPairFilter, pairExpression);
+                            }
+                        }
+                    }
+
+                    if (numberPairFilter != null)
+                    {
+                        var lambda = Expression.Lambda<Func<CallDetail, bool>>(numberPairFilter, parameter);
+                        query = query.Where(lambda);
+                    }
+                }
+
+                // سایر فیلترها را اعمال کنید
                 if (filter.OriginCountryID.HasValue)
                     query = query.Where(x => x.OriginCountryID == filter.OriginCountryID);
 
@@ -79,9 +171,6 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                     query = query.Where(x => x.Answer == filter.Answer);
             }
 
-            // ابتدا تعداد کل رکوردها را برای صفحه‌بندی محاسبه کنید
-            var totalCount = await query.CountAsync();
-
             // حالا Includeها را اضافه کنید
             query = query
                 .Include(cd => cd.OriginCountry)
@@ -100,13 +189,14 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                 .ToListAsync();
         }
 
-        // متد GetFilteredCountAsync بدون تغییر باقی می‌ماند، چون بهینه است
+        // متد GetFilteredCountAsync را بهینه می‌کنیم
         public async Task<int> GetFilteredCountAsync(CallFilterDto filter)
         {
             var query = _context.CallDetails.AsNoTracking();
 
             if (filter != null)
             {
+                // فیلترهای تاریخ را در اولویت قرار دهید
                 if (filter.StartDate.HasValue)
                 {
                     var startDateTime = filter.StartDate.Value.Date + (filter.StartTime ?? TimeSpan.Zero);
@@ -119,12 +209,104 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                     query = query.Where(cd => cd.AccountingTime <= endDateTime);
                 }
 
-                if (!string.IsNullOrEmpty(filter.ANumber))
-                    query = query.Where(cd => cd.ANumber.Contains(filter.ANumber));
+                // فیلتر شماره‌های مبدأ
+                if (filter.ANumbers != null && filter.ANumbers.Any())
+                {
+                    // ایجاد یک عبارت برای فیلتر کردن شماره‌های مبدأ
+                    var parameter = Expression.Parameter(typeof(CallDetail), "x");
+                    var aNumberProperty = Expression.Property(parameter, "ANumber");
 
-                if (!string.IsNullOrEmpty(filter.BNumber))
-                    query = query.Where(cd => cd.BNumber.Contains(filter.BNumber));
+                    Expression aNumberFilter = null;
+                    foreach (var number in filter.ANumbers)
+                    {
+                        if (!string.IsNullOrEmpty(number))
+                        {
+                            var startsWithMethod = typeof(string).GetMethod("StartsWith", new[] { typeof(string) });
+                            var constant = Expression.Constant(number, typeof(string));
+                            var startsWithExpression = Expression.Call(aNumberProperty, startsWithMethod, constant);
 
+                            aNumberFilter = aNumberFilter == null
+                                ? startsWithExpression
+                                : Expression.OrElse(aNumberFilter, startsWithExpression);
+                        }
+                    }
+
+                    if (aNumberFilter != null)
+                    {
+                        var lambda = Expression.Lambda<Func<CallDetail, bool>>(aNumberFilter, parameter);
+                        query = query.Where(lambda);
+                    }
+                }
+
+                // فیلتر شماره‌های مقصد
+                if (filter.BNumbers != null && filter.BNumbers.Any())
+                {
+                    // ایجاد یک عبارت برای فیلتر کردن شماره‌های مقصد
+                    var parameter = Expression.Parameter(typeof(CallDetail), "x");
+                    var bNumberProperty = Expression.Property(parameter, "BNumber");
+
+                    Expression bNumberFilter = null;
+                    foreach (var number in filter.BNumbers)
+                    {
+                        if (!string.IsNullOrEmpty(number))
+                        {
+                            var startsWithMethod = typeof(string).GetMethod("StartsWith", new[] { typeof(string) });
+                            var constant = Expression.Constant(number, typeof(string));
+                            var startsWithExpression = Expression.Call(bNumberProperty, startsWithMethod, constant);
+
+                            bNumberFilter = bNumberFilter == null
+                                ? startsWithExpression
+                                : Expression.OrElse(bNumberFilter, startsWithExpression);
+                        }
+                    }
+
+                    if (bNumberFilter != null)
+                    {
+                        var lambda = Expression.Lambda<Func<CallDetail, bool>>(bNumberFilter, parameter);
+                        query = query.Where(lambda);
+                    }
+                }
+
+                // فیلتر ترکیبی شماره‌ها
+                if (filter.NumberPairs != null && filter.NumberPairs.Any())
+                {
+                    var parameter = Expression.Parameter(typeof(CallDetail), "x");
+                    var aNumberProperty = Expression.Property(parameter, "ANumber");
+                    var bNumberProperty = Expression.Property(parameter, "BNumber");
+
+                    Expression numberPairFilter = null;
+                    foreach (var pair in filter.NumberPairs)
+                    {
+                        if (pair.AIndex >= 0 && pair.AIndex < filter.ANumbers.Count &&
+                            pair.BIndex >= 0 && pair.BIndex < filter.BNumbers.Count)
+                        {
+                            var aNumber = filter.ANumbers[pair.AIndex];
+                            var bNumber = filter.BNumbers[pair.BIndex];
+
+                            if (!string.IsNullOrEmpty(aNumber) && !string.IsNullOrEmpty(bNumber))
+                            {
+                                var aNumberConstant = Expression.Constant(aNumber, typeof(string));
+                                var bNumberConstant = Expression.Constant(bNumber, typeof(string));
+
+                                var aNumberEqual = Expression.Equal(aNumberProperty, aNumberConstant);
+                                var bNumberEqual = Expression.Equal(bNumberProperty, bNumberConstant);
+                                var pairExpression = Expression.AndAlso(aNumberEqual, bNumberEqual);
+
+                                numberPairFilter = numberPairFilter == null
+                                    ? pairExpression
+                                    : Expression.OrElse(numberPairFilter, pairExpression);
+                            }
+                        }
+                    }
+
+                    if (numberPairFilter != null)
+                    {
+                        var lambda = Expression.Lambda<Func<CallDetail, bool>>(numberPairFilter, parameter);
+                        query = query.Where(lambda);
+                    }
+                }
+
+                // سایر فیلترها را اعمال کنید
                 if (filter.OriginCountryID.HasValue)
                     query = query.Where(cd => cd.OriginCountryID == filter.OriginCountryID);
 
@@ -160,6 +342,11 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                 .AsNoTracking()
                 .Include(cd => cd.OriginCountry)
                 .Include(cd => cd.DestCountry)
+                .Include(cd => cd.OriginCity)
+                .Include(cd => cd.DestCity)
+                .Include(cd => cd.OriginOperator)
+                .Include(cd => cd.DestOperator)
+                .Include(cd => cd.CallType)
                 .FirstOrDefaultAsync(cd => cd.DetailID == id);
         }
     }

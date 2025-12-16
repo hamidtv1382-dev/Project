@@ -3,159 +3,46 @@
     ViewData["Title"] = "جستجوی تماس";
 }
 
+<!-- استایل‌های جدید برای پاپ‌آپ اطلاعات شماره -->
+<style>
+    .phone-info-container {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        padding: 0.75rem;
+        margin-top: 0.25rem;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+    }
+
+    .input-group {
+        position: relative;
+    }
+
+    .phone-info-trigger {
+        cursor: pointer;
+    }
+
+    .phone-info-content {
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+        .phone-info-content strong {
+            color: #495057;
+        }
+</style>
+
 <!-- اضافه کردن کتابخانه jQuery که برای تقویم شمسی ضروری است -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- افزودن کتابخانه تقویم شمسی -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@0.4.5/dist/css/persian-datepicker.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@0.4.5/dist/js/persian-datepicker.min.js"></script>
-
-<style>
-    /* استایل برای پس‌زمینه مودال با شفافیت کمتر */
-    .modal-backdrop {
-        background-color: rgba(0, 0, 0, 0.7) !important;
-    }
-
-    /* حذف حالت شیشه‌ای از محتوای مودال */
-    .modal-content {
-        background-color: #2a2a3e !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-    }
-
-    /* استایل‌های سفارشی برای Dropdown به جای Select */
-    .custom-dropdown {
-        width: 100%;
-    }
-
-        .custom-dropdown .dropdown-toggle {
-            background-color: #1f2a44 !important;
-            color: #ffffff !important;
-            border: 1px solid #2f80ed !important;
-            text-align: right;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-            /* استایل برای حالت فوکوس و هاور روی دکمه */
-            .custom-dropdown .dropdown-toggle:hover,
-            .custom-dropdown .dropdown-toggle:focus,
-            .custom-dropdown .dropdown-toggle:active {
-                background-color: #1f2a44 !important;
-                color: #ffffff !important;
-                border-color: #56ccf2 !important;
-                box-shadow: 0 0 0 0.15rem rgba(47, 128, 237, 0.35) !important;
-            }
-
-            /* استایل برای فلش dropdown */
-            .custom-dropdown .dropdown-toggle::after {
-                color: #ffffff;
-            }
-
-        .custom-dropdown .dropdown-menu {
-            background-color: #1f2a44 !important;
-            border: 1px solid #2f80ed !important;
-            width: 100%;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .custom-dropdown .dropdown-item {
-            color: #ffffff !important;
-            padding: 0.5rem 1rem;
-        }
-
-            .custom-dropdown .dropdown-item:hover,
-            .custom-dropdown .dropdown-item:focus {
-                background-color: #2f80ed !important;
-                color: #ffffff !important;
-            }
-
-            .custom-dropdown .dropdown-item.active {
-                background-color: #1e4c8a !important;
-                color: #ffffff !important;
-            }
-
-    /* برای input-group */
-    .call-search-filters .input-group-text {
-        background-color: #1f2a44;
-        color: #ffffff;
-        border-color: #2f80ed;
-    }
-
-    /* استایل برای انیمیشن جهانی تماس */
-    .global-animation-container {
-        width: 100%;
-        height: 300px;
-        position: relative;
-        margin: 20px 0;
-        overflow: hidden;
-        border-radius: 8px;
-        background-color: #0a0e27;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-        perspective: 1000px; /* برای افکت سه‌بعدی */
-    }
-
-    .animation-text {
-        position: absolute;
-        top: 20px;
-        width: 100%;
-        text-align: center;
-        color: #fff;
-        font-size: 16px;
-        font-weight: bold;
-        z-index: 10;
-        text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
-    }
-
-    /* انیمیشن پالس سیگنال بهبود یافته */
-    .signal-pulse-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        opacity: 1;
-    }
-
-    .signal-pulse-point {
-        width: 20px;
-        height: 20px;
-        background: radial-gradient(circle, #00d4ff, #7b2ff7);
-        border-radius: 50%;
-        box-shadow: 0 0 20px #00d4ff, 0 0 40px #7b2ff7;
-        position: relative;
-        animation: pulse-core 2s infinite alternate;
-    }
-
-
-    .signal-pulse-ring {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        border: 2px solid #00d4ff;
-        animation: pulse-ring 2s infinite;
-    }
-
-        .signal-pulse-ring:nth-child(2) {
-            border-color: #7b2ff7;
-            animation-delay: 0.5s;
-        }
-
-        .signal-pulse-ring:nth-child(3) {
-            border-color: #00ff88;
-            animation-delay: 1s;
-        }
-
-</style>
 
 <div class="container-fluid">
     <div class="row">
@@ -170,7 +57,6 @@
                 <div class="card-body collapse show" id="filterCardBody">
                     <form asp-action="Search" method="post" id="filter-form" novalidate>
                         @Html.AntiForgeryToken()
-                        <!-- Hidden input for page number, crucial for pagination -->
                         <input type="hidden" asp-for="Filter.Page" id="Filter_Page" value="1" />
 
                         <!-- فیلدهای تاریخ -->
@@ -202,10 +88,68 @@
                             </div>
                         </div>
 
-                        <!-- فیلدهای مبدأ -->
+                        <!-- فیلدهای شماره‌های مبدأ -->
                         <div class="filter-section">
                             <div class="filter-section-title">
-                                <i class="fas fa-phone-alt"></i> مبدأ
+                                <i class="fas fa-phone-alt"></i> شماره‌های مبدأ
+                                <button type="button" class="btn btn-sm btn-outline-info float-end" id="addANumber">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div id="anumbers-container">
+                                <div class="filter-row anumber-row" data-index="0">
+                                    <div class="filter-field">
+                                        <label class="form-label">شماره مبدأ 1</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" />
+                                            <button class="btn btn-outline-secondary remove-anumber" type="button" title="حذف شماره">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;">
+                                                <i class="fas fa-info-circle"></i>
+                                            </span>
+                                            <div class="phone-info-container" style="display: none;">
+                                                <div class="phone-info-content"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- فیلدهای شماره‌های مقصد -->
+                        <div class="filter-section">
+                            <div class="filter-section-title">
+                                <i class="fas fa-phone-alt"></i> شماره‌های مقصد
+                                <button type="button" class="btn btn-sm btn-outline-info float-end" id="addBNumber">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div id="bnumbers-container">
+                                <div class="filter-row bnumber-row" data-index="0">
+                                    <div class="filter-field">
+                                        <label class="form-label">شماره مقصد 1</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" />
+                                            <button class="btn btn-outline-secondary remove-bnumber" type="button" title="حذف شماره">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;">
+                                                <i class="fas fa-info-circle"></i>
+                                            </span>
+                                            <div class="phone-info-container" style="display: none;">
+                                                <div class="phone-info-content"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- فیلدهای مبدأ -->
+                        <div class="filter-section" id="origin-location-section">
+                            <div class="filter-section-title">
+                                <i class="fas fa-map-marker-alt"></i> اطلاعات مکان مبدأ
                                 <button type="button" class="btn btn-sm btn-outline-info float-end" id="swapOriginDest">
                                     <i class="fas fa-exchange-alt"></i>
                                 </button>
@@ -252,23 +196,12 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="filter-row">
-                                <div class="filter-field">
-                                    <label asp-for="Filter.ANumber" class="form-label"></label>
-                                    <div class="input-group">
-                                        <input asp-for="Filter.ANumber" class="form-control" placeholder="شماره مبدأ را وارد کنید" id="anumber-input" />
-                                        <button class="btn btn-outline-secondary" type="button" id="detectOriginBtn" title="تشخیص خودکار کشور و اپراتور">
-                                            <i class="fas fa-magic"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- فیلدهای مقصد -->
-                        <div class="filter-section">
+                        <div class="filter-section" id="dest-location-section">
                             <div class="filter-section-title">
-                                <i class="fas fa-phone-alt"></i> مقصد
+                                <i class="fas fa-map-marker-alt"></i> اطلاعات مکان مقصد
                             </div>
                             <div class="filter-row">
                                 <div class="filter-field">
@@ -309,17 +242,6 @@
                                             ابتدا کشور را انتخاب کنید
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="dest-operator-button"></ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="filter-row">
-                                <div class="filter-field">
-                                    <label asp-for="Filter.BNumber" class="form-label"></label>
-                                    <div class="input-group">
-                                        <input asp-for="Filter.BNumber" class="form-control" placeholder="شماره مقصد را وارد کنید" id="bnumber-input" />
-                                        <button class="btn btn-outline-secondary" type="button" id="detectDestBtn" title="تشخیص خودکار کشور و اپراتور">
-                                            <i class="fas fa-magic"></i>
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -394,11 +316,8 @@
                     <div class="text-center p-4">
                         <i class="fas fa-search fa-3x text-muted mb-3"></i>
                         <p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p>
-
                         <div class="global-animation-container" id="globalAnimation">
                             <div class="animation-text" id="animationText">...در حال انتظار برای جستجو</div>
-
-                            <!-- انیمیشن پالس سیگنال -->
                             <div class="signal-pulse-container" id="signalPulse">
                                 <div class="signal-pulse-point">
                                     <div class="signal-pulse-ring"></div>
@@ -539,6 +458,9 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            let aNumberCount = 1;
+            let bNumberCount = 1;
+
             // تعریف متغیرها
             const originCountryInput = document.getElementById('origin-country-input');
             const originCityInput = document.getElementById('origin-city-input');
@@ -558,8 +480,6 @@
             const answerButton = document.getElementById('answer-button');
             const pageSizeButton = document.getElementById('pagesize-button');
 
-            const aNumberInput = document.getElementById('anumber-input');
-            const bNumberInput = document.getElementById('bnumber-input');
             const startDateInput = document.getElementById('Filter_StartDate');
             const endDateInput = document.getElementById('Filter_EndDate');
             const startDateError = document.getElementById('startDateError');
@@ -570,19 +490,15 @@
             const searchResultsContainer = document.getElementById('search-results-container');
             const filterToggleIcon = document.getElementById('filterToggleIcon');
             const swapOriginDestBtn = document.getElementById('swapOriginDest');
-            const detectOriginBtn = document.getElementById('detectOriginBtn');
-            const detectDestBtn = document.getElementById('detectDestBtn');
             const startDateClear = document.getElementById('startDateClear');
             const endDateClear = document.getElementById('endDateClear');
             const notificationToast = new bootstrap.Toast(document.getElementById('notificationToast'));
             const toastMessage = document.getElementById('toastMessage');
 
-            // متغیرهای مربوط به انیمیشن جهانی
             const globalAnimation = document.getElementById('globalAnimation');
             const animationText = document.getElementById('animationText');
             const signalPulse = document.getElementById('signalPulse');
 
-            // متغیرهای مربوط به مودال اکسپورت
             const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
             const exportLimitInput = document.getElementById('exportLimit');
             const totalRecordsSpan = document.getElementById('totalRecords');
@@ -594,17 +510,14 @@
             const allResultsSection = document.getElementById('allResultsSection');
             const currentResultsSection = document.getElementById('currentResultsSection');
 
-            // متغیر برای نگهداری تعداد کل نتایج
             let totalResultsCount = 0;
 
             // --- تعریف توابع ---
 
-            // تابع کمکی برای تبدیل ارقام فارسی به انگلیسی
             function toEnglishDigits(s) {
                 return s.toString().replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
             }
 
-            // تابع برای نمایش اعلان
             function showToast(message, type = 'info') {
                 toastMessage.textContent = message;
                 const toastHeader = document.querySelector('#notificationToast .toast-header i');
@@ -612,28 +525,24 @@
                 notificationToast.show();
             }
 
-            // تابع برای راه‌اندازی انیمیشن جهانی
             function startGlobalAnimation() {
                 if (!globalAnimation) return;
                 signalPulse.style.opacity = '1';
                 animationText.textContent = 'در حال انتظار برای جستجو...';
             }
 
-            // تابع برای توقف انیمیشن جهانی
             function stopGlobalAnimation() {
                 if (signalPulse) {
                     signalPulse.style.opacity = '0';
                 }
             }
 
-            // تابع برای تخمین حجم فایل
             function estimateFileSize(recordCount, columnCount) {
                 const estimatedBytes = recordCount * columnCount * 100;
                 const estimatedMB = (estimatedBytes / (1024 * 1024)).toFixed(2);
                 return estimatedMB;
             }
 
-            // تابع برای شمارش ستون‌های انتخاب شده
             function countSelectedColumns() {
                 const checkboxes = document.querySelectorAll('#exportModal .form-check-input[type="checkbox"]');
                 let count = 0;
@@ -643,7 +552,6 @@
                 return count;
             }
 
-            // تابع برای به‌روزرسانی تخمین حجم فایل
             function updateEstimatedSize() {
                 const limit = parseInt(exportLimitInput.value) || 0;
                 const columnCount = countSelectedColumns();
@@ -659,7 +567,6 @@
                 }
             }
 
-            // تابع برای تغییر حالت نمایش بخش‌های مودال بر اساس نوع اکسپورت
             function toggleExportSections() {
                 if (exportAllRadio.checked) {
                     allResultsSection.style.display = 'block';
@@ -671,7 +578,6 @@
                 }
             }
 
-            // تابع برای تبدیل تاریخ‌ها به شمسی
             function convertDatesToPersian() {
                 if (typeof persianDate === 'undefined') {
                     console.error("persianDate library is not loaded. Dates will not be converted.");
@@ -686,7 +592,6 @@
                 });
             }
 
-            // تابع برای مدیریت کلیک روی آیتم‌های dropdown
             function setupDropdownListener(buttonId, inputId, menuId) {
                 const button = document.getElementById(buttonId);
                 const input = document.getElementById(inputId);
@@ -711,7 +616,6 @@
                 });
             }
 
-            // تابع برای بارگذاری شهرها
             async function loadCities(countryInputId, cityButtonId, cityInputId, cityMenuId) {
                 const countryId = document.getElementById(countryInputId).value;
                 const cityButton = document.getElementById(cityButtonId);
@@ -758,7 +662,6 @@
                 }
             }
 
-            // تابع برای بارگذاری اپراتورها
             async function loadOperators(countryInputId, operatorButtonId, operatorInputId, operatorMenuId) {
                 const countryId = document.getElementById(countryInputId).value;
                 const operatorButton = document.getElementById(operatorButtonId);
@@ -805,67 +708,6 @@
                 }
             }
 
-            // تابع برای پر کردن فیلدها بر اساس اطلاعات شماره
-            async function populateFieldsFromPhoneInfo(phoneNumber, countryInputId, cityButtonId, cityInputId, cityMenuId, operatorButtonId, operatorInputId, operatorMenuId) {
-                if (!phoneNumber || phoneNumber.length < 5) return;
-
-                try {
-                    showToast('در حال تشخیص اطلاعات شماره تلفن...');
-                    const response = await fetch(`/Call/GetPhoneInfo?number=${encodeURIComponent(phoneNumber)}`);
-                    if (!response.ok) throw new Error('Network response was not ok.');
-                    const info = await response.json();
-
-                    if (!info.success) {
-                        showToast('اطلاعات شماره تلفن یافت نشد', 'error');
-                        return;
-                    }
-
-                    const countryInput = document.getElementById(countryInputId);
-                    const countryButton = document.getElementById(countryInputId.replace('-input', '-button'));
-                    const countryMenu = document.querySelector(`#${countryInputId.replace('-input', '-dropdown')} .dropdown-menu`);
-
-                    if (info.countryId) {
-                        countryInput.value = info.countryId;
-                        const selectedOption = countryMenu.querySelector(`a[data-value="${info.countryId}"]`);
-                        if (selectedOption) {
-                            countryButton.textContent = selectedOption.textContent;
-                            countryMenu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
-                            selectedOption.classList.add('active');
-                        }
-                        countryInput.dispatchEvent(new Event('change'));
-                    }
-
-                    setTimeout(() => {
-                        if (info.cityId) {
-                            const cityMenu = document.querySelector(`#${cityMenuId} .dropdown-menu`);
-                            const selectedCityOption = cityMenu.querySelector(`a[data-value="${info.cityId}"]`);
-                            if (selectedCityOption) {
-                                document.getElementById(cityInputId).value = info.cityId;
-                                document.getElementById(cityButtonId).textContent = selectedCityOption.textContent;
-                                cityMenu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
-                                selectedCityOption.classList.add('active');
-                            }
-                        }
-                        if (info.operatorId) {
-                            const operatorMenu = document.querySelector(`#${operatorMenuId} .dropdown-menu`);
-                            const selectedOperatorOption = operatorMenu.querySelector(`a[data-value="${info.operatorId}"]`);
-                            if (selectedOperatorOption) {
-                                document.getElementById(operatorInputId).value = info.operatorId;
-                                document.getElementById(operatorButtonId).textContent = selectedOperatorOption.textContent;
-                                operatorMenu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
-                                selectedOperatorOption.classList.add('active');
-                            }
-                        }
-                        showToast('اطلاعات شماره تلفن با موفقیت تشخیص داده شد', 'success');
-                    }, 400);
-
-                } catch (error) {
-                    console.error('Error fetching phone info:', error);
-                    showToast('خطا در تشخیص اطلاعات شماره تلفن', 'error');
-                }
-            }
-
-            // تابع برای اتصال رویداد کلیک به لینک‌های صفحه‌بندی
             function setupPaginationListeners() {
                 document.querySelectorAll('#search-results-container .pagination .page-link').forEach(link => {
                     link.addEventListener('click', function(e) {
@@ -878,15 +720,432 @@
                 });
             }
 
-            // تابع برای جستجو (منطق اصلی با تغییرات جزئی)
+            // توابع برای افزودن شماره‌های جدید
+            function addANumber() {
+                if (aNumberCount >= 5) {
+                    showToast('حداکثر 5 شماره مبدأ می‌توانید وارد کنید', 'error');
+                    return;
+                }
+
+                const container = document.getElementById('anumbers-container');
+                const newRow = document.createElement('div');
+                newRow.className = 'filter-row anumber-row';
+                newRow.dataset.index = aNumberCount;
+
+                newRow.innerHTML = `
+                    <div class="filter-field">
+                        <label class="form-label">شماره مبدأ ${aNumberCount + 1}</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" />
+                            <button class="btn btn-outline-secondary remove-anumber" type="button" title="حذف شماره">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
+                            <div class="phone-info-container" style="display: none;">
+                                <div class="phone-info-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(newRow);
+                aNumberCount++;
+
+                newRow.querySelector('.remove-anumber').addEventListener('click', function() {
+                    removeANumber(this);
+                });
+                newRow.querySelector('.anumber-input').addEventListener('input', handlePhoneInput);
+                newRow.querySelector('.phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
+            }
+
+            function addBNumber() {
+                if (bNumberCount >= 5) {
+                    showToast('حداکثر 5 شماره مقصد می‌توانید وارد کنید', 'error');
+                    return;
+                }
+
+                const container = document.getElementById('bnumbers-container');
+                const newRow = document.createElement('div');
+                newRow.className = 'filter-row bnumber-row';
+                newRow.dataset.index = bNumberCount;
+
+                newRow.innerHTML = `
+                    <div class="filter-field">
+                        <label class="form-label">شماره مقصد ${bNumberCount + 1}</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" />
+                            <button class="btn btn-outline-secondary remove-bnumber" type="button" title="حذف شماره">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
+                            <div class="phone-info-container" style="display: none;">
+                                <div class="phone-info-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(newRow);
+                bNumberCount++;
+
+                newRow.querySelector('.remove-bnumber').addEventListener('click', function() {
+                    removeBNumber(this);
+                });
+                newRow.querySelector('.bnumber-input').addEventListener('input', handlePhoneInput);
+                newRow.querySelector('.phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
+            }
+
+            function removeANumber(button) {
+                if (document.querySelectorAll('.anumber-row').length <= 1) {
+                    showToast('حداقل یک شماره مبدأ باید وارد کنید', 'error');
+                    return;
+                }
+
+                const row = button.closest('.anumber-row');
+                row.remove();
+                aNumberCount--;
+
+                // بررسی وضعیت فیلدهای مکان پس از حذف شماره
+                updateLocationFieldsState();
+            }
+
+            function removeBNumber(button) {
+                if (document.querySelectorAll('.bnumber-row').length <= 1) {
+                    showToast('حداقل یک شماره مقصد باید وارد کنید', 'error');
+                    return;
+                }
+
+                const row = button.closest('.bnumber-row');
+                row.remove();
+                bNumberCount--;
+
+                // بررسی وضعیت فیلدهای مکان پس از حذف شماره
+                updateLocationFieldsState();
+            }
+
+            // توابع مربوط به فیلتر سمت کلاینت
+            function updateClientNumberPairSelects() {
+                const aNumbers = Array.from(document.querySelectorAll('.anumber-input')).map(input => input.value.trim()).filter(v => v);
+                const bNumbers = Array.from(document.querySelectorAll('.bnumber-input')).map(input => input.value.trim()).filter(v => v);
+
+                const clientANumberSelect = document.querySelector('.client-anumber-select');
+                const clientBNumberSelect = document.querySelector('.client-bnumber-select');
+
+                // پر کردن dropdown مبدأ
+                const currentValueA = clientANumberSelect.value;
+                clientANumberSelect.innerHTML = '<option value="">انتخاب شماره مبدأ</option>';
+                aNumbers.sort().forEach(number => {
+                    const option = document.createElement('option');
+                    option.value = number;
+                    option.textContent = number;
+                    if (currentValueA === number) {
+                        option.selected = true;
+                    }
+                    clientANumberSelect.appendChild(option);
+                });
+
+                // پر کردن dropdown مقصد
+                const currentValueB = clientBNumberSelect.value;
+                clientBNumberSelect.innerHTML = '<option value="">انتخاب شماره مقصد</option>';
+                bNumbers.sort().forEach(number => {
+                    const option = document.createElement('option');
+                    option.value = number;
+                    option.textContent = number;
+                    if (currentValueB === number) {
+                        option.selected = true;
+                    }
+                    clientBNumberSelect.appendChild(option);
+                });
+            }
+
+            function filterResultsOnClient() {
+                const allRows = document.querySelectorAll('#search-results-container tbody tr');
+                const aSelect = document.querySelector('.client-anumber-select');
+                const bSelect = document.querySelector('.client-bnumber-select');
+
+                const selectedA = aSelect.value;
+                const selectedB = bSelect.value;
+
+                if (!selectedA && !selectedB) {
+                    allRows.forEach(row => row.style.display = '');
+                    return;
+                }
+
+                allRows.forEach(row => {
+                    const aNum = row.cells[0].textContent.trim();
+                    const bNum = row.cells[1].textContent.trim();
+
+                    let isVisible = true;
+
+                    if (selectedA && aNum !== selectedA) {
+                        isVisible = false;
+                    }
+                    if (selectedB && bNum !== selectedB) {
+                        isVisible = false;
+                    }
+
+                    row.style.display = isVisible ? '' : 'none';
+                });
+            }
+
+            // توابع جدید برای مدیریت اطلاعات شماره تلفن
+            async function fetchAndDisplayPhoneInfo(phoneNumber, containerElement) {
+                if (!phoneNumber) {
+                    containerElement.style.display = 'none';
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/Call/GetPhoneInfo?number=${phoneNumber}`);
+                    if (!response.ok) throw new Error('Network response was not ok.');
+                    const data = await response.json();
+
+                    const contentDiv = containerElement.querySelector('.phone-info-content');
+                    if (data.success) {
+                        let infoHtml = `<strong>کشور:</strong> ${data.countryName || 'نامشخص'}<br>`;
+                        infoHtml += `<strong>شهر:</strong> ${data.cityName || 'نامشخص'}<br>`;
+                        infoHtml += `<strong>اپراتور:</strong> ${data.operatorName || 'نامشخص'}`;
+                        contentDiv.innerHTML = infoHtml;
+                        containerElement.style.display = 'block';
+                    } else {
+                        contentDiv.innerHTML = 'اطلاعاتی یافت نشد';
+                        containerElement.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Error fetching phone info:', error);
+                    const contentDiv = containerElement.querySelector('.phone-info-content');
+                    contentDiv.innerHTML = 'خطا در دریافت اطلاعات';
+                    containerElement.style.display = 'block';
+                }
+            }
+
+            function handlePhoneInput(event) {
+                const input = event.target;
+                const row = input.closest('.filter-row');
+                const trigger = row.querySelector('.phone-info-trigger');
+                const container = row.querySelector('.phone-info-container');
+
+                if (input.value.trim().length > 0) {
+                    trigger.style.display = 'flex';
+                    container.style.display = 'none';
+                } else {
+                    trigger.style.display = 'none';
+                    container.style.display = 'none';
+                }
+
+                // بررسی وضعیت فیلدهای مکان پس از تغییر شماره
+                updateLocationFieldsState();
+            }
+
+            function handlePhoneInfoClick(event) {
+                const trigger = event.currentTarget;
+                const row = trigger.closest('.filter-row');
+                const input = row.querySelector('.anumber-input, .bnumber-input');
+                const container = row.querySelector('.phone-info-container');
+
+                if (container.style.display === 'block') {
+                    container.style.display = 'none';
+                } else {
+                    fetchAndDisplayPhoneInfo(input.value, container);
+                }
+            }
+
+            // تابع جدید برای بررسی و به‌روزرسانی وضعیت فیلدهای مکان
+            async function updateLocationFieldsState() {
+                const aNumbers = Array.from(document.querySelectorAll('.anumber-input')).map(input => input.value.trim()).filter(v => v);
+                const bNumbers = Array.from(document.querySelectorAll('.bnumber-input')).map(input => input.value.trim()).filter(v => v);
+
+                const originLocationSection = document.getElementById('origin-location-section');
+                const destLocationSection = document.getElementById('dest-location-section');
+
+                // اگر هیچ شماره‌ای وارد نشده باشد، هر دو بخش فعال می‌شوند
+                if (aNumbers.length === 0 && bNumbers.length === 0) {
+                    enableLocationFields(originLocationSection);
+                    enableLocationFields(destLocationSection);
+                    return;
+                }
+
+                // اگر فقط شماره مبدأ وارد شده باشد، بخش مبدأ غیرفعال و بخش مقصد فعال می‌شود
+                if (aNumbers.length > 0 && bNumbers.length === 0) {
+                    disableLocationFields(originLocationSection);
+                    enableLocationFields(destLocationSection);
+
+                    // اگر فقط یک شماره مبدأ وجود دارد، اطلاعات آن را در بخش مبدأ نمایش می‌دهیم
+                    if (aNumbers.length === 1) {
+                        await populateOriginLocationFromPhone(aNumbers[0]);
+                    }
+                    return;
+                }
+
+                // اگر فقط شماره مقصد وارد شده باشد، بخش مقصد غیرفعال و بخش مبدأ فعال می‌شود
+                if (aNumbers.length === 0 && bNumbers.length > 0) {
+                    enableLocationFields(originLocationSection);
+                    disableLocationFields(destLocationSection);
+
+                    // اگر فقط یک شماره مقصد وجود دارد، اطلاعات آن را در بخش مقصد نمایش می‌دهیم
+                    if (bNumbers.length === 1) {
+                        await populateDestLocationFromPhone(bNumbers[0]);
+                    }
+                    return;
+                }
+
+                // اگر هر دو نوع شماره وارد شده باشند، هر دو بخش غیرفعال می‌شوند
+                if (aNumbers.length > 0 && bNumbers.length > 0) {
+                    disableLocationFields(originLocationSection);
+                    disableLocationFields(destLocationSection);
+
+                    // اگر هر دو نوع شماره تک عددی هستند، اطلاعات آن‌ها را در بخش‌های مربوطه نمایش می‌دهیم
+                    if (aNumbers.length === 1 && bNumbers.length === 1) {
+                        await Promise.all([
+                            populateOriginLocationFromPhone(aNumbers[0]),
+                            populateDestLocationFromPhone(bNumbers[0])
+                        ]);
+                    }
+                    return;
+                }
+            }
+
+            // تابع جدید برای پر کردن فیلدهای مکان مبدأ بر اساس اطلاعات شماره
+            async function populateOriginLocationFromPhone(phoneNumber) {
+                if (!phoneNumber) return;
+
+                try {
+                    const response = await fetch(`/Call/GetPhoneInfo?number=${phoneNumber}`);
+                    if (!response.ok) throw new Error('Network response was not ok.');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // انتخاب کشور مبدأ
+                        if (data.countryID) {
+                            originCountryInput.value = data.countryID;
+                            originCountryButton.textContent = data.countryName || 'انتخاب کنید';
+
+                            // بارگذاری شهرها و اپراتورهای مبدأ
+                            await loadCities('origin-country-input', 'origin-city-button', 'origin-city-input', 'origin-city-dropdown');
+                            await loadOperators('origin-country-input', 'origin-operator-button', 'origin-operator-input', 'origin-operator-dropdown');
+
+                            // انتخاب شهر مبدأ
+                            if (data.cityID) {
+                                originCityInput.value = data.cityID;
+                                originCityButton.textContent = data.cityName || 'انتخاب کنید';
+                            }
+
+                            // انتخاب اپراتور مبدأ
+                            if (data.operatorID) {
+                                originOperatorInput.value = data.operatorID;
+                                originOperatorButton.textContent = data.operatorName || 'انتخاب کنید';
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error populating origin location from phone:', error);
+                }
+            }
+
+            // تابع جدید برای پر کردن فیلدهای مکان مقصد بر اساس اطلاعات شماره
+            async function populateDestLocationFromPhone(phoneNumber) {
+                if (!phoneNumber) return;
+
+                try {
+                    const response = await fetch(`/Call/GetPhoneInfo?number=${phoneNumber}`);
+                    if (!response.ok) throw new Error('Network response was not ok.');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // انتخاب کشور مقصد
+                        if (data.countryID) {
+                            destCountryInput.value = data.countryID;
+                            destCountryButton.textContent = data.countryName || 'انتخاب کنید';
+
+                            // بارگذاری شهرها و اپراتورهای مقصد
+                            await loadCities('dest-country-input', 'dest-city-button', 'dest-city-input', 'dest-city-dropdown');
+                            await loadOperators('dest-country-input', 'dest-operator-button', 'dest-operator-input', 'dest-operator-dropdown');
+
+                            // انتخاب شهر مقصد
+                            if (data.cityID) {
+                                destCityInput.value = data.cityID;
+                                destCityButton.textContent = data.cityName || 'انتخاب کنید';
+                            }
+
+                            // انتخاب اپراتور مقصد
+                            if (data.operatorID) {
+                                destOperatorInput.value = data.operatorID;
+                                destOperatorButton.textContent = data.operatorName || 'انتخاب کنید';
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error populating dest location from phone:', error);
+                }
+            }
+
+            function setDropdownValue(dropdownId, inputId, buttonId, value) {
+                const input = document.getElementById(inputId);
+                const button = document.getElementById(buttonId);
+                const menu = document.querySelector(`#${dropdownId} .dropdown-menu`);
+
+                input.value = value;
+
+                const item = Array.from(menu.querySelectorAll('.dropdown-item')).find(el => el.getAttribute('data-value') === value);
+                if (item) {
+                    button.textContent = item.textContent;
+                    menu.querySelectorAll('.dropdown-item').forEach(el => el.classList.remove('active'));
+                    item.classList.add('active');
+                }
+            }
+
+            function disableLocationFields(section) {
+                section.querySelectorAll('button, input, select').forEach(el => el.disabled = true);
+                section.style.opacity = '0.6';
+            }
+
+            function enableLocationFields(section) {
+                section.querySelectorAll('button, input, select').forEach(el => el.disabled = false);
+                section.style.opacity = '1';
+            }
+
+            // تابع برای جمع‌آوری داده‌های فرم (اصلاح‌شده)
+            function collectFormData() {
+                const formData = new FormData(filterForm);
+
+                const aNumbers = [];
+                document.querySelectorAll('.anumber-input').forEach(input => {
+                    const value = input.value.trim();
+                    if (value) {
+                        aNumbers.push(value);
+                    }
+                });
+
+                const bNumbers = [];
+                document.querySelectorAll('.bnumber-input').forEach(input => {
+                    const value = input.value.trim();
+                    if (value) {
+                        bNumbers.push(value);
+                    }
+                });
+
+                formData.delete('Filter.ANumbers');
+                aNumbers.forEach(number => {
+                    formData.append('Filter.ANumbers', number);
+                });
+
+                formData.delete('Filter.BNumbers');
+                bNumbers.forEach(number => {
+                    formData.append('Filter.BNumbers', number);
+                });
+
+                return formData;
+            }
+
+            // تابع برای جستجو (اصلاح‌شده)
             async function performSearch(page = 1) {
                 stopGlobalAnimation();
-
-                // مقدار صفحه را در فیلد مخفی فرم تنظیم می‌کنیم
                 document.getElementById('Filter_Page').value = page;
-
-                const formData = new FormData(filterForm);
-                // نیازی به تنظیم مجدد Page نیست چون در فرم تنظیم شده است
+                const formData = collectFormData();
 
                 searchResultsContainer.innerHTML = `
                     <div class="text-center p-4">
@@ -930,14 +1189,21 @@
                     exportBtn.disabled = false;
                     convertDatesToPersian();
 
-                    // استخراج تعداد کل نتایج از HTML بازگشتی
                     const totalCountMatch = html.match(/نتایج جستجو \((\d+) رکورد\)/);
                     if (totalCountMatch) {
                         totalResultsCount = parseInt(totalCountMatch[1]);
                     }
 
-                    // اتصال مجدد رویدادهای صفحه‌بندی
                     setupPaginationListeners();
+
+                    // به‌روزرسانی فیلتر ترکیبی جدید
+                    updateClientNumberPairSelects();
+                    // اتصال رویدادهای فیلتر ترکیبی جدید
+                    const clientANumberSelect = document.querySelector('.client-anumber-select');
+                    const clientBNumberSelect = document.querySelector('.client-bnumber-select');
+                    if(clientANumberSelect) clientANumberSelect.addEventListener('change', filterResultsOnClient);
+                    if(clientBNumberSelect) clientBNumberSelect.addEventListener('change', filterResultsOnClient);
+
 
                 } catch (error) {
                     console.error('Error during search fetch:', error);
@@ -948,7 +1214,7 @@
 
             // تابع برای اکسپورت با گزینه‌های انتخاب شده
             async function performExportWithOptions() {
-                const formData = new FormData(filterForm);
+                const formData = collectFormData();
                 const exportType = document.querySelector('input[name="exportType"]:checked').value;
                 formData.append('exportType', exportType);
                 if (exportType === 'all') {
@@ -1004,7 +1270,7 @@
                 }
             }
 
-            // تابع برای قالب‌بندی و اعتبارسنجی تاریخ (غیرمسدودکننده)
+            // توابع مربوط به تاریخ (بدون تغییر)
             function formatDateInput(input) {
                 let value = toEnglishDigits(input.value);
                 value = value.replace(/[^\d]/g, '');
@@ -1014,7 +1280,6 @@
                 input.value = value;
             }
 
-            // تابع کمکی برای تبدیل تاریخ شمسی به آرایه [سال, ماه, روز]
             function parsePersianDate(dateString) {
                 if (!dateString || dateString.length !== 10) return null;
                 const parts = dateString.split('/');
@@ -1026,15 +1291,11 @@
                 return [year, month, day];
             }
 
-            /**
-             * تابع جدید برای مقایسه مرحله‌ای تاریخ شروع و پایان
-             */
             function validateDateRangeStepByStep() {
                 const startDateValue = startDateInput.value;
                 const endDateValue = endDateInput.value;
                 const dateRangeErrorElement = document.getElementById('dateRangeError');
 
-                // اگر یکی از تاریخ‌ها خالی باشد، خطای محدوده را پاک کن و معتبر در نظر بگیر
                 if (!startDateValue || !endDateValue) {
                     if (dateRangeErrorElement) {
                         dateRangeErrorElement.textContent = '';
@@ -1045,7 +1306,6 @@
                 const start = parsePersianDate(startDateValue);
                 const end = parsePersianDate(endDateValue);
 
-                // اگر فرمت تاریخ‌ها نامعتبر بود، خطا را پاک کن (خطای فرمت در جای دیگر نمایش داده می‌شود)
                 if (!start || !end) {
                     if (dateRangeErrorElement) {
                         dateRangeErrorElement.textContent = '';
@@ -1056,62 +1316,47 @@
                 const [startYear, startMonth, startDay] = start;
                 const [endYear, endMonth, endDay] = end;
 
-                // 1. بررسی سال
                 if (startYear > endYear) {
                     return { isValid: false, message: 'سال شروع نباید از سال پایان بزرگتر باشد.' };
                 }
                 if (startYear < endYear) {
-                    // سال شروع کوچکتر است، نیازی به بررسی ماه و روز نیست
                     return { isValid: true, message: '' };
                 }
 
-                // سال‌ها برابر است، به سراغ بررسی ماه برویم
-                // 2. بررسی ماه
                 if (startMonth > endMonth) {
                     return { isValid: false, message: 'ماه شروع نباید از ماه پایان بزرگتر باشد.' };
                 }
                 if (startMonth < endMonth) {
-                    // ماه شروع کوچکتر است، نیازی به بررسی روز نیست
                     return { isValid: true, message: '' };
                 }
 
-                // ماه‌ها نیز برابر است، به سراغ بررسی روز برویم
-                // 3. بررسی روز
                 if (startDay > endDay) {
                     return { isValid: false, message: 'روز شروع نباید از روز پایان بزرگتر باشد.' };
                 }
 
-                // همه چیز برابر یا صحیح است
                 return { isValid: true, message: '' };
             }
 
-            // تابع برای به‌روزرسانی وضعیت دکمه جستجو و نمایش خطای محدوده
             function updateSearchButtonState() {
                 const submitButton = document.querySelector('button[type="submit"]');
                 const dateRangeErrorElement = document.getElementById('dateRangeError');
 
-                // ابتدا خطاهای تک تک فیلدها را بررسی کن
                 const hasStartDateError = startDateError.textContent.trim() !== '';
                 const hasEndDateError = endDateError.textContent.trim() !== '';
 
-                // سپس خطای محدوده را بررسی کن
                 const rangeValidation = validateDateRangeStepByStep();
                 const hasDateRangeError = !rangeValidation.isValid;
 
-                // نمایش یا پنهان کردن پیام خطای محدوده
                 if (dateRangeErrorElement) {
                     dateRangeErrorElement.textContent = rangeValidation.message;
                 } else if (!rangeValidation.isValid) {
-                    // اگر عنصر خطا وجود ندارد و خطایی رخ داده، آن را بساز
                     const errorDiv = document.createElement('div');
                     errorDiv.id = 'dateRangeError';
                     errorDiv.className = 'text-danger small mt-1';
-                    // این عنصر باید بعد از input-group تاریخ پایان قرار گیرد
                     endDateInput.closest('.filter-field').appendChild(errorDiv);
                     errorDiv.textContent = rangeValidation.message;
                 }
 
-                // غیرفعال کردن دکمه جستجو اگر هر نوع خطایی وجود داشته باشد
                 if (hasStartDateError || hasEndDateError || hasDateRangeError) {
                     submitButton.disabled = true;
                 } else {
@@ -1119,12 +1364,11 @@
                 }
             }
 
-            // تابع برای اعتبارسنجی و نمایش خطا (غیرمسدودکننده) - این تابع را جایگزین کنید
             function validateDate(input, errorElement) {
                 const value = input.value;
                 if (!value) {
                     errorElement.textContent = '';
-                    updateSearchButtonState(); // همیشه وضعیت دکمه را به‌روز کن
+                    updateSearchButtonState();
                     return;
                 }
 
@@ -1185,22 +1429,22 @@
                 }
 
                 errorElement.textContent = '';
-                updateSearchButtonState(); // بعد از پاک کردن خطا، وضعیت دکمه را به‌روز کن
+                updateSearchButtonState();
             }
 
-            // تابع برای بازنشانی کامل فرم
+            // تابع برای بازنشانی کامل فرم (اصلاح‌شده)
             function resetForm() {
                 filterForm.reset();
-                // Reset page to 1
                 document.getElementById('Filter_Page').value = 1;
 
+                // بازنشانی dropdowns
                 document.getElementById('origin-country-input').value = '';
                 document.getElementById('origin-city-input').value = '';
                 document.getElementById('origin-operator-input').value = '';
                 document.getElementById('dest-country-input').value = '';
                 document.getElementById('dest-city-input').value = '';
                 document.getElementById('dest-operator-input').value = '';
-                document.getElementById('answer-input').value = '';
+                document.getElementById('answer-input').value = '50';
                 document.getElementById('pagesize-input').value = '50';
 
                 document.querySelectorAll('.custom-dropdown .dropdown-toggle').forEach(button => {
@@ -1208,33 +1452,83 @@
                         button.textContent = 'انتخاب کنید';
                     } else if (button.id.includes('city') || button.id.includes('operator')) {
                         button.textContent = 'ابتدا کشور را انتخاب کنید';
+                        button.disabled = true;
                     } else if (button.id === 'answer-button') {
                         button.textContent = 'همه';
                     } else if (button.id === 'pagesize-button') {
                         button.textContent = '50';
                     }
-                    button.disabled = button.id.includes('city') || button.id.includes('operator');
                 });
 
-                document.querySelectorAll('.custom-dropdown .dropdown-menu').forEach(menu => {
-                    menu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
-                    if (menu.closest('#pagesize-dropdown')) {
-                        const defaultItem = menu.querySelector('a[data-value="50"]');
-                        if (defaultItem) {
-                            defaultItem.classList.add('active');
-                        }
-                    }
-                });
+                // فعال کردن فیلدهای مکان در زمان بازنشانی
+                enableLocationFields(document.getElementById('origin-location-section'));
+                enableLocationFields(document.getElementById('dest-location-section'));
 
                 startDateError.textContent = '';
                 endDateError.textContent = '';
-                // پاک کردن خطای محدوده در هنگام بازنشانی
                 const dateRangeError = document.getElementById('dateRangeError');
                 if (dateRangeError) {
                     dateRangeError.textContent = '';
                 }
 
                 exportBtn.disabled = true;
+
+                // بازنشانی شماره‌ها
+                document.getElementById('anumbers-container').innerHTML = `
+                    <div class="filter-row anumber-row" data-index="0">
+                        <div class="filter-field">
+                            <label class="form-label">شماره مبدأ 1</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" />
+                                <button class="btn btn-outline-secondary remove-anumber" type="button" title="حذف شماره">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                                <div class="phone-info-container" style="display: none;">
+                                    <div class="phone-info-content"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('bnumbers-container').innerHTML = `
+                    <div class="filter-row bnumber-row" data-index="0">
+                        <div class="filter-field">
+                            <label class="form-label">شماره مقصد 1</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" />
+                                <button class="btn btn-outline-secondary remove-bnumber" type="button" title="حذف شماره">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                                <div class="phone-info-container" style="display: none;">
+                                    <div class="phone-info-content"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                aNumberCount = 1;
+                bNumberCount = 1;
+
+                // اتصال مجدد رویدادها
+                document.querySelector('.anumber-row .remove-anumber').addEventListener('click', function() {
+                    removeANumber(this);
+                });
+                document.querySelector('.anumber-row .anumber-input').addEventListener('input', handlePhoneInput);
+                document.querySelector('.anumber-row .phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
+
+                document.querySelector('.bnumber-row .remove-bnumber').addEventListener('click', function() {
+                    removeBNumber(this);
+                });
+                document.querySelector('.bnumber-row .bnumber-input').addEventListener('input', handlePhoneInput);
+                document.querySelector('.bnumber-row .phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
 
                 searchResultsContainer.innerHTML = `
                     <div class="text-center p-4">
@@ -1280,23 +1574,15 @@
                 loadOperators('dest-country-input', 'dest-operator-button', 'dest-operator-input', 'dest-operator-dropdown');
             });
 
-            detectOriginBtn.addEventListener('click', () => {
-                populateFieldsFromPhoneInfo(aNumberInput.value, 'origin-country-input', 'origin-city-button', 'origin-city-input', 'origin-city-dropdown', 'origin-operator-button', 'origin-operator-input', 'origin-operator-dropdown');
-            });
-
-            detectDestBtn.addEventListener('click', () => {
-                populateFieldsFromPhoneInfo(bNumberInput.value, 'dest-country-input', 'dest-city-button', 'dest-city-input', 'dest-city-dropdown', 'dest-operator-button', 'dest-operator-input', 'dest-operator-dropdown');
-            });
-
             startDateClear.addEventListener('click', () => {
                 startDateInput.value = '';
                 startDateError.textContent = '';
-                updateSearchButtonState(); // وضعیت دکمه را به‌روز کن
+                updateSearchButtonState();
             });
             endDateClear.addEventListener('click', () => {
                 endDateInput.value = '';
                 endDateError.textContent = '';
-                updateSearchButtonState(); // وضعیت دکمه را به‌روز کن
+                updateSearchButtonState();
             });
 
             swapOriginDestBtn.addEventListener('click', () => {
@@ -1324,9 +1610,6 @@
                 const tempOperatorButtonText = originOperatorButton.textContent;
                 originOperatorButton.textContent = destOperatorButton.textContent;
                 destOperatorButton.textContent = tempOperatorButtonText;
-                const tempANumber = aNumberInput.value;
-                aNumberInput.value = bNumberInput.value;
-                bNumberInput.value = tempANumber;
 
                 showToast('مبدأ و مقصد با موفقیت جابجا شدند', 'success');
             });
@@ -1341,9 +1624,7 @@
             confirmExportBtn.addEventListener('click', () => { performExportWithOptions(); });
             filterForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                // فقط در صورتی که اعتبارسنجی موفقیت‌آمیز بود، جستجو را انجام بده
                 if (!document.querySelector('button[type="submit"]').disabled) {
-                    // Reset page to 1 on new search
                     document.getElementById('Filter_Page').value = 1;
                     performSearch(1);
                 }
@@ -1359,38 +1640,26 @@
             exportAllRadio.addEventListener('change', toggleExportSections);
             exportCurrentRadio.addEventListener('change', toggleExportSections);
 
-            aNumberInput.addEventListener('blur', () => {
-                populateFieldsFromPhoneInfo(
-                    aNumberInput.value,
-                    'origin-country-input',
-                    'origin-city-button',
-                    'origin-city-input',
-                    'origin-city-dropdown',
-                    'origin-operator-button',
-                    'origin-operator-input',
-                    'origin-operator-dropdown'
-                );
-            });
+            // اتصال رویدادها برای شماره‌ها
+            document.getElementById('addANumber').addEventListener('click', addANumber);
+            document.getElementById('addBNumber').addEventListener('click', addBNumber);
 
-            bNumberInput.addEventListener('blur', () => {
-                populateFieldsFromPhoneInfo(
-                    bNumberInput.value,
-                    'dest-country-input',
-                    'dest-city-button',
-                    'dest-city-input',
-                    'dest-city-dropdown',
-                    'dest-operator-button',
-                    'dest-operator-input',
-                    'dest-operator-dropdown'
-                );
+            document.querySelector('.anumber-row .remove-anumber').addEventListener('click', function() {
+                removeANumber(this);
             });
+            document.querySelector('.anumber-row .anumber-input').addEventListener('input', handlePhoneInput);
+            document.querySelector('.anumber-row .phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
+
+            document.querySelector('.bnumber-row .remove-bnumber').addEventListener('click', function() {
+                removeBNumber(this);
+            });
+            document.querySelector('.bnumber-row .bnumber-input').addEventListener('input', handlePhoneInput);
+            document.querySelector('.bnumber-row .phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
 
             document.addEventListener('keydown', function(e) {
                 if (e.ctrlKey && e.key === 'Enter') {
                     e.preventDefault();
-                    // فقط در صورتی که اعتبارسنجی موفقیت‌آمیز بود، جستجو را انجام بده
                     if (!document.querySelector('button[type="submit"]').disabled) {
-                        // Reset page to 1 on new search
                         document.getElementById('Filter_Page').value = 1;
                         performSearch(1);
                     }
@@ -1398,10 +1667,9 @@
                 if (e.ctrlKey && e.key === 'r') { e.preventDefault(); resetForm(); }
             });
 
-            // رویدادهای مربوط به تاریخ‌ها را به‌روز کنید
+            // رویدادهای مربوط به تاریخ‌ها
             startDateInput.addEventListener('input', function() {
                 formatDateInput(this);
-                // در حین تایپ، وضعیت دکمه را به‌روز کن تا کاربر بازخورد فوری ببیند
                 updateSearchButtonState();
             });
             startDateInput.addEventListener('blur', function() {
@@ -1409,7 +1677,6 @@
             });
             endDateInput.addEventListener('input', function() {
                 formatDateInput(this);
-                // در حین تایپ، وضعیت دکمه را به‌روز کن
                 updateSearchButtonState();
             });
             endDateInput.addEventListener('blur', function() {
@@ -1461,6 +1728,13 @@
                                     exportBtn.disabled = false;
                                     totalResultsCount = @Model.Results.TotalCount;
                                     setupPaginationListeners();
+                                    // به‌روزرسانی فیلتر ترکیبی جدید در بارگذاری اولیه
+                                    updateClientNumberPairSelects();
+                                    // اتصال رویدادهای فیلتر ترکیبی جدید
+                                    const clientANumberSelect = document.querySelector('.client-anumber-select');
+                                    const clientBNumberSelect = document.querySelector('.client-bnumber-select');
+                                    if(clientANumberSelect) clientANumberSelect.addEventListener('change', filterResultsOnClient);
+                                    if(clientBNumberSelect) clientBNumberSelect.addEventListener('change', filterResultsOnClient);
                                 </text>
             }
             else
@@ -1505,11 +1779,12 @@
 
             convertDatesToPersian();
 
-            // در انتهای اسکریپت، این خط را برای بررسی اولیه اضافه کنید:
-            // این کار باعث می‌شود اگر فرم با مقادیر اولیه لود شده، دکمه جستجو وضعیت درستی داشته باشد.
             if (startDateInput.value || endDateInput.value) {
                 updateSearchButtonState();
             }
+
+            // بررسی وضعیت اولیه فیلدهای مکان
+            updateLocationFieldsState();
         });
     </script>
 }

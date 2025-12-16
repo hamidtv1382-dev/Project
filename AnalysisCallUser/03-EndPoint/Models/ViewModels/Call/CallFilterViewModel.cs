@@ -3,8 +3,16 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Call
 {
+    public class NumberPairFilter
+    {
+        public int AIndex { get; set; }
+        public int BIndex { get; set; }
+    }
+
     public class CallFilterViewModel
     {
+        public string? ANumber { get; set; }
+        public string? BNumber { get; set; }
         [Display(Name = "تاریخ شروع")]
         public string? StartDate { get; set; }
 
@@ -17,11 +25,9 @@ namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Call
         [Display(Name = "زمان پایان")]
         public TimeSpan? EndTime { get; set; }
 
-        [Display(Name = "شماره مبدأ")]
-        public string? ANumber { get; set; }
-
-        [Display(Name = "شماره مقصد")]
-        public string? BNumber { get; set; }
+        public List<string> ANumbers { get; set; } = new List<string>();
+        public List<string> BNumbers { get; set; } = new List<string>();
+        public List<NumberPairFilter> NumberPairs { get; set; } = new List<NumberPairFilter>();
 
         [Display(Name = "کشور مبدأ")]
         public int? OriginCountryID { get; set; }

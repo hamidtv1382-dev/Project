@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
+using System.Text.Json;
+using NumberPairFilter = AnalysisCallUser._01_Domain.Core.DTOs.NumberPairFilter;
 
 namespace AnalysisCallUser._03_EndPoint.Controllers
 {
@@ -64,6 +66,38 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             return (startDate, endDate);
         }
 
+        /// <summary>
+        /// Parses number pairs from form data
+        /// </summary>
+        private List<NumberPairFilter> ParseNumberPairs(IFormCollection form)
+        {
+            var numberPairs = new List<NumberPairFilter>();
+
+            // Get number pairs from form data
+            var numberPairValues = form["Filter.NumberPairs"];
+            foreach (var value in numberPairValues)
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    try
+                    {
+                        var pair = JsonSerializer.Deserialize<NumberPairFilter>(value);
+                        if (pair != null)
+                        {
+                            numberPairs.Add(pair);
+                        }
+                    }
+                    catch
+                    {
+                        // Skip invalid JSON
+                        continue;
+                    }
+                }
+            }
+
+            return numberPairs;
+        }
+
         #endregion
 
         // GET: /Call/Search
@@ -80,7 +114,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
         // POST: /Call/Search
         [HttpPost]
-        public async Task<IActionResult> Search(CallSearchViewModel model)
+        public async Task<IActionResult> Search(CallSearchViewModel model, IFormCollection form)
         {
             // Set a timeout for this operation to prevent hanging, especially on large datasets
             var originalTimeout = _context.Database.GetCommandTimeout();
@@ -98,10 +132,18 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                     return Json(new { success = false, message = "ModelState is invalid.", errors = errors });
                 }
 
+                // Parse ANumbers and BNumbers from form data
+                var aNumbers = form["Filter.ANumbers"].ToList();
+                var bNumbers = form["Filter.BNumbers"].ToList();
+
+                // Parse NumberPairs from form data
+                var numberPairs = ParseNumberPairs(form);
+
                 var callFilterDto = new CallFilterDto
                 {
-                    ANumber = model.Filter.ANumber,
-                    BNumber = model.Filter.BNumber,
+                    ANumbers = aNumbers,
+                    BNumbers = bNumbers,
+                    NumberPairs = numberPairs,
                     Answer = model.Filter.Answer,
                     StartDate = startDateGregorian,
                     EndDate = endDateGregorian,
@@ -258,7 +300,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                                           .ToListAsync();
             return Json(countries);
         }
-
+        // GET: /Call/GetPhoneInfo
         public async Task<JsonResult> GetPhoneInfo(string number)
         {
             var (country, city, op) = await _phoneInfoService.GetPhoneInfoAsync(number);
@@ -266,9 +308,9 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             return Json(new
             {
                 success = (country != null),
-                countryId = country?.CountryID,
-                cityId = city?.CityID,
-                operatorId = op?.OperatorID
+                countryName = country?.CountryName,
+                cityName = city?.CityName,         
+                operatorName = op?.OperatorName    
             });
         }
 
@@ -283,7 +325,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ExportSearchResults(CallSearchViewModel model)
+        public async Task<IActionResult> ExportSearchResults(CallSearchViewModel model, IFormCollection form)
         {
             var originalTimeout = _context.Database.GetCommandTimeout();
             // Set a longer timeout for export operations as they can be time-consuming
@@ -293,10 +335,18 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             {
                 var (startDateGregorian, endDateGregorian) = ConvertPersianDates(model.Filter.StartDate, model.Filter.EndDate);
 
+                // Parse ANumbers and BNumbers from form data
+                var aNumbers = form["Filter.ANumbers"].ToList();
+                var bNumbers = form["Filter.BNumbers"].ToList();
+
+                // Parse NumberPairs from form data
+                var numberPairs = ParseNumberPairs(form);
+
                 var callFilterDto = new CallFilterDto
                 {
-                    ANumber = model.Filter.ANumber,
-                    BNumber = model.Filter.BNumber,
+                    ANumbers = aNumbers,
+                    BNumbers = bNumbers,
+                    NumberPairs = numberPairs,
                     Answer = model.Filter.Answer,
                     StartDate = startDateGregorian,
                     EndDate = endDateGregorian,
@@ -389,7 +439,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ExportWithOptions(CallSearchViewModel model, int limit = 1000, string columns = "")
+        public async Task<IActionResult> ExportWithOptions(CallSearchViewModel model, IFormCollection form, int limit = 1000, string columns = "")
         {
             var originalTimeout = _context.Database.GetCommandTimeout();
             _context.Database.SetCommandTimeout(120); // 2 minutes timeout
@@ -398,10 +448,18 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             {
                 var (startDateGregorian, endDateGregorian) = ConvertPersianDates(model.Filter.StartDate, model.Filter.EndDate);
 
+                // Parse ANumbers and BNumbers from form data
+                var aNumbers = form["Filter.ANumbers"].ToList();
+                var bNumbers = form["Filter.BNumbers"].ToList();
+
+                // Parse NumberPairs from form data
+                var numberPairs = ParseNumberPairs(form);
+
                 var callFilterDto = new CallFilterDto
                 {
-                    ANumber = model.Filter.ANumber,
-                    BNumber = model.Filter.BNumber,
+                    ANumbers = aNumbers,
+                    BNumbers = bNumbers,
+                    NumberPairs = numberPairs,
                     Answer = model.Filter.Answer,
                     StartDate = startDateGregorian,
                     EndDate = endDateGregorian,
