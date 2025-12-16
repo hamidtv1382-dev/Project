@@ -11,6 +11,8 @@ namespace AnalysisCallUser._02_Infrastructure.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
+            Database.SetCommandTimeout(180);
+
         }
 
         public DbSet<CallDetail> CallDetails { get; set; }

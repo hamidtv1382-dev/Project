@@ -28,11 +28,13 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
         // متد GetFilteredAsync را بهینه می‌کنیم
         public async Task<IEnumerable<CallDetail>> GetFilteredAsync(CallFilterDto filter)
         {
-            // ابتدا کوئری پایه را بدون Include می‌گیریم تا فیلترها در سطح دیتابیس اعمال شوند
+            // ابتدا کوئری پایه را بدون Include می‌گیریم
             var query = _context.CallDetails.AsNoTracking();
 
+            // ابتدا فیلترهای اصلی را اعمال می‌کنیم
             if (filter != null)
             {
+                // فیلترهای تاریخ را در اولویت قرار دهید
                 if (filter.StartDate.HasValue)
                 {
                     var startDateTime = filter.StartDate.Value.Date + (filter.StartTime ?? TimeSpan.Zero);
@@ -45,11 +47,12 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                     query = query.Where(x => x.AccountingTime <= endDateTime);
                 }
 
+                // سپس سایر فیلترها را اعمال کنید
                 if (!string.IsNullOrEmpty(filter.ANumber))
-                    query = query.Where(x => x.ANumber.Contains(filter.ANumber));
+                    query = query.Where(x => x.ANumber.StartsWith(filter.ANumber));
 
                 if (!string.IsNullOrEmpty(filter.BNumber))
-                    query = query.Where(x => x.BNumber.Contains(filter.BNumber));
+                    query = query.Where(x => x.BNumber.StartsWith(filter.BNumber));
 
                 if (filter.OriginCountryID.HasValue)
                     query = query.Where(x => x.OriginCountryID == filter.OriginCountryID);
@@ -76,8 +79,10 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                     query = query.Where(x => x.Answer == filter.Answer);
             }
 
-            // حالا که فیلترها اعمال شد، Includeها را اضافه می‌کنیم
-            // این کار باعث می‌شود فقط رکوردهای فیلتر شده به همراه اطلاعات مرتبطشان لود شوند
+            // ابتدا تعداد کل رکوردها را برای صفحه‌بندی محاسبه کنید
+            var totalCount = await query.CountAsync();
+
+            // حالا Includeها را اضافه کنید
             query = query
                 .Include(cd => cd.OriginCountry)
                 .Include(cd => cd.OriginCity)
@@ -87,7 +92,7 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                 .Include(cd => cd.DestOperator)
                 .Include(cd => cd.CallType);
 
-            // در نهایت، مرتب‌سازی و صفحه‌بندی را اعمال می‌کنیم
+            // در نهایت، مرتب‌سازی و صفحه‌بندی را اعمال کنید
             return await query
                 .OrderByDescending(x => x.AccountingTime)
                 .Skip((filter.Page - 1) * filter.PageSize)
