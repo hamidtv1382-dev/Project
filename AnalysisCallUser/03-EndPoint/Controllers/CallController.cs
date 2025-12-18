@@ -309,8 +309,8 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             {
                 success = (country != null),
                 countryName = country?.CountryName,
-                cityName = city?.CityName,         
-                operatorName = op?.OperatorName    
+                cityName = city?.CityName,
+                operatorName = op?.OperatorName
             });
         }
 

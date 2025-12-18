@@ -6,7 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// این خط سرویس‌های شما را از کلاس ServiceExtensions اضافه می‌کند
+// که شامل ICaptchaService هم می‌شود
 builder.Services.AddCustomServices(builder.Configuration);
+
+// 1. ثبت سرویس Session در کانتینر DI
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 builder.Services.AddControllersWithViews()
     .AddRazorOptions(options =>
@@ -39,6 +49,10 @@ app.UseRouting();
 app.UseCustomMiddlewares();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// 2. فعال‌سازی میان‌افزار Session در خط لوله پردازش درخواست
+// این خط بسیار مهم است و باید در اینجا قرار گیرد
+app.UseSession();
 
 app.MapHub<LiveDataHub>("/liveDataHub");
 app.MapHub<NotificationHub>("/notificationHub");

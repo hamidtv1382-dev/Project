@@ -73,6 +73,12 @@ namespace AnalysisCallUser._03_EndPoint.Extensions
             // ...
             services.AddScoped<IPhoneInfoService, PhoneInfoService>();
             // ...
+
+            // --------------------------
+            // Captcha Service
+            // --------------------------
+            services.AddScoped<ICaptchaService, CaptchaService>();
+
             // --------------------------
             // RealTime Service (EndPoint)
             // --------------------------

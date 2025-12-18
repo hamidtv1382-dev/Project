@@ -13,10 +13,11 @@
         z-index: 1050;
         padding: 0.75rem;
         margin-top: 0.25rem;
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
+        background-color: #343a40;
+        border: 1px solid #495057;
         border-radius: 0.375rem;
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+        color: #f8f9fa;
     }
 
     .input-group {
@@ -33,8 +34,61 @@
     }
 
         .phone-info-content strong {
-            color: #495057;
+            color: #f8f9fa;
         }
+
+    /* استایل‌های سفارشی برای دراپ‌داون‌ها در تم تیره */
+    .custom-dropdown .dropdown-menu {
+        background-color: #343a40 !important;
+        border-color: #495057 !important;
+    }
+
+    .custom-dropdown .dropdown-item {
+        color: #f8f9fa !important;
+    }
+
+        .custom-dropdown .dropdown-item:hover {
+            background-color: #495057 !important;
+            color: #fff !important;
+        }
+
+        .custom-dropdown .dropdown-item.active {
+            background-color: #007bff !important;
+            color: #fff !important;
+        }
+
+    .custom-dropdown .dropdown-toggle {
+        background-color: #495057 !important;
+        border-color: #495057 !important;
+        color: #f8f9fa !important;
+    }
+
+        .custom-dropdown .dropdown-toggle:hover {
+            background-color: #5a6268 !important;
+            border-color: #5a6268 !important;
+        }
+
+        .custom-dropdown .dropdown-toggle:active {
+            background-color: #5a6268 !important;
+            border-color: #5a6268 !important;
+        }
+
+        /* استایل‌های سفارشی برای دراپ‌داون‌های غیرفعال */
+        .custom-dropdown .dropdown-toggle:disabled {
+            background-color: #6c757d !important;
+            border-color: #6c757d !important;
+            color: #adb5bd !important;
+        }
+
+    /* استایل برای نمایش اطلاعات شماره تلفن */
+    .phone-number-info {
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        background-color: #343a40;
+        border-radius: 0.25rem;
+        color: #f8f9fa;
+    }
 </style>
 
 <!-- اضافه کردن کتابخانه jQuery که برای تقویم شمسی ضروری است -->
@@ -101,7 +155,7 @@
                                     <div class="filter-field">
                                         <label class="form-label">شماره مبدأ 1</label>
                                         <div class="input-group">
-                                            <input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" />
+                                            <input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" name="Filter.ANumbers" />
                                             <button class="btn btn-outline-secondary remove-anumber" type="button" title="حذف شماره">
                                                 <i class="fas fa-times"></i>
                                             </button>
@@ -111,6 +165,9 @@
                                             <div class="phone-info-container" style="display: none;">
                                                 <div class="phone-info-content"></div>
                                             </div>
+                                        </div>
+                                        <div class="phone-number-info" id="anumber-info-0" style="display: none;">
+                                            <i class="fas fa-map-marker-alt"></i> <span id="anumber-location-0"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -130,7 +187,7 @@
                                     <div class="filter-field">
                                         <label class="form-label">شماره مقصد 1</label>
                                         <div class="input-group">
-                                            <input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" />
+                                            <input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" name="Filter.BNumbers" />
                                             <button class="btn btn-outline-secondary remove-bnumber" type="button" title="حذف شماره">
                                                 <i class="fas fa-times"></i>
                                             </button>
@@ -140,6 +197,9 @@
                                             <div class="phone-info-container" style="display: none;">
                                                 <div class="phone-info-content"></div>
                                             </div>
+                                        </div>
+                                        <div class="phone-number-info" id="bnumber-info-0" style="display: none;">
+                                            <i class="fas fa-map-marker-alt"></i> <span id="bnumber-location-0"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -162,7 +222,7 @@
                                         <button class="btn btn-secondary dropdown-toggle" type="button" id="origin-country-button" data-bs-toggle="dropdown" aria-expanded="false">
                                             انتخاب کنید
                                         </button>
-                                        <ul class="dropdown-menu" aria-labelledby="origin-country-button">
+                                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="origin-country-button">
                                             @if (Model.Countries != null)
                                             {
                                                 @foreach (var country in Model.Countries)
@@ -180,7 +240,7 @@
                                         <button class="btn btn-secondary dropdown-toggle" type="button" id="origin-city-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
                                             ابتدا کشور را انتخاب کنید
                                         </button>
-                                        <ul class="dropdown-menu" aria-labelledby="origin-city-button"></ul>
+                                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="origin-city-button"></ul>
                                     </div>
                                 </div>
                             </div>
@@ -192,7 +252,7 @@
                                         <button class="btn btn-secondary dropdown-toggle" type="button" id="origin-operator-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
                                             ابتدا کشور را انتخاب کنید
                                         </button>
-                                        <ul class="dropdown-menu" aria-labelledby="origin-operator-button"></ul>
+                                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="origin-operator-button"></ul>
                                     </div>
                                 </div>
                             </div>
@@ -211,7 +271,7 @@
                                         <button class="btn btn-secondary dropdown-toggle" type="button" id="dest-country-button" data-bs-toggle="dropdown" aria-expanded="false">
                                             انتخاب کنید
                                         </button>
-                                        <ul class="dropdown-menu" aria-labelledby="dest-country-button">
+                                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dest-country-button">
                                             @if (Model.Countries != null)
                                             {
                                                 @foreach (var country in Model.Countries)
@@ -229,7 +289,7 @@
                                         <button class="btn btn-secondary dropdown-toggle" type="button" id="dest-city-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
                                             ابتدا کشور را انتخاب کنید
                                         </button>
-                                        <ul class="dropdown-menu" aria-labelledby="dest-city-button"></ul>
+                                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dest-city-button"></ul>
                                     </div>
                                 </div>
                             </div>
@@ -241,7 +301,7 @@
                                         <button class="btn btn-secondary dropdown-toggle" type="button" id="dest-operator-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
                                             ابتدا کشور را انتخاب کنید
                                         </button>
-                                        <ul class="dropdown-menu" aria-labelledby="dest-operator-button"></ul>
+                                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dest-operator-button"></ul>
                                     </div>
                                 </div>
                             </div>
@@ -260,7 +320,7 @@
                                         <button class="btn btn-secondary dropdown-toggle" type="button" id="answer-button" data-bs-toggle="dropdown" aria-expanded="false">
                                             همه
                                         </button>
-                                        <ul class="dropdown-menu" aria-labelledby="answer-button">
+                                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="answer-button">
                                             <li><a class="dropdown-item" href="#" data-value="">همه</a></li>
                                             <li><a class="dropdown-item" href="#" data-value="@AnalysisCallUser._01_Domain.Core.Enums.CallAnswerStatus.Answered">پاسخ داده شده</a></li>
                                             <li><a class="dropdown-item" href="#" data-value="@AnalysisCallUser._01_Domain.Core.Enums.CallAnswerStatus.NotAnswered">پاسخ داده نشده</a></li>
@@ -274,7 +334,7 @@
                                         <button class="btn btn-secondary dropdown-toggle" type="button" id="pagesize-button" data-bs-toggle="dropdown" aria-expanded="false">
                                             50
                                         </button>
-                                        <ul class="dropdown-menu" aria-labelledby="pagesize-button">
+                                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="pagesize-button">
                                             <li><a class="dropdown-item" href="#" data-value="10">10</a></li>
                                             <li><a class="dropdown-item" href="#" data-value="25">25</a></li>
                                             <li><a class="dropdown-item active" href="#" data-value="50">50</a></li>
@@ -736,7 +796,7 @@
                     <div class="filter-field">
                         <label class="form-label">شماره مبدأ ${aNumberCount + 1}</label>
                         <div class="input-group">
-                            <input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" />
+                            <input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" name="Filter.ANumbers" />
                             <button class="btn btn-outline-secondary remove-anumber" type="button" title="حذف شماره">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -746,6 +806,9 @@
                             <div class="phone-info-container" style="display: none;">
                                 <div class="phone-info-content"></div>
                             </div>
+                        </div>
+                        <div class="phone-number-info" id="anumber-info-${aNumberCount}" style="display: none;">
+                            <i class="fas fa-map-marker-alt"></i> <span id="anumber-location-${aNumberCount}"></span>
                         </div>
                     </div>
                 `;
@@ -775,7 +838,7 @@
                     <div class="filter-field">
                         <label class="form-label">شماره مقصد ${bNumberCount + 1}</label>
                         <div class="input-group">
-                            <input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" />
+                            <input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" name="Filter.BNumbers" />
                             <button class="btn btn-outline-secondary remove-bnumber" type="button" title="حذف شماره">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -785,6 +848,9 @@
                             <div class="phone-info-container" style="display: none;">
                                 <div class="phone-info-content"></div>
                             </div>
+                        </div>
+                        <div class="phone-number-info" id="bnumber-info-${bNumberCount}" style="display: none;">
+                            <i class="fas fa-map-marker-alt"></i> <span id="bnumber-location-${bNumberCount}"></span>
                         </div>
                     </div>
                 `;
@@ -832,8 +898,47 @@
                 const aNumbers = Array.from(document.querySelectorAll('.anumber-input')).map(input => input.value.trim()).filter(v => v);
                 const bNumbers = Array.from(document.querySelectorAll('.bnumber-input')).map(input => input.value.trim()).filter(v => v);
 
-                const clientANumberSelect = document.querySelector('.client-anumber-select');
-                const clientBNumberSelect = document.querySelector('.client-bnumber-select');
+                // پیدا کردن یا ایجاد dropdown مبدأ
+                let clientANumberSelect = document.querySelector('.client-anumber-select');
+                if (!clientANumberSelect) {
+                    const filterRow = document.querySelector('.filter-row');
+                    if (filterRow) {
+                        const selectDiv = document.createElement('div');
+                        selectDiv.className = 'mb-3';
+                        selectDiv.innerHTML = `
+                            <label class="form-label">فیلتر شماره مبدأ</label>
+                            <select class="form-select client-anumber-select">
+                                <option value="">انتخاب شماره مبدأ</option>
+                            </select>
+                        `;
+                        filterRow.parentNode.insertBefore(selectDiv, filterRow.nextSibling);
+                        clientANumberSelect = document.querySelector('.client-anumber-select');
+                    }
+                }
+
+                // پیدا کردن یا ایجاد dropdown مقصد
+                let clientBNumberSelect = document.querySelector('.client-bnumber-select');
+                if (!clientBNumberSelect) {
+                    const filterRow = document.querySelector('.filter-row');
+                    if (filterRow) {
+                        const selectDiv = document.createElement('div');
+                        selectDiv.className = 'mb-3';
+                        selectDiv.innerHTML = `
+                            <label class="form-label">فیلتر شماره مقصد</label>
+                            <select class="form-select client-bnumber-select">
+                                <option value="">انتخاب شماره مقصد</option>
+                            </select>
+                        `;
+                        if (clientANumberSelect) {
+                            clientANumberSelect.parentNode.parentNode.insertBefore(selectDiv, clientANumberSelect.parentNode.nextSibling);
+                        } else {
+                            filterRow.parentNode.insertBefore(selectDiv, filterRow.nextSibling);
+                        }
+                        clientBNumberSelect = document.querySelector('.client-bnumber-select');
+                    }
+                }
+
+                if (!clientANumberSelect || !clientBNumberSelect) return;
 
                 // پر کردن dropdown مبدأ
                 const currentValueA = clientANumberSelect.value;
@@ -867,6 +972,8 @@
                 const aSelect = document.querySelector('.client-anumber-select');
                 const bSelect = document.querySelector('.client-bnumber-select');
 
+                if (!aSelect || !bSelect) return;
+
                 const selectedA = aSelect.value;
                 const selectedB = bSelect.value;
 
@@ -893,9 +1000,10 @@
             }
 
             // توابع جدید برای مدیریت اطلاعات شماره تلفن
-            async function fetchAndDisplayPhoneInfo(phoneNumber, containerElement) {
+            async function fetchAndDisplayPhoneInfo(phoneNumber, containerElement, locationElement) {
                 if (!phoneNumber) {
                     containerElement.style.display = 'none';
+                    if (locationElement) locationElement.style.display = 'none';
                     return;
                 }
 
@@ -911,15 +1019,28 @@
                         infoHtml += `<strong>اپراتور:</strong> ${data.operatorName || 'نامشخص'}`;
                         contentDiv.innerHTML = infoHtml;
                         containerElement.style.display = 'block';
+
+                        // نمایش اطلاعات مکان در زیر فیلد شماره
+                        if (locationElement) {
+                            let locationText = '';
+                            if (data.countryName) locationText += data.countryName;
+                            if (data.cityName) locationText += (locationText ? ', ' : '') + data.cityName;
+                            if (data.operatorName) locationText += (locationText ? ', ' : '') + data.operatorName;
+
+                            locationElement.textContent = locationText;
+                            locationElement.parentElement.style.display = 'block';
+                        }
                     } else {
                         contentDiv.innerHTML = 'اطلاعاتی یافت نشد';
                         containerElement.style.display = 'block';
+                        if (locationElement) locationElement.parentElement.style.display = 'none';
                     }
                 } catch (error) {
                     console.error('Error fetching phone info:', error);
                     const contentDiv = containerElement.querySelector('.phone-info-content');
                     contentDiv.innerHTML = 'خطا در دریافت اطلاعات';
                     containerElement.style.display = 'block';
+                    if (locationElement) locationElement.parentElement.style.display = 'none';
                 }
             }
 
@@ -928,13 +1049,20 @@
                 const row = input.closest('.filter-row');
                 const trigger = row.querySelector('.phone-info-trigger');
                 const container = row.querySelector('.phone-info-container');
+                const index = row.dataset.index;
+                const isANumber = input.classList.contains('anumber-input');
+                const locationElement = document.getElementById(`${isANumber ? 'anumber' : 'bnumber'}-location-${index}`);
 
                 if (input.value.trim().length > 0) {
                     trigger.style.display = 'flex';
                     container.style.display = 'none';
+
+                    // به‌روزرسانی خودکار اطلاعات مکان
+                    fetchAndDisplayPhoneInfo(input.value, container, locationElement);
                 } else {
                     trigger.style.display = 'none';
                     container.style.display = 'none';
+                    if (locationElement) locationElement.parentElement.style.display = 'none';
                 }
 
                 // بررسی وضعیت فیلدهای مکان پس از تغییر شماره
@@ -950,7 +1078,10 @@
                 if (container.style.display === 'block') {
                     container.style.display = 'none';
                 } else {
-                    fetchAndDisplayPhoneInfo(input.value, container);
+                    const index = row.dataset.index;
+                    const isANumber = input.classList.contains('anumber-input');
+                    const locationElement = document.getElementById(`${isANumber ? 'anumber' : 'bnumber'}-location-${index}`);
+                    fetchAndDisplayPhoneInfo(input.value, container, locationElement);
                 }
             }
 
@@ -1112,31 +1243,8 @@
             function collectFormData() {
                 const formData = new FormData(filterForm);
 
-                const aNumbers = [];
-                document.querySelectorAll('.anumber-input').forEach(input => {
-                    const value = input.value.trim();
-                    if (value) {
-                        aNumbers.push(value);
-                    }
-                });
-
-                const bNumbers = [];
-                document.querySelectorAll('.bnumber-input').forEach(input => {
-                    const value = input.value.trim();
-                    if (value) {
-                        bNumbers.push(value);
-                    }
-                });
-
-                formData.delete('Filter.ANumbers');
-                aNumbers.forEach(number => {
-                    formData.append('Filter.ANumbers', number);
-                });
-
-                formData.delete('Filter.BNumbers');
-                bNumbers.forEach(number => {
-                    formData.append('Filter.BNumbers', number);
-                });
+                // نیازی به دستکاری شماره‌ها نیست چون با name="Filter.ANumbers" و name="Filter.BNumbers"
+                // به درستی به فرم اضافه شده‌اند
 
                 return formData;
             }
@@ -1433,7 +1541,7 @@
             }
 
             // تابع برای بازنشانی کامل فرم (اصلاح‌شده)
-            function resetForm() {
+            async function resetForm() {
                 filterForm.reset();
                 document.getElementById('Filter_Page').value = 1;
 
@@ -1444,7 +1552,7 @@
                 document.getElementById('dest-country-input').value = '';
                 document.getElementById('dest-city-input').value = '';
                 document.getElementById('dest-operator-input').value = '';
-                document.getElementById('answer-input').value = '50';
+                document.getElementById('answer-input').value = '';
                 document.getElementById('pagesize-input').value = '50';
 
                 document.querySelectorAll('.custom-dropdown .dropdown-toggle').forEach(button => {
@@ -1479,7 +1587,7 @@
                         <div class="filter-field">
                             <label class="form-label">شماره مبدأ 1</label>
                             <div class="input-group">
-                                <input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" />
+                                <input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" name="Filter.ANumbers" />
                                 <button class="btn btn-outline-secondary remove-anumber" type="button" title="حذف شماره">
                                     <i class="fas fa-times"></i>
                                 </button>
@@ -1490,6 +1598,9 @@
                                     <div class="phone-info-content"></div>
                                 </div>
                             </div>
+                            <div class="phone-number-info" id="anumber-info-0" style="display: none;">
+                                <i class="fas fa-map-marker-alt"></i> <span id="anumber-location-0"></span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1499,7 +1610,7 @@
                         <div class="filter-field">
                             <label class="form-label">شماره مقصد 1</label>
                             <div class="input-group">
-                                <input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" />
+                                <input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" name="Filter.BNumbers" />
                                 <button class="btn btn-outline-secondary remove-bnumber" type="button" title="حذف شماره">
                                     <i class="fas fa-times"></i>
                                 </button>
@@ -1509,6 +1620,9 @@
                                 <div class="phone-info-container" style="display: none;">
                                     <div class="phone-info-content"></div>
                                 </div>
+                            </div>
+                            <div class="phone-number-info" id="bnumber-info-0" style="display: none;">
+                                <i class="fas fa-map-marker-alt"></i> <span id="bnumber-location-0"></span>
                             </div>
                         </div>
                     </div>
@@ -1551,7 +1665,33 @@
                     startGlobalAnimation();
                 }, 100);
 
-                showToast('فیلترها با موفقیت بازنشانی شدند', 'success');
+                // --- شروع بخش اصلاح‌شده ---
+                // درخواست برای دریافت توکن جدید
+                try {
+                    const response = await fetch('/Call/GetNewAntiForgeryTokens', {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Failed to fetch new anti-forgery token.');
+
+                    const tokenData = await response.json();
+
+                    // پیدا کردن و جایگزینی توکن قدیمی با توکن جدید
+                    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (tokenInput) {
+                        tokenInput.value = tokenData.token;
+                    }
+
+                    showToast('فیلترها با موفقیت بازنشانی شدند', 'success');
+
+                } catch (error) {
+                    console.error('Error resetting form:', error);
+                    showToast('خطا در بازنشانی فرم. لطفاً صفحه را رفرش کنید.', 'error');
+                }
+                // --- پایان بخش اصلاح‌شده ---
             }
 
             // --- اتصال رویدادها ---
@@ -1724,26 +1864,26 @@
 
             @if (Model.Results != null)
             {
-                                <text>
-                                    exportBtn.disabled = false;
-                                    totalResultsCount = @Model.Results.TotalCount;
-                                    setupPaginationListeners();
-                                    // به‌روزرسانی فیلتر ترکیبی جدید در بارگذاری اولیه
-                                    updateClientNumberPairSelects();
-                                    // اتصال رویدادهای فیلتر ترکیبی جدید
-                                    const clientANumberSelect = document.querySelector('.client-anumber-select');
-                                    const clientBNumberSelect = document.querySelector('.client-bnumber-select');
-                                    if(clientANumberSelect) clientANumberSelect.addEventListener('change', filterResultsOnClient);
-                                    if(clientBNumberSelect) clientBNumberSelect.addEventListener('change', filterResultsOnClient);
-                                </text>
+                        <text>
+                            exportBtn.disabled = false;
+                            totalResultsCount = @Model.Results.TotalCount;
+                            setupPaginationListeners();
+                            // به‌روزرسانی فیلتر ترکیبی جدید در بارگذاری اولیه
+                            updateClientNumberPairSelects();
+                            // اتصال رویدادهای فیلتر ترکیبی جدید
+                            const clientANumberSelect = document.querySelector('.client-anumber-select');
+                            const clientBNumberSelect = document.querySelector('.client-bnumber-select');
+                            if(clientANumberSelect) clientANumberSelect.addEventListener('change', filterResultsOnClient);
+                            if(clientBNumberSelect) clientBNumberSelect.addEventListener('change', filterResultsOnClient);
+                        </text>
             }
             else
             {
-                                <text>
-                                    setTimeout(() => {
-                                        startGlobalAnimation();
-                                    }, 100);
-                                </text>
+                        <text>
+                            setTimeout(() => {
+                                startGlobalAnimation();
+                            }, 100);
+                        </text>
             }
 
             if (typeof $ !== 'undefined' && $.fn.persianDatepicker) {

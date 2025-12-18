@@ -12,6 +12,9 @@ namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Account
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
+        [Required(ErrorMessage = "وارد کردن کد امنیتی الزامی است")]
+        [Display(Name = "کد امنیتی")]
+        public string CaptchaCode { get; set; }
         public bool RememberMe { get; set; }
     }
 }
