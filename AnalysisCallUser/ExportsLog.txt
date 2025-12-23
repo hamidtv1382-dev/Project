@@ -1,0 +1,2 @@
+2025-12-23 13:41:06	User: user@analysis.com	Records: 4245928-4245928	Count: 1
+2025-12-23 13:41:35	User: user@analysis.com	Records: 4999901-5000000	Count: 100

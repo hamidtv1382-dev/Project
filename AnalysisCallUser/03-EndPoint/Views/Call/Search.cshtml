@@ -967,37 +967,92 @@
                 });
             }
 
-            function filterResultsOnClient() {
-                const allRows = document.querySelectorAll('#search-results-container tbody tr');
-                const aSelect = document.querySelector('.client-anumber-select');
-                const bSelect = document.querySelector('.client-bnumber-select');
+        function filterResultsOnClient() {
+            const allRows = document.querySelectorAll('#search-results-container tbody tr');
+            const aSelect = document.querySelector('.client-anumber-select');
+            const bSelect = document.querySelector('.client-bnumber-select');
 
-                if (!aSelect || !bSelect) return;
+            if (!aSelect || !bSelect) return;
 
-                const selectedA = aSelect.value;
-                const selectedB = bSelect.value;
+            const selectedA = aSelect.value;
+            const selectedB = bSelect.value;
 
-                if (!selectedA && !selectedB) {
-                    allRows.forEach(row => row.style.display = '');
-                    return;
+            // اگر هیچکدوم انتخاب نشده → همه دیده شوند
+            if (!selectedA && !selectedB) {
+                allRows.forEach(row => row.style.display = '');
+                return;
+            }
+
+            allRows.forEach(row => {
+                const aNum = row.cells[0].textContent.trim();
+                const bNum = row.cells[1].textContent.trim();
+
+                let isVisible = false;
+
+                // ✅ منطق OR
+                if (selectedA && aNum === selectedA) {
+                    isVisible = true;
                 }
 
-                allRows.forEach(row => {
-                    const aNum = row.cells[0].textContent.trim();
-                    const bNum = row.cells[1].textContent.trim();
+                if (selectedB && bNum === selectedB) {
+                    isVisible = true;
+                }
 
-                    let isVisible = true;
+                row.style.display = isVisible ? '' : 'none';
+            });
+        }
 
-                    if (selectedA && aNum !== selectedA) {
-                        isVisible = false;
-                    }
-                    if (selectedB && bNum !== selectedB) {
-                        isVisible = false;
-                    }
+        // تابع جدید برای مرتب‌سازی نتایج
+        // ... (کدهای قبلی تا قبل از تابع performSearch بدون تغییر)
 
-                    row.style.display = isVisible ? '' : 'none';
-                });
-            }
+        // تابع برای جستجو (اصلاح‌شده)
+
+        // تابع جدید برای مرتب‌سازی نتایج (اصلاح‌شده)
+        function sortResultsOnClient() {
+            const sortSelect = document.getElementById('sort-select');
+            if (!sortSelect) return;
+
+            const sortValue = sortSelect.value;
+            const [column, direction] = sortValue.split('-');
+            const isAscending = direction === 'asc';
+
+            const tbody = document.querySelector('#search-results-container tbody');
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                let aValue, bValue;
+
+                switch(column) {
+                    case 'AccountingTime':
+                        aValue = new Date(a.querySelector('[data-datetime]').dataset.datetime);
+                        bValue = new Date(b.querySelector('[data-datetime]').dataset.datetime);
+                        break;
+                    case 'ANumber':
+                        aValue = a.cells[0].textContent.trim();
+                        bValue = b.cells[0].textContent.trim();
+                        break;
+                    case 'BNumber':
+                        aValue = a.cells[1].textContent.trim();
+                        bValue = b.cells[1].textContent.trim();
+                        break;
+                    case 'Length':
+                        aValue = parseInt(a.cells[3].textContent.trim());
+                        bValue = parseInt(b.cells[3].textContent.trim());
+                        break;
+                    default:
+                        return 0;
+                }
+
+                if (aValue < bValue) return isAscending ? -1 : 1;
+                if (aValue > bValue) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+        }
 
             // توابع جدید برای مدیریت اطلاعات شماره تلفن
             async function fetchAndDisplayPhoneInfo(phoneNumber, containerElement, locationElement) {
@@ -1250,76 +1305,101 @@
             }
 
             // تابع برای جستجو (اصلاح‌شده)
-            async function performSearch(page = 1) {
-                stopGlobalAnimation();
-                document.getElementById('Filter_Page').value = page;
-                const formData = collectFormData();
+        async function performSearch(page = 1, pushHistory = true) { // پارامتر جدید برای کنترل history
+            stopGlobalAnimation();
+            document.getElementById('Filter_Page').value = page;
+            const formData = collectFormData();
 
-                searchResultsContainer.innerHTML = `
-                    <div class="text-center p-4">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">در حال بارگذاری...</span>
-                        </div>
-                        <p class="mt-2">در حال جستجو...</p>
+            searchResultsContainer.innerHTML = `
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">در حال بارگذاری...</span>
                     </div>
-                `;
+                    <p class="mt-2">در حال جستجو...</p>
+                </div>
+            `;
 
-                try {
-                    const response = await fetch(`/Call/Search`, {
-                        method: 'POST',
-                        headers: {
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: formData
-                    });
+            try {
+                const response = await fetch(`/Call/Search`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
 
-                    if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+                if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
 
-                    const contentType = response.headers.get("content-type");
-                    if (contentType && contentType.indexOf("application/json") !== -1) {
-                        const errorData = await response.json();
-                        console.error("Server-side validation errors:", errorData);
-                        searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطای اعتبارسنجی در سرور. جزئیات در کنسول.</div>`;
-                        showToast('خطای اعتبارسنجی', 'error');
-                        return;
-                    }
-
-                    const html = await response.text();
-                    if (html.includes('<html') || html.includes('<!DOCTYPE')) {
-                        console.error("Error: Received full page HTML instead of partial view.");
-                        searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطا در سرور. (Full page received)</div>`;
-                        showToast('خطا در جستجو', 'error');
-                        return;
-                    }
-
-                    searchResultsContainer.innerHTML = html;
-                    exportBtn.disabled = false;
-                    convertDatesToPersian();
-
-                    const totalCountMatch = html.match(/نتایج جستجو \((\d+) رکورد\)/);
-                    if (totalCountMatch) {
-                        totalResultsCount = parseInt(totalCountMatch[1]);
-                    }
-
-                    setupPaginationListeners();
-
-                    // به‌روزرسانی فیلتر ترکیبی جدید
-                    updateClientNumberPairSelects();
-                    // اتصال رویدادهای فیلتر ترکیبی جدید
-                    const clientANumberSelect = document.querySelector('.client-anumber-select');
-                    const clientBNumberSelect = document.querySelector('.client-bnumber-select');
-                    if(clientANumberSelect) clientANumberSelect.addEventListener('change', filterResultsOnClient);
-                    if(clientBNumberSelect) clientBNumberSelect.addEventListener('change', filterResultsOnClient);
-
-
-                } catch (error) {
-                    console.error('Error during search fetch:', error);
-                    searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطا در دریافت نتایج جستجو. (${error.message})</div>`;
-                    showToast('خطا در جستجو', 'error');
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const errorData = await response.json();
+                    console.error("Server-side validation errors:", errorData);
+                    searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطای اعتبارسنجی در سرور. جزئیات در کنسول.</div>`;
+                    showToast('خطای اعتبارسنجی', 'error');
+                    return;
                 }
-            }
 
+                const html = await response.text();
+                if (html.includes('<html') || html.includes('<!DOCTYPE')) {
+                    console.error("Error: Received full page HTML instead of partial view.");
+                    searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطا در سرور. (Full page received)</div>`;
+                    showToast('خطا در جستجو', 'error');
+                    return;
+                }
+
+                searchResultsContainer.innerHTML = html;
+                exportBtn.disabled = false;
+                convertDatesToPersian();
+
+                const totalCountMatch = html.match(/نتایج جستجو \((\d+) رکورد\)/);
+                if (totalCountMatch) {
+                    totalResultsCount = parseInt(totalCountMatch[1]);
+                }
+
+                setupPaginationListeners();
+
+                // به‌روزرسانی فیلتر ترکیبی جدید و اتصال رویدادها پس از هر جستجو
+                updateClientNumberPairSelects();
+                const clientANumberSelect = document.querySelector('.client-anumber-select');
+                const clientBNumberSelect = document.querySelector('.client-bnumber-select');
+                if(clientANumberSelect) clientANumberSelect.addEventListener('change', filterResultsOnClient);
+                if(clientBNumberSelect) clientBNumberSelect.addEventListener('change', filterResultsOnClient);
+
+                // اتصال رویدادهای مرتب‌سازی
+                const sortSelect = document.getElementById('sort-select');
+                if(sortSelect) sortSelect.addEventListener('change', sortResultsOnClient);
+
+                // --- شروع بخش اصلاح‌شده ---
+                // ساخت URL جدید بر اساس پارامترهای فعلی فرم و به‌روزرسانی history مرورگر
+                if (pushHistory) {
+                    const params = new URLSearchParams();
+                    const formElements = filterForm.elements;
+
+                    for (let i = 0; i < formElements.length; i++) {
+                        const element = formElements[i];
+                        if (element.name && element.value) {
+                            // برای فیلدهای چندگانه مانند ANumbers و BNumbers
+                            if (element.name === 'Filter.ANumbers' || element.name === 'Filter.BNumbers') {
+                                params.append(element.name, element.value);
+                            } else {
+                                params.set(element.name, element.value);
+                            }
+                        }
+                    }
+
+                    const newUrl = `${window.location.pathname}?${params.toString()}`;
+                    window.history.pushState({ path: newUrl }, '', newUrl);
+                }
+                // --- پایان بخش اصلاح‌شده ---
+
+
+            } catch (error) {
+                console.error('Error during search fetch:', error);
+                searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطا در دریافت نتایج جستجو. (${error.message})</div>`;
+                showToast('خطا در جستجو', 'error');
+            }
+        }
             // تابع برای اکسپورت با گزینه‌های انتخاب شده
             async function performExportWithOptions() {
                 const formData = collectFormData();
@@ -1864,26 +1944,29 @@
 
             @if (Model.Results != null)
             {
-                        <text>
-                            exportBtn.disabled = false;
-                            totalResultsCount = @Model.Results.TotalCount;
-                            setupPaginationListeners();
-                            // به‌روزرسانی فیلتر ترکیبی جدید در بارگذاری اولیه
-                            updateClientNumberPairSelects();
-                            // اتصال رویدادهای فیلتر ترکیبی جدید
-                            const clientANumberSelect = document.querySelector('.client-anumber-select');
-                            const clientBNumberSelect = document.querySelector('.client-bnumber-select');
-                            if(clientANumberSelect) clientANumberSelect.addEventListener('change', filterResultsOnClient);
-                            if(clientBNumberSelect) clientBNumberSelect.addEventListener('change', filterResultsOnClient);
-                        </text>
+                            <text>
+                                exportBtn.disabled = false;
+                                totalResultsCount = @Model.Results.TotalCount;
+                                setupPaginationListeners();
+                                // به‌روزرسانی فیلتر ترکیبی جدید در بارگذاری اولیه
+                                updateClientNumberPairSelects();
+                                // اتصال رویدادهای فیلتر ترکیبی جدید
+                                const clientANumberSelect = document.querySelector('.client-anumber-select');
+                                const clientBNumberSelect = document.querySelector('.client-bnumber-select');
+                                if(clientANumberSelect) clientANumberSelect.addEventListener('change', filterResultsOnClient);
+                                if(clientBNumberSelect) clientBNumberSelect.addEventListener('change', filterResultsOnClient);
+                                // اتصال رویدادهای مرتب‌سازی
+                                const sortSelect = document.getElementById('sort-select');
+                                if(sortSelect) sortSelect.addEventListener('change', sortResultsOnClient);
+                            </text>
             }
             else
             {
-                        <text>
-                            setTimeout(() => {
-                                startGlobalAnimation();
-                            }, 100);
-                        </text>
+                            <text>
+                                setTimeout(() => {
+                                    startGlobalAnimation();
+                                }, 100);
+                            </text>
             }
 
             if (typeof $ !== 'undefined' && $.fn.persianDatepicker) {

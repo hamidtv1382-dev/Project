@@ -3,10 +3,6 @@
 @model AnalysisCallUser._03_EndPoint.Models.ViewModels.Call.CallDetailsViewModel
 @{
     ViewData["Title"] = "جزئیات تماس";
-    // دریافت اطلاعات بازگشت از query string
-    var returnUrl = Context.Request.Query["returnUrl"].ToString();
-    var pageNumber = Context.Request.Query["pageNumber"].ToString();
-    var pageSize = Context.Request.Query["pageSize"].ToString();
 }
 
 <div class="container mt-4">
@@ -17,11 +13,8 @@
                 <a asp-action="ExportDetails" asp-route-id="@Model.DetailID" class="btn btn-success">
                     <i class="fas fa-file-export"></i> اکسپورت جزئیات
                 </a>
-                @* اصلاح لینک بازگشت به جستجو با حفظ اطلاعات صفحه‌بندی *@
-                <a asp-action="Search"
-                   asp-route-pageNumber="@pageNumber"
-                   asp-route-pageSize="@pageSize"
-                   class="btn btn-secondary">
+                @* لینک بازگشت ساده شده است. چون وضعیت فیلتر در TempData ذخیره شده، نیازی به ارسال پارامتر نیست. *@
+                <a asp-action="Search" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> بازگشت به جستجو
                 </a>
             </div>
@@ -41,7 +34,6 @@
                 <dd class="col-sm-9">
                     @{
                         var pc = new PersianCalendar();
-                        // تبدیل تاریخ میلادی به شمسی و فرمت‌دهی
                         string persianDateTime = $"{pc.GetYear(Model.AccountingTime)}/{pc.GetMonth(Model.AccountingTime):D2}/{pc.GetDayOfMonth(Model.AccountingTime):D2} {Model.AccountingTime:HH:mm:ss}";
                     }
                     @persianDateTime
