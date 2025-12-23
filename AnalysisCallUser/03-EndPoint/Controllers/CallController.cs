@@ -341,18 +341,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 var data = await _callDetailRepository.GetFilteredAsync(callFilterDto);
                 var callDetailDtos = data.Select(cd => new CallDetailDto
                 {
-                    DetailID = cd.DetailID,
-                    ANumber = cd.ANumber,
-                    BNumber = cd.BNumber,
-                    AccountingTime = cd.AccountingTime,
-                    Length = cd.Length,
-                    OriginCountryName = cd.OriginCountry?.CountryName,
-                    OriginCityName = cd.OriginCity?.CityName,
-                    DestCountryName = cd.DestCountry?.CountryName,
-                    DestCityName = cd.DestCity?.CityName,
-                    OriginOperatorName = cd.OriginOperator?.OperatorName,
-                    DestOperatorName = cd.DestOperator?.OperatorName,
-                    Answer = cd.Answer
+                      Answer = cd.Answer  
                 }).ToList();
 
                 // ثبت لاگ Export
