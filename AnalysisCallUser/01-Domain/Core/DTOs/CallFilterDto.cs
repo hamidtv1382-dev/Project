@@ -29,5 +29,7 @@ namespace AnalysisCallUser._01_Domain.Core.DTOs
         public CallAnswerStatus? Answer { get; set; }
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 50;
+        public bool IsDeepSearch { get; set; } = false;
+        public bool BidirectionalSearch { get; set; } = true;
     }
 }

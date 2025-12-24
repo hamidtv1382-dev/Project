@@ -3476,3 +3476,31 @@ footer {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
 }
+/* اضافه کردن به فایل CSS اصلی */
+.client-side-filter-bar .card-body {
+    padding: 0.5rem !important;
+}
+
+.client-side-filter-bar .col-auto {
+    padding-right: 0.25rem;
+    padding-left: 0.25rem;
+}
+
+/* رفع مشکل راست‌چین */
+#search-results-container {
+    direction: rtl;
+    text-align: right;
+    font-family: 'Vazir', 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* رفع مشکل تراز جدول */
+.table th {
+    text-align: right;
+    font-weight: 600;
+}
+
+/* رفع مشکل دکمه‌ها */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}

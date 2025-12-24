@@ -153,7 +153,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Search(CallSearchViewModel model, IFormCollection form)
+        public async Task<IActionResult> Search(CallSearchViewModel model, IFormCollection form, bool deepSearch = false)
         {
             var originalTimeout = _context.Database.GetCommandTimeout();
             _context.Database.SetCommandTimeout(30);
@@ -185,7 +185,9 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                     DestCountryID = model.Filter.DestCountryID,
                     DestCityID = model.Filter.DestCityID,
                     OriginOperatorID = model.Filter.OriginOperatorID,
-                    DestOperatorID = model.Filter.DestOperatorID
+                    DestOperatorID = model.Filter.DestOperatorID,
+                    IsDeepSearch = deepSearch,
+                    BidirectionalSearch = true
                 };
 
                 bool skipCount = (startDateGregorian.HasValue && endDateGregorian.HasValue && (endDateGregorian.Value - startDateGregorian.Value).TotalDays > 90);
@@ -341,7 +343,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 var data = await _callDetailRepository.GetFilteredAsync(callFilterDto);
                 var callDetailDtos = data.Select(cd => new CallDetailDto
                 {
-                      Answer = cd.Answer  
+                    Answer = cd.Answer
                 }).ToList();
 
                 // ثبت لاگ Export

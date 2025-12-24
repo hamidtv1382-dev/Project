@@ -652,6 +652,96 @@
                 });
             }
 
+            // تابع به‌روزرسانی لیست شماره‌ها برای فیلتر سمت کلاینت
+            function updateClientNumberPairSelects() {
+                const aNumbers = Array.from(document.querySelectorAll('.anumber-input')).map(input => input.value.trim()).filter(v => v);
+                const bNumbers = Array.from(document.querySelectorAll('.bnumber-input')).map(input => input.value.trim()).filter(v => v);
+
+                const clientANumberSelect = document.querySelector('.client-anumber-select');
+                const clientBNumberSelect = document.querySelector('.client-bnumber-select');
+
+                if (!clientANumberSelect || !clientBNumberSelect) return;
+
+                // حفظ انتخاب فعلی کاربر (اگر وجود دارد)
+                const currentValueA = clientANumberSelect.value;
+                const currentValueB = clientBNumberSelect.value;
+
+                // پر کردن dropdown مبدأ
+                clientANumberSelect.innerHTML = '<option value="">همه</option>';
+                aNumbers.sort().forEach(number => {
+                    const option = document.createElement('option');
+                    option.value = number;
+                    option.textContent = number;
+                    if (currentValueA === number) {
+                        option.selected = true;
+                    }
+                    clientANumberSelect.appendChild(option);
+                });
+
+                // پر کردن dropdown مقصد
+                clientBNumberSelect.innerHTML = '<option value="">همه</option>';
+                bNumbers.sort().forEach(number => {
+                    const option = document.createElement('option');
+                    option.value = number;
+                    option.textContent = number;
+                    if (currentValueB === number) {
+                        option.selected = true;
+                    }
+                    clientBNumberSelect.appendChild(option);
+                });
+            }
+
+            // تابع اصلی فیلتر (سمت کلاینت و جستجوی عمیق)
+
+            // تابع مرتب‌سازی
+            function handleClientSort() {
+                const sortSelect = document.getElementById('sort-select');
+                if (!sortSelect) return;
+
+                const sortValue = sortSelect.value;
+                const [column, direction] = sortValue.split('-');
+                const isAscending = direction === 'asc';
+
+                const tbody = document.querySelector('#search-results-container tbody');
+                if (!tbody) return;
+
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    let aValue, bValue;
+
+                    switch(column) {
+                        case 'AccountingTime':
+                            const aTimeElem = a.querySelector('[data-datetime]');
+                            const bTimeElem = b.querySelector('[data-datetime]');
+                            aValue = aTimeElem ? new Date(aTimeElem.dataset.datetime) : new Date(0);
+                            bValue = bTimeElem ? new Date(bTimeElem.dataset.datetime) : new Date(0);
+                            break;
+                        case 'ANumber':
+                            aValue = a.cells[0].textContent.trim();
+                            bValue = b.cells[0].textContent.trim();
+                            break;
+                        case 'BNumber':
+                            aValue = a.cells[1].textContent.trim();
+                            bValue = b.cells[1].textContent.trim();
+                            break;
+                        case 'Length':
+                            aValue = parseInt(a.cells[3].textContent.trim()) || 0;
+                            bValue = parseInt(b.cells[3].textContent.trim()) || 0;
+                            break;
+                        default:
+                            return 0;
+                    }
+
+                    if (aValue < bValue) return isAscending ? -1 : 1;
+                    if (aValue > bValue) return isAscending ? 1 : -1;
+                    return 0;
+                });
+
+                tbody.innerHTML = '';
+                rows.forEach(row => tbody.appendChild(row));
+            }
+
             function setupDropdownListener(buttonId, inputId, menuId) {
                 const button = document.getElementById(buttonId);
                 const input = document.getElementById(inputId);
@@ -893,167 +983,6 @@
                 updateLocationFieldsState();
             }
 
-            // توابع مربوط به فیلتر سمت کلاینت
-            function updateClientNumberPairSelects() {
-                const aNumbers = Array.from(document.querySelectorAll('.anumber-input')).map(input => input.value.trim()).filter(v => v);
-                const bNumbers = Array.from(document.querySelectorAll('.bnumber-input')).map(input => input.value.trim()).filter(v => v);
-
-                // پیدا کردن یا ایجاد dropdown مبدأ
-                let clientANumberSelect = document.querySelector('.client-anumber-select');
-                if (!clientANumberSelect) {
-                    const filterRow = document.querySelector('.filter-row');
-                    if (filterRow) {
-                        const selectDiv = document.createElement('div');
-                        selectDiv.className = 'mb-3';
-                        selectDiv.innerHTML = `
-                            <label class="form-label">فیلتر شماره مبدأ</label>
-                            <select class="form-select client-anumber-select">
-                                <option value="">انتخاب شماره مبدأ</option>
-                            </select>
-                        `;
-                        filterRow.parentNode.insertBefore(selectDiv, filterRow.nextSibling);
-                        clientANumberSelect = document.querySelector('.client-anumber-select');
-                    }
-                }
-
-                // پیدا کردن یا ایجاد dropdown مقصد
-                let clientBNumberSelect = document.querySelector('.client-bnumber-select');
-                if (!clientBNumberSelect) {
-                    const filterRow = document.querySelector('.filter-row');
-                    if (filterRow) {
-                        const selectDiv = document.createElement('div');
-                        selectDiv.className = 'mb-3';
-                        selectDiv.innerHTML = `
-                            <label class="form-label">فیلتر شماره مقصد</label>
-                            <select class="form-select client-bnumber-select">
-                                <option value="">انتخاب شماره مقصد</option>
-                            </select>
-                        `;
-                        if (clientANumberSelect) {
-                            clientANumberSelect.parentNode.parentNode.insertBefore(selectDiv, clientANumberSelect.parentNode.nextSibling);
-                        } else {
-                            filterRow.parentNode.insertBefore(selectDiv, filterRow.nextSibling);
-                        }
-                        clientBNumberSelect = document.querySelector('.client-bnumber-select');
-                    }
-                }
-
-                if (!clientANumberSelect || !clientBNumberSelect) return;
-
-                // پر کردن dropdown مبدأ
-                const currentValueA = clientANumberSelect.value;
-                clientANumberSelect.innerHTML = '<option value="">انتخاب شماره مبدأ</option>';
-                aNumbers.sort().forEach(number => {
-                    const option = document.createElement('option');
-                    option.value = number;
-                    option.textContent = number;
-                    if (currentValueA === number) {
-                        option.selected = true;
-                    }
-                    clientANumberSelect.appendChild(option);
-                });
-
-                // پر کردن dropdown مقصد
-                const currentValueB = clientBNumberSelect.value;
-                clientBNumberSelect.innerHTML = '<option value="">انتخاب شماره مقصد</option>';
-                bNumbers.sort().forEach(number => {
-                    const option = document.createElement('option');
-                    option.value = number;
-                    option.textContent = number;
-                    if (currentValueB === number) {
-                        option.selected = true;
-                    }
-                    clientBNumberSelect.appendChild(option);
-                });
-            }
-
-        function filterResultsOnClient() {
-            const allRows = document.querySelectorAll('#search-results-container tbody tr');
-            const aSelect = document.querySelector('.client-anumber-select');
-            const bSelect = document.querySelector('.client-bnumber-select');
-
-            if (!aSelect || !bSelect) return;
-
-            const selectedA = aSelect.value;
-            const selectedB = bSelect.value;
-
-            // اگر هیچکدوم انتخاب نشده → همه دیده شوند
-            if (!selectedA && !selectedB) {
-                allRows.forEach(row => row.style.display = '');
-                return;
-            }
-
-            allRows.forEach(row => {
-                const aNum = row.cells[0].textContent.trim();
-                const bNum = row.cells[1].textContent.trim();
-
-                let isVisible = false;
-
-                // ✅ منطق OR
-                if (selectedA && aNum === selectedA) {
-                    isVisible = true;
-                }
-
-                if (selectedB && bNum === selectedB) {
-                    isVisible = true;
-                }
-
-                row.style.display = isVisible ? '' : 'none';
-            });
-        }
-
-        // تابع جدید برای مرتب‌سازی نتایج
-        // ... (کدهای قبلی تا قبل از تابع performSearch بدون تغییر)
-
-        // تابع برای جستجو (اصلاح‌شده)
-
-        // تابع جدید برای مرتب‌سازی نتایج (اصلاح‌شده)
-        function sortResultsOnClient() {
-            const sortSelect = document.getElementById('sort-select');
-            if (!sortSelect) return;
-
-            const sortValue = sortSelect.value;
-            const [column, direction] = sortValue.split('-');
-            const isAscending = direction === 'asc';
-
-            const tbody = document.querySelector('#search-results-container tbody');
-            if (!tbody) return;
-
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-
-            rows.sort((a, b) => {
-                let aValue, bValue;
-
-                switch(column) {
-                    case 'AccountingTime':
-                        aValue = new Date(a.querySelector('[data-datetime]').dataset.datetime);
-                        bValue = new Date(b.querySelector('[data-datetime]').dataset.datetime);
-                        break;
-                    case 'ANumber':
-                        aValue = a.cells[0].textContent.trim();
-                        bValue = b.cells[0].textContent.trim();
-                        break;
-                    case 'BNumber':
-                        aValue = a.cells[1].textContent.trim();
-                        bValue = b.cells[1].textContent.trim();
-                        break;
-                    case 'Length':
-                        aValue = parseInt(a.cells[3].textContent.trim());
-                        bValue = parseInt(b.cells[3].textContent.trim());
-                        break;
-                    default:
-                        return 0;
-                }
-
-                if (aValue < bValue) return isAscending ? -1 : 1;
-                if (aValue > bValue) return isAscending ? 1 : -1;
-                return 0;
-            });
-
-            tbody.innerHTML = '';
-            rows.forEach(row => tbody.appendChild(row));
-        }
-
             // توابع جدید برای مدیریت اطلاعات شماره تلفن
             async function fetchAndDisplayPhoneInfo(phoneNumber, containerElement, locationElement) {
                 if (!phoneNumber) {
@@ -1294,21 +1223,22 @@
                 section.style.opacity = '1';
             }
 
-            // تابع برای جمع‌آوری داده‌های فرم (اصلاح‌شده)
+            // تابع برای جمع‌آوری داده‌های فرم
             function collectFormData() {
                 const formData = new FormData(filterForm);
-
-                // نیازی به دستکاری شماره‌ها نیست چون با name="Filter.ANumbers" و name="Filter.BNumbers"
-                // به درستی به فرم اضافه شده‌اند
-
                 return formData;
             }
 
-            // تابع برای جستجو (اصلاح‌شده)
-        async function performSearch(page = 1, pushHistory = true) { // پارامتر جدید برای کنترل history
+            // تابع برای جستجو
+        async function performSearch(page = 1, pushHistory = true, isDeepSearch = false) {
             stopGlobalAnimation();
             document.getElementById('Filter_Page').value = page;
             const formData = collectFormData();
+
+            // اضافه کردن پارامتر deepSearch به formData
+            if (isDeepSearch) {
+                formData.append('deepSearch', 'true');
+            }
 
             searchResultsContainer.innerHTML = `
                 <div class="text-center p-4">
@@ -1320,7 +1250,7 @@
             `;
 
             try {
-                const response = await fetch(`/Call/Search`, {
+                const response = await fetch(`/Call/Search?deepSearch=${isDeepSearch}`, {
                     method: 'POST',
                     headers: {
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
@@ -1359,18 +1289,28 @@
 
                 setupPaginationListeners();
 
-                // به‌روزرسانی فیلتر ترکیبی جدید و اتصال رویدادها پس از هر جستجو
+                // به‌روزرسانی فیلتر ترکیبی جدید (دراپ‌داون‌های شماره) پس از هر جستجو
                 updateClientNumberPairSelects();
+
+                // اتصال رویدادهای فیلتر ترکیبی جدید
                 const clientANumberSelect = document.querySelector('.client-anumber-select');
                 const clientBNumberSelect = document.querySelector('.client-bnumber-select');
-                if(clientANumberSelect) clientANumberSelect.addEventListener('change', filterResultsOnClient);
-                if(clientBNumberSelect) clientBNumberSelect.addEventListener('change', filterResultsOnClient);
-
-                // اتصال رویدادهای مرتب‌سازی
+                const deepSearchBtn = document.getElementById('btnDeepSearch');
                 const sortSelect = document.getElementById('sort-select');
-                if(sortSelect) sortSelect.addEventListener('change', sortResultsOnClient);
 
-                // --- شروع بخش اصلاح‌شده ---
+                if (clientANumberSelect) {
+                    clientANumberSelect.addEventListener('change', () => handleClientSideFilter(false));
+                }
+                if (clientBNumberSelect) {
+                    clientBNumberSelect.addEventListener('change', () => handleClientSideFilter(false));
+                }
+                if (deepSearchBtn) {
+                    deepSearchBtn.addEventListener('click', () => handleClientSideFilter(true));
+                }
+                if (sortSelect) {
+                    sortSelect.addEventListener('change', handleClientSort);
+                }
+
                 // ساخت URL جدید بر اساس پارامترهای فعلی فرم و به‌روزرسانی history مرورگر
                 if (pushHistory) {
                     const params = new URLSearchParams();
@@ -1379,7 +1319,7 @@
                     for (let i = 0; i < formElements.length; i++) {
                         const element = formElements[i];
                         if (element.name && element.value) {
-                            // برای فیلدهای چندگانه مانند ANumbers و BNumbers
+                            // برای فیلترهای چندگانه مانند ANumbers و BNumbers
                             if (element.name === 'Filter.ANumbers' || element.name === 'Filter.BNumbers') {
                                 params.append(element.name, element.value);
                             } else {
@@ -1388,17 +1328,120 @@
                         }
                     }
 
+                    // اضافه کردن پارامتر deepSearch به URL
+                    if (isDeepSearch) {
+                        params.set('deepSearch', 'true');
+                    }
+
                     const newUrl = `${window.location.pathname}?${params.toString()}`;
                     window.history.pushState({ path: newUrl }, '', newUrl);
                 }
-                // --- پایان بخش اصلاح‌شده ---
-
 
             } catch (error) {
                 console.error('Error during search fetch:', error);
                 searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطا در دریافت نتایج جستجو. (${error.message})</div>`;
                 showToast('خطا در جستجو', 'error');
             }
+        }
+
+        function handleClientSideFilter(isDeepSearch = false) {
+            const allRows = document.querySelectorAll('#search-results-container tbody tr');
+            const aSelect = document.querySelector('.client-anumber-select');
+            const bSelect = document.querySelector('.client-bnumber-select');
+
+            if (!aSelect || !bSelect) return;
+
+            const selectedA = aSelect.value;
+            const selectedB = bSelect.value;
+
+            // --- منطق جستجوی عمیق (Deep Search) ---
+            if (isDeepSearch) {
+                // اگر دکمه جستجوی عمیق زده شده، باید فرم اصلی را پر کرده و سابمیت کنیم
+                if (!selectedA && !selectedB) {
+                    if (typeof showToast === 'function') {
+                        showToast('لطفاً حداقل یک شماره برای جستجوی عمیق انتخاب کنید', 'info');
+                    } else {
+                        alert('لطفاً حداقل یک شماره برای جستجوی عمیق انتخاب کنید');
+                    }
+                    return;
+                }
+
+                const filterForm = document.getElementById('filter-form');
+                if (!filterForm) return;
+
+                // 1. پاک کردن ورودی‌های شماره‌ها در فرم اصلی
+                const aInputs = filterForm.querySelectorAll('input[name="Filter.ANumbers"]');
+                aInputs.forEach(input => input.value = '');
+
+                const bInputs = filterForm.querySelectorAll('input[name="Filter.BNumbers"]');
+                bInputs.forEach(input => input.value = '');
+
+                // 2. مقداردهی دوباره ورودی‌ها بر اساس انتخاب کاربر در دراپ‌داون
+                // فرض بر این است که حداقل یک ورودی خالی وجود دارد (مقدار اولیه فرم)
+                if (selectedA) {
+                    const firstAInput = aInputs[0];
+                    if (firstAInput) firstAInput.value = selectedA;
+                }
+
+                if (selectedB) {
+                    const firstBInput = bInputs[0];
+                    if (firstBInput) firstBInput.value = selectedB;
+                }
+
+                // 3. بازنشانی صفحه به 1 و اجرای جستجوی عمیق
+                const pageInput = document.getElementById('Filter_Page');
+                if (pageInput) pageInput.value = 1;
+
+                // فراخوانی تابع performSearch با پارامتر deepSearch
+                if (typeof performSearch === 'function') {
+                    performSearch(1, true, true); // صفحه اول، pushHistory=true, deepSearch=true
+                } else {
+                    // اضافه کردن پارامتر deepSearch به فرم
+                    const deepSearchInput = document.createElement('input');
+                    deepSearchInput.type = 'hidden';
+                    deepSearchInput.name = 'deepSearch';
+                    deepSearchInput.value = 'true';
+                    filterForm.appendChild(deepSearchInput);
+
+                    filterForm.dispatchEvent(new Event('submit'));
+
+                    // حذف input اضافه شده بعد از سابمیت
+                    setTimeout(() => deepSearchInput.remove(), 100);
+                }
+                return;
+            }
+
+            // --- منطق فیلتر سریع (Client-Side Quick Filter) ---
+            if (!selectedA && !selectedB) {
+                allRows.forEach(row => row.style.display = '');
+                return;
+            }
+
+            // منطق پیشرفته: نمایش روابط بین شماره‌ها
+            allRows.forEach(row => {
+                const aNum = row.cells[0].textContent.trim();
+                const bNum = row.cells[1].textContent.trim();
+
+                let isVisible = false;
+
+                // اگر هر دو شماره انتخاب شده‌اند، فقط روابط مستقیم بین آنها
+                if (selectedA && selectedB) {
+                    // روابط مستقیم: تماس از A به B یا از B به A
+                    if ((aNum === selectedA && bNum === selectedB) ||
+                        (aNum === selectedB && bNum === selectedA)) {
+                        isVisible = true;
+                    }
+                }
+                // اگر فقط یک شماره انتخاب شده، همه تماس‌های مربوط به آن
+                else if (selectedA && (aNum === selectedA || bNum === selectedA)) {
+                    isVisible = true;
+                }
+                else if (selectedB && (aNum === selectedB || bNum === selectedB)) {
+                    isVisible = true;
+                }
+
+                row.style.display = isVisible ? '' : 'none';
+            });
         }
             // تابع برای اکسپورت با گزینه‌های انتخاب شده
             async function performExportWithOptions() {
@@ -1458,7 +1501,7 @@
                 }
             }
 
-            // توابع مربوط به تاریخ (بدون تغییر)
+            // توابع مربوط به تاریخ
             function formatDateInput(input) {
                 let value = toEnglishDigits(input.value);
                 value = value.replace(/[^\d]/g, '');
@@ -1620,7 +1663,7 @@
                 updateSearchButtonState();
             }
 
-            // تابع برای بازنشانی کامل فرم (اصلاح‌شده)
+            // تابع برای بازنشانی کامل فرم
             async function resetForm() {
                 filterForm.reset();
                 document.getElementById('Filter_Page').value = 1;
@@ -1745,7 +1788,6 @@
                     startGlobalAnimation();
                 }, 100);
 
-                // --- شروع بخش اصلاح‌شده ---
                 // درخواست برای دریافت توکن جدید
                 try {
                     const response = await fetch('/Call/GetNewAntiForgeryTokens', {
@@ -1771,7 +1813,6 @@
                     console.error('Error resetting form:', error);
                     showToast('خطا در بازنشانی فرم. لطفاً صفحه را رفرش کنید.', 'error');
                 }
-                // --- پایان بخش اصلاح‌شده ---
             }
 
             // --- اتصال رویدادها ---
@@ -1944,29 +1985,31 @@
 
             @if (Model.Results != null)
             {
-                            <text>
-                                exportBtn.disabled = false;
-                                totalResultsCount = @Model.Results.TotalCount;
-                                setupPaginationListeners();
-                                // به‌روزرسانی فیلتر ترکیبی جدید در بارگذاری اولیه
-                                updateClientNumberPairSelects();
-                                // اتصال رویدادهای فیلتر ترکیبی جدید
-                                const clientANumberSelect = document.querySelector('.client-anumber-select');
-                                const clientBNumberSelect = document.querySelector('.client-bnumber-select');
-                                if(clientANumberSelect) clientANumberSelect.addEventListener('change', filterResultsOnClient);
-                                if(clientBNumberSelect) clientBNumberSelect.addEventListener('change', filterResultsOnClient);
-                                // اتصال رویدادهای مرتب‌سازی
-                                const sortSelect = document.getElementById('sort-select');
-                                if(sortSelect) sortSelect.addEventListener('change', sortResultsOnClient);
-                            </text>
+                    <text>
+                        exportBtn.disabled = false;
+                        totalResultsCount = @Model.Results.TotalCount;
+                        setupPaginationListeners();
+                        // به‌روزرسانی فیلتر ترکیبی جدید در بارگذاری اولیه
+                        updateClientNumberPairSelects();
+                        // اتصال رویدادهای فیلتر ترکیبی جدید
+                        const clientANumberSelect = document.querySelector('.client-anumber-select');
+                        const clientBNumberSelect = document.querySelector('.client-bnumber-select');
+                        const deepSearchBtn = document.getElementById('btnDeepSearch');
+                        const sortSelect = document.getElementById('sort-select');
+
+                        if(clientANumberSelect) clientANumberSelect.addEventListener('change', () => handleClientSideFilter(false));
+                        if(clientBNumberSelect) clientBNumberSelect.addEventListener('change', () => handleClientSideFilter(false));
+                        if(deepSearchBtn) deepSearchBtn.addEventListener('click', () => handleClientSideFilter(true));
+                        if(sortSelect) sortSelect.addEventListener('change', handleClientSort);
+                    </text>
             }
             else
             {
-                            <text>
-                                setTimeout(() => {
-                                    startGlobalAnimation();
-                                }, 100);
-                            </text>
+                    <text>
+                        setTimeout(() => {
+                            startGlobalAnimation();
+                        }, 100);
+                    </text>
             }
 
             if (typeof $ !== 'undefined' && $.fn.persianDatepicker) {

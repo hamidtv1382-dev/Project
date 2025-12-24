@@ -64,6 +64,13 @@
                         <option value="Length-asc">مدت زمان (کمترین به بیشترین)</option>
                     </select>
                 </div>
+
+                @* --- دکمه جستجوی عمیق (بخش جدید) --- *@
+                <div class="col-auto ms-2">
+                    <button type="button" id="btnDeepSearch" class="btn btn-sm btn-primary" title="اعمال فیلتر روی تمام صفحات نتایج">
+                        <i class="fas fa-layer-group"></i> جستجوی عمیق
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -230,3 +237,185 @@
         </ul>
     </nav>
 }
+
+@* --- اسکریپت اختصاصی این Partial View --- *@
+<script>
+    (function() {
+        // تابعی برای فیلتر کردن سطرها (سمت کلاینت) و جستجوی عمیق (سمت سرور)
+        function handleClientSideFilter(isDeepSearch = false) {
+            const allRows = document.querySelectorAll('#search-results-container tbody tr');
+            const aSelect = document.getElementById('client-anumber-select');
+            const bSelect = document.getElementById('client-bnumber-select');
+
+            if (!aSelect || !bSelect) return;
+
+            const selectedA = aSelect.value;
+            const selectedB = bSelect.value;
+
+            // --- منطق جستجوی عمیق (Deep Search) ---
+            if (isDeepSearch) {
+                // اگر دکمه جستجوی عمیق زده شده، باید فرم اصلی را پر کرده و سابمیت کنیم
+                if (!selectedA && !selectedB) {
+                    // استفاده از تابع showToast از صفحه اصلی اگر موجود باشد
+                    if (typeof showToast === 'function') {
+                        showToast('لطفاً حداقل یک شماره برای جستجوی عمیق انتخاب کنید', 'info');
+                    } else {
+                        alert('لطفاً حداقل یک شماره برای جستجوی عمیق انتخاب کنید');
+                    }
+                    return;
+                }
+
+                // 1. دسترسی به فرم اصلی و کانتینرهای شماره
+                const filterForm = document.getElementById('filter-form');
+                if (!filterForm) return;
+
+                // 2. پاک کردن ورودی‌های شماره‌ها در فرم اصلی
+                const aInputs = filterForm.querySelectorAll('input[name="Filter.ANumbers"]');
+                aInputs.forEach(input => input.value = '');
+
+                const bInputs = filterForm.querySelectorAll('input[name="Filter.BNumbers"]');
+                bInputs.forEach(input => input.value = '');
+
+                // 3. مقداردهی دوباره ورودی‌ها بر اساس انتخاب کاربر در دراپ‌داون
+                // فرض بر این است که حداقل یک ورودی خالی وجود دارد (مقدار اولیه فرم)
+                if (selectedA) {
+                    const firstAInput = aInputs[0];
+                    if (firstAInput) firstAInput.value = selectedA;
+                }
+
+                if (selectedB) {
+                    const firstBInput = bInputs[0];
+                    if (firstBInput) firstBInput.value = selectedB;
+                }
+
+                // 4. بازنشانی صفحه به 1 و اجرای جستجو
+                const pageInput = document.getElementById('Filter_Page');
+                if (pageInput) pageInput.value = 1;
+
+                // فراخوانی تابع performSearch از صفحه اصلی
+                if (typeof performSearch === 'function') {
+                    performSearch(1);
+                } else {
+                    filterForm.dispatchEvent(new Event('submit'));
+                }
+                return;
+            }
+
+            // --- منطق فیلتر سریع (Client-Side Quick Filter) ---
+            if (!selectedA && !selectedB) {
+                allRows.forEach(row => row.style.display = '');
+                return;
+            }
+
+            // منطق پیشرفته: نمایش روابط بین شماره‌ها
+            allRows.forEach(row => {
+                const aNum = row.cells[0].textContent.trim();
+                const bNum = row.cells[1].textContent.trim();
+
+                let isVisible = false;
+
+                // اگر هر دو شماره انتخاب شده‌اند، فقط روابط مستقیم بین آنها
+                if (selectedA && selectedB) {
+                    // روابط مستقیم: تماس از A به B یا از B به A
+                    if ((aNum === selectedA && bNum === selectedB) ||
+                        (aNum === selectedB && bNum === selectedA)) {
+                        isVisible = true;
+                    }
+                }
+                // اگر فقط یک شماره انتخاب شده، همه تماس‌های مربوط به آن
+                else if (selectedA && (aNum === selectedA || bNum === selectedA)) {
+                    isVisible = true;
+                }
+                else if (selectedB && (aNum === selectedB || bNum === selectedB)) {
+                    isVisible = true;
+                }
+
+                row.style.display = isVisible ? '' : 'none';
+            });
+        }
+
+        // تابع مرتب‌سازی
+        function handleClientSort() {
+            const sortSelect = document.getElementById('sort-select');
+            if (!sortSelect) return;
+
+            const sortValue = sortSelect.value;
+            const [column, direction] = sortValue.split('-');
+            const isAscending = direction === 'asc';
+
+            const tbody = document.querySelector('#search-results-container tbody');
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                let aValue, bValue;
+
+                switch(column) {
+                    case 'AccountingTime':
+                        const aTimeElem = a.querySelector('[data-datetime]');
+                        const bTimeElem = b.querySelector('[data-datetime]');
+                        aValue = aTimeElem ? new Date(aTimeElem.dataset.datetime) : new Date(0);
+                        bValue = bTimeElem ? new Date(bTimeElem.dataset.datetime) : new Date(0);
+                        break;
+                    case 'ANumber':
+                        aValue = a.cells[0].textContent.trim();
+                        bValue = b.cells[0].textContent.trim();
+                        break;
+                    case 'BNumber':
+                        aValue = a.cells[1].textContent.trim();
+                        bValue = b.cells[1].textContent.trim();
+                        break;
+                    case 'Length':
+                        aValue = parseInt(a.cells[3].textContent.trim()) || 0;
+                        bValue = parseInt(b.cells[3].textContent.trim()) || 0;
+                        break;
+                    default:
+                        return 0;
+                }
+
+                if (aValue < bValue) return isAscending ? -1 : 1;
+                if (aValue > bValue) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        // اتصال رویدادها بعد از لود شدن این پارشیال
+        function initClientSideFilters() {
+            // اتصال به دراپ‌داون‌ها برای فیلتر سریع
+            const clientANumberSelect = document.getElementById('client-anumber-select');
+            const clientBNumberSelect = document.getElementById('client-bnumber-select');
+
+            if (clientANumberSelect) {
+                clientANumberSelect.addEventListener('change', () => handleClientSideFilter(false));
+            }
+            if (clientBNumberSelect) {
+                clientBNumberSelect.addEventListener('change', () => handleClientSideFilter(false));
+            }
+
+            // اتصال به دراپ‌داون مرتب‌سازی
+            const sortSelect = document.getElementById('sort-select');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', handleClientSort);
+            }
+
+            // اتصال به دکمه جستجوی عمیق
+            const deepSearchBtn = document.getElementById('btnDeepSearch');
+            if (deepSearchBtn) {
+                deepSearchBtn.addEventListener('click', function () {
+                    handleClientSideFilter(true);
+                });
+            }
+        }
+
+        // فراخوانی مقداردهی اولیه
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initClientSideFilters);
+        } else {
+            initClientSideFilters();
+        }
+    })();
+</script>

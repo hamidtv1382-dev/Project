@@ -42,9 +42,122 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                     query = query.Where(x => x.AccountingTime <= endDateTime);
                 }
 
-                // ✅ فیلتر شماره‌ها: OR بین A و B
-                if ((filter.ANumbers != null && filter.ANumbers.Any(n => !string.IsNullOrWhiteSpace(n))) ||
-                    (filter.BNumbers != null && filter.BNumbers.Any(n => !string.IsNullOrWhiteSpace(n))))
+                // 🔹 منطق جدید برای جستجوی عمیق
+                if (filter.IsDeepSearch &&
+                    ((filter.ANumbers != null && filter.ANumbers.Any(n => !string.IsNullOrWhiteSpace(n))) ||
+                     (filter.BNumbers != null && filter.BNumbers.Any(n => !string.IsNullOrWhiteSpace(n)))))
+                {
+                    // حالت ۱: اگر هم شماره مبدأ و هم شماره مقصد وارد شده‌اند
+                    if (filter.ANumbers != null && filter.ANumbers.Any(n => !string.IsNullOrWhiteSpace(n)) &&
+                        filter.BNumbers != null && filter.BNumbers.Any(n => !string.IsNullOrWhiteSpace(n)))
+                    {
+                        // ایجاد شرط برای روابط مستقیم بین جفت شماره‌ها
+                        var parameter = Expression.Parameter(typeof(CallDetail), "x");
+                        Expression finalCondition = null;
+
+                        // تولید تمام ترکیب‌های ممکن بین شماره‌های مبدأ و مقصد
+                        foreach (var aNumber in filter.ANumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
+                        {
+                            foreach (var bNumber in filter.BNumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
+                            {
+                                // شرط برای تماس از A به B
+                                var aToBCondition = Expression.AndAlso(
+                                    Expression.Call(
+                                        Expression.Property(parameter, nameof(CallDetail.ANumber)),
+                                        typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                                        Expression.Constant(aNumber)
+                                    ),
+                                    Expression.Call(
+                                        Expression.Property(parameter, nameof(CallDetail.BNumber)),
+                                        typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                                        Expression.Constant(bNumber)
+                                    )
+                                );
+
+                                // اگر جستجوی دوطرفه فعال باشد، شرط معکوس هم اضافه می‌شود
+                                if (filter.BidirectionalSearch)
+                                {
+                                    var bToACondition = Expression.AndAlso(
+                                        Expression.Call(
+                                            Expression.Property(parameter, nameof(CallDetail.ANumber)),
+                                            typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                                            Expression.Constant(bNumber)
+                                        ),
+                                        Expression.Call(
+                                            Expression.Property(parameter, nameof(CallDetail.BNumber)),
+                                            typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                                            Expression.Constant(aNumber)
+                                        )
+                                    );
+
+                                    aToBCondition = Expression.OrElse(aToBCondition, bToACondition);
+                                }
+
+                                finalCondition = finalCondition == null
+                                    ? aToBCondition
+                                    : Expression.OrElse(finalCondition, aToBCondition);
+                            }
+                        }
+
+                        if (finalCondition != null)
+                        {
+                            var lambda = Expression.Lambda<Func<CallDetail, bool>>(finalCondition, parameter);
+                            query = query.Where(lambda);
+                        }
+                    }
+                    // حالت ۲: اگر فقط یک نوع شماره وارد شده (تک شماره)
+                    else
+                    {
+                        // منطق قبلی برای جستجوی عادی (OR بین A و B)
+                        var parameter = Expression.Parameter(typeof(CallDetail), "x");
+                        Expression finalNumberFilter = null;
+
+                        // A Numbers
+                        if (filter.ANumbers != null)
+                        {
+                            var aProp = Expression.Property(parameter, nameof(CallDetail.ANumber));
+                            foreach (var number in filter.ANumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
+                            {
+                                var equals = Expression.Call(
+                                    aProp,
+                                    typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                                    Expression.Constant(number)
+                                );
+
+                                finalNumberFilter = finalNumberFilter == null
+                                    ? equals
+                                    : Expression.OrElse(finalNumberFilter, equals);
+                            }
+                        }
+
+                        // B Numbers
+                        if (filter.BNumbers != null)
+                        {
+                            var bProp = Expression.Property(parameter, nameof(CallDetail.BNumber));
+                            foreach (var number in filter.BNumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
+                            {
+                                var equals = Expression.Call(
+                                    bProp,
+                                    typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                                    Expression.Constant(number)
+                                );
+
+                                finalNumberFilter = finalNumberFilter == null
+                                    ? equals
+                                    : Expression.OrElse(finalNumberFilter, equals);
+                            }
+                        }
+
+                        if (finalNumberFilter != null)
+                        {
+                            var lambda = Expression.Lambda<Func<CallDetail, bool>>(finalNumberFilter, parameter);
+                            query = query.Where(lambda);
+                        }
+                    }
+                }
+                // منطق قبلی برای جستجوی عادی
+                else if ((filter.ANumbers != null && filter.ANumbers.Any(n => !string.IsNullOrWhiteSpace(n))) ||
+                        (filter.BNumbers != null && filter.BNumbers.Any(n => !string.IsNullOrWhiteSpace(n))))
                 {
                     var parameter = Expression.Parameter(typeof(CallDetail), "x");
                     Expression finalNumberFilter = null;
@@ -153,9 +266,122 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                     query = query.Where(x => x.AccountingTime <= endDateTime);
                 }
 
-                // ✅ فیلتر شماره‌ها: OR بین A و B (هماهنگ با GetFilteredAsync)
-                if ((filter.ANumbers != null && filter.ANumbers.Any(n => !string.IsNullOrWhiteSpace(n))) ||
-                    (filter.BNumbers != null && filter.BNumbers.Any(n => !string.IsNullOrWhiteSpace(n))))
+                // 🔹 منطق جدید برای جستجوی عمیق
+                if (filter.IsDeepSearch &&
+                    ((filter.ANumbers != null && filter.ANumbers.Any(n => !string.IsNullOrWhiteSpace(n))) ||
+                     (filter.BNumbers != null && filter.BNumbers.Any(n => !string.IsNullOrWhiteSpace(n)))))
+                {
+                    // حالت ۱: اگر هم شماره مبدأ و هم شماره مقصد وارد شده‌اند
+                    if (filter.ANumbers != null && filter.ANumbers.Any(n => !string.IsNullOrWhiteSpace(n)) &&
+                        filter.BNumbers != null && filter.BNumbers.Any(n => !string.IsNullOrWhiteSpace(n)))
+                    {
+                        // ایجاد شرط برای روابط مستقیم بین جفت شماره‌ها
+                        var parameter = Expression.Parameter(typeof(CallDetail), "x");
+                        Expression finalCondition = null;
+
+                        // تولید تمام ترکیب‌های ممکن بین شماره‌های مبدأ و مقصد
+                        foreach (var aNumber in filter.ANumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
+                        {
+                            foreach (var bNumber in filter.BNumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
+                            {
+                                // شرط برای تماس از A به B
+                                var aToBCondition = Expression.AndAlso(
+                                    Expression.Call(
+                                        Expression.Property(parameter, nameof(CallDetail.ANumber)),
+                                        typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                                        Expression.Constant(aNumber)
+                                    ),
+                                    Expression.Call(
+                                        Expression.Property(parameter, nameof(CallDetail.BNumber)),
+                                        typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                                        Expression.Constant(bNumber)
+                                    )
+                                );
+
+                                // اگر جستجوی دوطرفه فعال باشد، شرط معکوس هم اضافه می‌شود
+                                if (filter.BidirectionalSearch)
+                                {
+                                    var bToACondition = Expression.AndAlso(
+                                        Expression.Call(
+                                            Expression.Property(parameter, nameof(CallDetail.ANumber)),
+                                            typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                                            Expression.Constant(bNumber)
+                                        ),
+                                        Expression.Call(
+                                            Expression.Property(parameter, nameof(CallDetail.BNumber)),
+                                            typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                                            Expression.Constant(aNumber)
+                                        )
+                                    );
+
+                                    aToBCondition = Expression.OrElse(aToBCondition, bToACondition);
+                                }
+
+                                finalCondition = finalCondition == null
+                                    ? aToBCondition
+                                    : Expression.OrElse(finalCondition, aToBCondition);
+                            }
+                        }
+
+                        if (finalCondition != null)
+                        {
+                            var lambda = Expression.Lambda<Func<CallDetail, bool>>(finalCondition, parameter);
+                            query = query.Where(lambda);
+                        }
+                    }
+                    // حالت ۲: اگر فقط یک نوع شماره وارد شده (تک شماره)
+                    else
+                    {
+                        // منطق قبلی برای جستجوی عادی
+                        var parameter = Expression.Parameter(typeof(CallDetail), "x");
+                        Expression finalNumberFilter = null;
+
+                        // A Numbers
+                        if (filter.ANumbers != null)
+                        {
+                            var aProp = Expression.Property(parameter, nameof(CallDetail.ANumber));
+                            foreach (var number in filter.ANumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
+                            {
+                                var equals = Expression.Call(
+                                    aProp,
+                                    typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                                    Expression.Constant(number)
+                                );
+
+                                finalNumberFilter = finalNumberFilter == null
+                                    ? equals
+                                    : Expression.OrElse(finalNumberFilter, equals);
+                            }
+                        }
+
+                        // B Numbers
+                        if (filter.BNumbers != null)
+                        {
+                            var bProp = Expression.Property(parameter, nameof(CallDetail.BNumber));
+                            foreach (var number in filter.BNumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
+                            {
+                                var equals = Expression.Call(
+                                    bProp,
+                                    typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                                    Expression.Constant(number)
+                                );
+
+                                finalNumberFilter = finalNumberFilter == null
+                                    ? equals
+                                    : Expression.OrElse(finalNumberFilter, equals);
+                            }
+                        }
+
+                        if (finalNumberFilter != null)
+                        {
+                            var lambda = Expression.Lambda<Func<CallDetail, bool>>(finalNumberFilter, parameter);
+                            query = query.Where(lambda);
+                        }
+                    }
+                }
+                // منطق قبلی برای جستجوی عادی
+                else if ((filter.ANumbers != null && filter.ANumbers.Any(n => !string.IsNullOrWhiteSpace(n))) ||
+                        (filter.BNumbers != null && filter.BNumbers.Any(n => !string.IsNullOrWhiteSpace(n))))
                 {
                     var parameter = Expression.Parameter(typeof(CallDetail), "x");
                     Expression finalNumberFilter = null;
