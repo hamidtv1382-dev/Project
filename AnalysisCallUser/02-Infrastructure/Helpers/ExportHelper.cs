@@ -1,4 +1,5 @@
-﻿using iTextSharp.text;
+﻿using AnalysisCallUser._03_EndPoint.Controllers;
+using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System;
 using System.Collections.Generic;
@@ -229,7 +230,30 @@ public static class ExportHelper
             return memoryStream.ToArray();
         }
     }
+    public static byte[] GenerateWeightedCsv(List<WeightedCallResult> results)
+    {
+        using var memoryStream = new MemoryStream();
+        using var writer = new StreamWriter(memoryStream, Encoding.UTF8);
 
+        // نوشتن هدر فارسی با راست‌چین
+        writer.WriteLine("شماره مبدا,شماره مقصد,وزن تماس,توضیحات");
+
+        foreach (var result in results)
+        {
+            var description = result.Weight switch
+            {
+                < 5 => "کم",
+                < 20 => "متوسط",
+                < 50 => "زیاد",
+                _ => "خیلی زیاد"
+            };
+
+            writer.WriteLine($"{result.ANumber},{result.BNumber},{result.Weight},{description}");
+        }
+
+        writer.Flush();
+        return memoryStream.ToArray();
+    }
     /// <summary>
     /// نام پراپرتی‌ها را به هدرهای فارسی معادل نگاشت می‌کند.
     /// </summary>

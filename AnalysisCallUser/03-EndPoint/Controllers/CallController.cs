@@ -1,5 +1,6 @@
 ﻿using AnalysisCallUser._01_Domain.Core.Contracts;
 using AnalysisCallUser._01_Domain.Core.DTOs;
+using AnalysisCallUser._01_Domain.Core.Entities;
 using AnalysisCallUser._01_Domain.Core.Enums;
 using AnalysisCallUser._01_Domain.Services;
 using AnalysisCallUser._02_Infrastructure.Data;
@@ -18,6 +19,8 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         private readonly ICallDetailRepository _callDetailRepository;
         private readonly AppDbContext _context;
         private readonly IPhoneInfoService _phoneInfoService;
+
+        private const string SessionFilterKey = "CallSearchFilters";
 
         public CallController(ICallDetailRepository callDetailRepository, AppDbContext context, IPhoneInfoService phoneInfoService)
         {
@@ -48,21 +51,40 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             return (startDate, endDate);
         }
 
-        private void PopulateModelFromTempData(CallSearchViewModel model)
+        private void PopulateModelFromSession(CallSearchViewModel model)
         {
-            if (TempData.Peek("SearchFilter") != null)
+            var filterJson = HttpContext.Session.GetString(SessionFilterKey);
+            if (!string.IsNullOrEmpty(filterJson))
             {
-                var filterJson = TempData.Peek("SearchFilter").ToString();
-                var tempFilter = JsonSerializer.Deserialize<CallFilterViewModel>(filterJson);
-                if (tempFilter != null) model.Filter = tempFilter;
+                try
+                {
+                    var tempFilter = JsonSerializer.Deserialize<CallFilterViewModel>(filterJson);
+                    if (tempFilter != null) model.Filter = tempFilter;
+                }
+                catch (JsonException)
+                {
+                    // اگر خطا در deserialize بود، session را پاک کن
+                    HttpContext.Session.Remove(SessionFilterKey);
+                }
             }
         }
 
-        private void SaveModelToTempData(CallSearchViewModel model)
+        private void SaveModelToSession(CallSearchViewModel model)
         {
-            var filterJson = JsonSerializer.Serialize(model.Filter);
-            TempData["SearchFilter"] = filterJson;
-            TempData.Keep("SearchFilter");
+            try
+            {
+                var filterJson = JsonSerializer.Serialize(model.Filter);
+                HttpContext.Session.SetString(SessionFilterKey, filterJson);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving to session: {ex.Message}");
+            }
+        }
+
+        private void ClearSessionFilter()
+        {
+            HttpContext.Session.Remove(SessionFilterKey);
         }
 
         private void LogExport(string userName, IEnumerable<CallDetailDto> exportedRecords)
@@ -85,6 +107,90 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             }
         }
 
+        private List<string> ExtractNumbersFromText(string numbersText)
+        {
+            var numbers = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(numbersText))
+                return numbers;
+
+            var lines = numbersText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (!string.IsNullOrWhiteSpace(trimmedLine))
+                {
+                    // جدا کردن با کاما، فاصله، یا tab
+                    var parts = trimmedLine.Split(new[] { ',', ' ', '\t', ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (var part in parts)
+                    {
+                        var number = part.Trim();
+                        if (!string.IsNullOrWhiteSpace(number) && !numbers.Contains(number))
+                        {
+                            numbers.Add(number);
+                        }
+                    }
+                }
+            }
+
+            return numbers;
+        }
+
+        private string FormatTime(int seconds)
+        {
+            if (seconds < 60) return $"{seconds} ثانیه";
+            if (seconds < 3600) return $"{seconds / 60} دقیقه و {seconds % 60} ثانیه";
+            return $"{seconds / 3600} ساعت و {(seconds % 3600) / 60} دقیقه";
+        }
+
+        private void LogWeightedExport(string userName, int resultCount)
+        {
+            try
+            {
+                string logLine = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}\tUser: {userName}\tWeightedResults: {resultCount}\tType: WeightedAnalysis";
+                string logFilePath = Path.Combine(Directory.GetCurrentDirectory(), "WeightedExportsLog.txt");
+                System.IO.File.AppendAllText(logFilePath, logLine + Environment.NewLine);
+            }
+            catch
+            {
+                // اگر خطا رخ داد، نادیده گرفته شود
+            }
+        }
+
+        #endregion
+
+        #region Session Management APIs
+
+        [HttpPost]
+        public IActionResult ClearSessionFilters()
+        {
+            ClearSessionFilter();
+            return Json(new { success = true, message = "Session filters cleared successfully." });
+        }
+
+        [HttpGet]
+        public IActionResult GetSessionFilters()
+        {
+            var filterJson = HttpContext.Session.GetString(SessionFilterKey);
+            if (string.IsNullOrEmpty(filterJson))
+            {
+                return Json(new { success = false, message = "No filters found in session." });
+            }
+
+            try
+            {
+                var filter = JsonSerializer.Deserialize<CallFilterViewModel>(filterJson);
+                return Json(new { success = true, filters = filter });
+            }
+            catch (JsonException ex)
+            {
+                ClearSessionFilter();
+                return Json(new { success = false, message = $"Error deserializing filters: {ex.Message}" });
+            }
+        }
+
         #endregion
 
         [HttpGet]
@@ -96,20 +202,32 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 Countries = await _context.Countries.OrderBy(c => c.CountryName).ToListAsync()
             };
 
-            PopulateModelFromTempData(model);
+            // بارگذاری فیلترها از Session
+            PopulateModelFromSession(model);
 
-            if (model.Filter != null && (
-                !string.IsNullOrEmpty(model.Filter.StartDate) ||
-                !string.IsNullOrEmpty(model.Filter.EndDate) ||
-                model.Filter.ANumbers?.Any() == true ||
-                model.Filter.BNumbers?.Any() == true ||
-                model.Filter.OriginCountryID.HasValue ||
-                model.Filter.DestCountryID.HasValue))
+            // اگر فیلتری در Session بود، نتایج را بارگذاری کن
+            if (model.Filter != null && model.Filter.HasFilters())
             {
                 await LoadSearchResults(model);
             }
 
             return View(model);
+        }
+
+        private bool HasFilters(CallFilterViewModel filter)
+        {
+            return filter != null && (
+                !string.IsNullOrEmpty(filter.StartDate) ||
+                !string.IsNullOrEmpty(filter.EndDate) ||
+                filter.ANumbers?.Any(n => !string.IsNullOrWhiteSpace(n)) == true ||
+                filter.BNumbers?.Any(n => !string.IsNullOrWhiteSpace(n)) == true ||
+                filter.OriginCountryID.HasValue ||
+                filter.DestCountryID.HasValue ||
+                filter.OriginCityID.HasValue ||
+                filter.DestCityID.HasValue ||
+                filter.OriginOperatorID.HasValue ||
+                filter.DestOperatorID.HasValue ||
+                filter.Answer.HasValue);
         }
 
         private async Task LoadSearchResults(CallSearchViewModel model)
@@ -145,7 +263,11 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 AccountingTime = cd.AccountingTime,
                 Length = cd.Length,
                 OriginCountryName = cd.OriginCountry?.CountryName,
+                OriginCityName = cd.OriginCity?.CityName,
+                OriginOperatorName = cd.OriginOperator?.OperatorName,
                 DestCountryName = cd.DestCountry?.CountryName,
+                DestCityName = cd.DestCity?.CityName,
+                DestOperatorName = cd.DestOperator?.OperatorName,
                 Answer = cd.Answer
             }).ToList();
 
@@ -209,9 +331,9 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                     Length = cd.Length,
                     OriginCountryName = cd.OriginCountry?.CountryName,
                     OriginCityName = cd.OriginCity?.CityName,
+                    OriginOperatorName = cd.OriginOperator?.OperatorName,
                     DestCountryName = cd.DestCountry?.CountryName,
                     DestCityName = cd.DestCity?.CityName,
-                    OriginOperatorName = cd.OriginOperator?.OperatorName,
                     DestOperatorName = cd.DestOperator?.OperatorName,
                     Answer = cd.Answer
                 }).ToList();
@@ -237,15 +359,18 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    SaveModelToTempData(model);
+                    // ذخیره در Session
+                    SaveModelToSession(model);
                     return PartialView("_SearchResults", model.Results);
                 }
 
-                SaveModelToTempData(model);
+                // ذخیره در Session
+                SaveModelToSession(model);
                 return RedirectToAction(nameof(Search), model.Filter);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Search error: {ex.Message}");
                 ModelState.AddModelError("", "خطا در دریافت نتایج جستجو.");
                 return View(model);
             }
@@ -343,6 +468,17 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 var data = await _callDetailRepository.GetFilteredAsync(callFilterDto);
                 var callDetailDtos = data.Select(cd => new CallDetailDto
                 {
+                    DetailID = cd.DetailID,
+                    ANumber = cd.ANumber,
+                    BNumber = cd.BNumber,
+                    AccountingTime = cd.AccountingTime,
+                    Length = cd.Length,
+                    OriginCountryName = cd.OriginCountry?.CountryName,
+                    OriginCityName = cd.OriginCity?.CityName,
+                    OriginOperatorName = cd.OriginOperator?.OperatorName,
+                    DestCountryName = cd.DestCountry?.CountryName,
+                    DestCityName = cd.DestCity?.CityName,
+                    DestOperatorName = cd.DestOperator?.OperatorName,
                     Answer = cd.Answer
                 }).ToList();
 
@@ -383,8 +519,8 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 AccountingTime = call.AccountingTime,
                 Length = call.Length,
                 OriginCountryName = call.OriginCountry?.CountryName,
-                OriginCityName = call.OriginCity?.CityName,
                 DestCountryName = call.DestCountry?.CountryName,
+                OriginCityName = call.OriginCity?.CityName,
                 DestCityName = call.DestCity?.CityName,
                 OriginOperatorName = call.OriginOperator?.OperatorName,
                 DestOperatorName = call.DestOperator?.OperatorName,
@@ -480,5 +616,361 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 _context.Database.SetCommandTimeout(originalTimeout);
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> ExportSelectedCalls([FromBody] ExportSelectedRequest request)
+        {
+            if (request?.SelectedCallIds == null || !request.SelectedCallIds.Any())
+            {
+                return BadRequest("هیچ موردی انتخاب نشده است");
+            }
+
+            var originalTimeout = _context.Database.GetCommandTimeout();
+            _context.Database.SetCommandTimeout(120);
+
+            try
+            {
+                // تبدیل رشته‌ها به عدد
+                var callIds = request.SelectedCallIds
+                    .Select(id => int.TryParse(id, out var num) ? num : (int?)null)
+                    .Where(id => id.HasValue)
+                    .Select(id => id.Value)
+                    .ToList();
+
+                if (!callIds.Any())
+                {
+                    return BadRequest("شناسه‌های انتخاب شده نامعتبر هستند");
+                }
+
+                // دریافت اطلاعات تماس‌های انتخاب شده
+                var selectedCalls = await _callDetailRepository.GetByIdsAsync(callIds);
+
+                var callDetailDtos = selectedCalls.Select(cd => new CallDetailDto
+                {
+                    DetailID = cd.DetailID,
+                    ANumber = cd.ANumber,
+                    BNumber = cd.BNumber,
+                    AccountingTime = cd.AccountingTime,
+                    Length = cd.Length,
+                    OriginCountryName = cd.OriginCountry?.CountryName,
+                    OriginCityName = cd.OriginCity?.CityName,
+                    DestCountryName = cd.DestCountry?.CountryName,
+                    DestCityName = cd.DestCity?.CityName,
+                    OriginOperatorName = cd.OriginOperator?.OperatorName,
+                    DestOperatorName = cd.DestOperator?.OperatorName,
+                    Answer = cd.Answer
+                }).ToList();
+
+                // ثبت لاگ
+                LogExport(User.Identity.Name, callDetailDtos);
+
+                // تولید CSV
+                byte[] csvBytes = ExportHelper.GenerateCsv(callDetailDtos);
+                var fileName = $"SelectedCalls_{DateTime.Now:yyyyMMddHHmmss}.csv";
+
+                // اضافه کردن BOM برای UTF-8
+                var utf8Bom = new byte[] { 0xEF, 0xBB, 0xBF };
+                if (!(csvBytes.Length >= 3 && csvBytes[0] == utf8Bom[0] && csvBytes[1] == utf8Bom[1] && csvBytes[2] == utf8Bom[2]))
+                {
+                    var withBom = new byte[csvBytes.Length + 3];
+                    Buffer.BlockCopy(utf8Bom, 0, withBom, 0, 3);
+                    Buffer.BlockCopy(csvBytes, 0, withBom, 3, csvBytes.Length);
+                    csvBytes = withBom;
+                }
+
+                return File(csvBytes, "text/csv; charset=utf-8", fileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"خطا در اکسپورت: {ex.Message}");
+            }
+            finally
+            {
+                _context.Database.SetCommandTimeout(originalTimeout);
+            }
+        }
+
+        #region Weighted Search Methods
+
+        [HttpGet]
+        public IActionResult WeightedSearch()
+        {
+            var model = new WeightedSearchViewModel
+            {
+                Filter = new WeightedSearchFilterViewModel()
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> WeightedSearch(WeightedSearchViewModel model, IFormFile sourceNumbersFile, IFormFile destNumbersFile)
+        {
+            var originalTimeout = _context.Database.GetCommandTimeout();
+            _context.Database.SetCommandTimeout(300);
+
+            try
+            {
+                // دریافت شماره‌های مبدأ از فایل
+                if (sourceNumbersFile != null && sourceNumbersFile.Length > 0)
+                {
+                    using var reader = new StreamReader(sourceNumbersFile.OpenReadStream());
+                    var content = await reader.ReadToEndAsync();
+                    model.Filter.SourceNumbersText = content;
+                }
+
+                // دریافت شماره‌های مقصد از فایل
+                if (destNumbersFile != null && destNumbersFile.Length > 0)
+                {
+                    using var reader = new StreamReader(destNumbersFile.OpenReadStream());
+                    var content = await reader.ReadToEndAsync();
+                    model.Filter.DestNumbersText = content;
+                }
+
+                // --- اصلاح شده: استخراج شماره‌ها به صورت خط به خط (Split) ---
+                var sourceNumbers = new List<string>();
+                var destNumbers = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(model.Filter.SourceNumbersText))
+                {
+                    var lines = model.Filter.SourceNumbersText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    sourceNumbers = lines.Select(l => l.Trim()).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().ToList();
+                }
+
+                if (!string.IsNullOrWhiteSpace(model.Filter.DestNumbersText))
+                {
+                    var lines = model.Filter.DestNumbersText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    destNumbers = lines.Select(l => l.Trim()).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().ToList();
+                }
+                // ----------------------------------------------
+
+                // بررسی که حداقل یکی از فیلدها پر باشد
+                if (!sourceNumbers.Any() && !destNumbers.Any())
+                {
+                    ModelState.AddModelError("", "لطفاً حداقل یک شماره در مبدأ یا مقصد وارد کنید.");
+                    return View(model);
+                }
+
+                var (startDateGregorian, endDateGregorian) =
+                    ConvertPersianDates(model.Filter.StartDate, model.Filter.EndDate);
+
+                // تعیین حالت جستجو بر اساس ورودی کاربر
+                WeightedSearchMode searchMode;
+
+                if (sourceNumbers.Any() && destNumbers.Any())
+                {
+                    searchMode = WeightedSearchMode.SourceDestinationPairs;
+                }
+                else if (sourceNumbers.Any())
+                {
+                    searchMode = WeightedSearchMode.SourceOnly;
+                }
+                else
+                {
+                    searchMode = WeightedSearchMode.DestinationOnly;
+                }
+
+                // ایجاد DTO برای جستجوی وزنی
+                var weightedSearchDto = new WeightedSearchDto
+                {
+                    ANumbers = sourceNumbers,
+                    BNumbers = destNumbers,
+                    StartDate = startDateGregorian,
+                    EndDate = endDateGregorian,
+                    MinWeight = model.Filter.MinWeight,
+                    BidirectionalSearch = model.Filter.IncludeReversePairs,
+                    SearchMode = searchMode,
+                    IncludeAnsweredCallsOnly = model.Filter.IncludeAnsweredCallsOnly
+                };
+
+                // فراخوانی متد جدید ریپازیتوری
+                var weightedResults = await _callDetailRepository.GetWeightedSearchAsync(weightedSearchDto);
+
+                // تبدیل به ViewModel
+                model.WeightedResults = weightedResults.Select(r => new WeightedCallResultViewModel
+                {
+                    ANumber = r.ANumber,
+                    BNumber = r.BNumber,
+                    Weight = r.Weight,
+                    TotalLength = r.TotalLength,
+                    AverageLength = r.AverageLength,
+                    DirectCalls = r.DirectCalls,
+                    ReverseCalls = r.ReverseCalls,
+                    SearchType = r.SearchType,
+                    DirectionInfo = r.DirectionInfo,
+                    TotalLengthFormatted = FormatTime(r.TotalLength),
+                    AverageLengthFormatted = FormatTime((int)r.AverageLength)
+                }).ToList();
+
+                model.TotalPairs = model.WeightedResults.Count;
+                model.TotalCalls = model.WeightedResults.Sum(w => w.Weight);
+                model.TotalLength = model.WeightedResults.Sum(w => w.TotalLength);
+
+                // ذخیره در TempData برای اکسپورت
+                TempData["WeightedResults"] = JsonSerializer.Serialize(model.WeightedResults);
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"خطا در پردازش داده‌ها: {ex.Message}");
+                Console.WriteLine($"WeightedSearch error: {ex}");
+                return View(model);
+            }
+            finally
+            {
+                _context.Database.SetCommandTimeout(originalTimeout);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ExportWeightedResults([FromBody] ExportWeightedRequest request)
+        {
+            try
+            {
+                List<WeightedCallResultViewModel> weightedResults;
+
+                // استفاده از داده‌های ارسال شده از کلاینت
+                if (request != null && request.WeightedResults != null && request.WeightedResults.Any())
+                {
+                    weightedResults = request.WeightedResults;
+                }
+                // در غیر این صورت از TempData بازیابی می‌کنیم
+                else if (TempData["WeightedResults"] is string tempDataJson)
+                {
+                    weightedResults = JsonSerializer.Deserialize<List<WeightedCallResultViewModel>>(tempDataJson);
+                    TempData.Keep("WeightedResults");
+                }
+                else
+                {
+                    return BadRequest("داده‌ای برای اکسپورت یافت نشد.");
+                }
+
+                if (!weightedResults.Any())
+                {
+                    return BadRequest("هیچ نتیجه‌ای برای اکسپورت وجود ندارد.");
+                }
+
+                // تولید CSV
+                using var memoryStream = new MemoryStream();
+                using var writer = new StreamWriter(memoryStream, System.Text.Encoding.UTF8);
+
+                // هدرها
+                writer.WriteLine("شماره مبدأ,شماره مقصد,تعداد تماس,طول کل مکالمه(ثانیه),میانگین طول مکالمه(ثانیه),تماس مستقیم,تماس معکوس,نوع جستجو,جهت تماس");
+
+                // داده‌ها
+                foreach (var result in weightedResults)
+                {
+                    writer.WriteLine($"\"{result.ANumber}\",\"{result.BNumber}\",{result.Weight},{result.TotalLength},{result.AverageLength:F2},{result.DirectCalls},{result.ReverseCalls},{result.SearchType},{result.DirectionInfo}");
+                }
+
+                writer.Flush();
+                memoryStream.Position = 0;
+
+                var csvBytes = memoryStream.ToArray();
+                var fileName = $"WeightedCallAnalysis_{DateTime.Now:yyyyMMddHHmmss}.csv";
+
+                // اضافه کردن BOM برای UTF-8
+                var utf8Bom = new byte[] { 0xEF, 0xBB, 0xBF };
+                var withBom = new byte[csvBytes.Length + 3];
+                Buffer.BlockCopy(utf8Bom, 0, withBom, 0, 3);
+                Buffer.BlockCopy(csvBytes, 0, withBom, 3, csvBytes.Length);
+
+                // ثبت لاگ
+                LogWeightedExport(User.Identity.Name, weightedResults.Count);
+
+                return File(withBom, "text/csv; charset=utf-8", fileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"خطا در اکسپورت: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        // کلاس‌های کمکی برای جستجوی وزنی قدیمی (در صورت نیاز می‌توانید حذف کنید)
+        private List<CallPair> ExtractCallPairs(string numbersText)
+        {
+            var callPairs = new List<CallPair>();
+
+            if (string.IsNullOrWhiteSpace(numbersText))
+                return callPairs;
+
+            var lines = numbersText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+                if (string.IsNullOrWhiteSpace(trimmedLine))
+                    continue;
+
+                // جدا کردن بر اساس کاما
+                var parts = trimmedLine.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (parts.Length >= 2)
+                {
+                    var aNumber = parts[0].Trim();
+                    var bNumber = parts[1].Trim();
+
+                    if (!string.IsNullOrWhiteSpace(aNumber) && !string.IsNullOrWhiteSpace(bNumber))
+                    {
+                        callPairs.Add(new CallPair
+                        {
+                            ANumber = aNumber,
+                            BNumber = bNumber
+                        });
+                    }
+                }
+            }
+
+            return callPairs;
+        }
+
+        private class CallPair
+        {
+            public string ANumber { get; set; }
+            public string BNumber { get; set; }
+        }
+    }
+
+
+    public class WeightedCallResult
+    {
+        public string ANumber { get; set; }
+        public string BNumber { get; set; }
+        public int Weight { get; set; }
+        public int TotalLength { get; set; } // مجموع طول تمام مکالمات به ثانیه
+        public int DirectCalls { get; set; } // تماس‌های مستقیم (A->B)
+        public int ReverseCalls { get; set; } // تماس‌های معکوس (B->A)
+        public bool IsSourceSearch { get; set; } // آیا جستجو بر اساس مبدأ بوده؟
+        public double AverageLength => Weight > 0 ? (double)TotalLength / Weight : 0;
+
+        // پراپرتی‌های کمکی
+        public string SearchType => IsSourceSearch ? "جستجوی مبدأ" : "جستجوی مقصد";
+        public string DirectionInfo
+        {
+            get
+            {
+                if (DirectCalls > 0 && ReverseCalls > 0)
+                    return "دوطرفه";
+                else if (DirectCalls > 0)
+                    return "مستقیم";
+                else if (ReverseCalls > 0)
+                    return "معکوس";
+                return "-";
+            }
+        }
+    }
+
+
+    // کلاس‌های درخواست
+    public class ExportWeightedRequest
+    {
+        public List<WeightedCallResultViewModel> WeightedResults { get; set; }
+    }
+
+    public class ExportSelectedRequest
+    {
+        public List<string> SelectedCallIds { get; set; }
     }
 }

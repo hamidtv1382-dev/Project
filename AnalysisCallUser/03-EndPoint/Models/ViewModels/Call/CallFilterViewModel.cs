@@ -58,5 +58,19 @@ namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Call
         public int PageSize { get; set; } = 50;
 
         public int Page { get; set; } = 1;
+        public bool HasFilters()
+        {
+            return !string.IsNullOrEmpty(StartDate) ||
+                   !string.IsNullOrEmpty(EndDate) ||
+                   (ANumbers != null && ANumbers.Any(n => !string.IsNullOrWhiteSpace(n))) ||
+                   (BNumbers != null && BNumbers.Any(n => !string.IsNullOrWhiteSpace(n))) ||
+                   OriginCountryID.HasValue ||
+                   DestCountryID.HasValue ||
+                   OriginCityID.HasValue ||
+                   DestCityID.HasValue ||
+                   OriginOperatorID.HasValue ||
+                   DestOperatorID.HasValue ||
+                   Answer.HasValue;
+        }
     }
 }

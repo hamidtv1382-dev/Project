@@ -27,6 +27,16 @@
             </div>
         }
     </div>
+    <!-- بخش اکسپورت انتخابی -->
+    <div id="bulkExportSection" class="d-none align-items-center">
+        <span id="selectedCountBadge" class="badge bg-primary me-2">0 انتخاب شده</span>
+        <button type="button" id="btnExportSelected" class="btn btn-sm btn-success me-2" title="اکسپورت موارد انتخاب شده">
+            <i class="fas fa-file-export"></i> اکسپورت انتخابی
+        </button>
+        <button type="button" id="btnClearAllSelection" class="btn btn-sm btn-outline-danger" title="پاک کردن تمام انتخاب‌ها">
+            <i class="fas fa-times"></i> پاک کردن
+        </button>
+    </div>
 </div>
 
 <!-- فیلتر ترکیبی شماره‌ها (نوار باریک) -->
@@ -80,6 +90,12 @@
     <table class="table table-striped table-hover align-middle">
         <thead class="table-light">
             <tr>
+                <th style="width: 50px;">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selectAllCurrentPage">
+                        <label class="form-check-label" for="selectAllCurrentPage" title="انتخاب/عدم انتخاب تمام ردیف‌های صفحه جاری"></label>
+                    </div>
+                </th>
                 <th>شماره مبدأ</th>
                 <th>شماره مقصد</th>
                 <th>تاریخ و زمان</th>
@@ -87,7 +103,7 @@
                 <th>کشور مبدأ</th>
                 <th>کشور مقصد</th>
                 <th>وضعیت</th>
-                <th>عملیات</th>
+                <th>جزئیات</th>
             </tr>
         </thead>
         <tbody>
@@ -95,7 +111,15 @@
             {
                 @foreach (var call in Model.Data)
                 {
-                    <tr>
+                    <tr data-call-id="@call.DetailID">
+                        <td>
+                            <div class="form-check">
+                                <input class="form-check-input call-checkbox" type="checkbox" 
+                                       data-call-id="@call.DetailID"
+                                       data-a-number="@call.ANumber"
+                                       data-b-number="@call.BNumber">
+                            </div>
+                        </td>
                         <td>@call.ANumber</td>
                         <td>@call.BNumber</td>
                         <td data-datetime="@call.AccountingTime.ToString("yyyy-MM-ddTHH:mm:ss")" class="datetime-cell">
@@ -114,14 +138,10 @@
                                 <span class="badge bg-danger">پاسخ داده نشده</span>
                             }
                         </td>
-                        <td style="min-width: 160px;">
+                        <td style="min-width: 120px;">
                             <div class="d-flex gap-1 justify-content-center">
-                                @* لینک جزئیات ساده شده است. چون وضعیت فیلتر در TempData ذخیره شده، نیازی به ارسال پارامتر نیست. *@
                                 <a asp-action="Details" asp-route-id="@call.DetailID" class="btn btn-sm btn-outline-primary" title="نمایش جزئیات">
                                     <i class="fas fa-eye"></i>
-                                </a>
-                                <a asp-action="ExportDetails" asp-route-id="@call.DetailID" class="btn btn-sm btn-outline-success" title="اکسپورت جزئیات">
-                                    <i class="fas fa-file-export"></i>
                                 </a>
                             </div>
                         </td>
@@ -131,7 +151,7 @@
             else
             {
                 <tr>
-                    <td colspan="8" class="text-center text-muted">هیچ تماسی یافت نشد</td>
+                    <td colspan="9" class="text-center text-muted">هیچ تماسی یافت نشد</td>
                 </tr>
             }
         </tbody>
@@ -241,6 +261,245 @@
 @* --- اسکریپت اختصاصی این Partial View --- *@
 <script>
     (function() {
+        // کلید ذخیره‌سازی در localStorage
+        const SELECTED_CALLS_KEY = 'selected_call_ids_v2';
+        const SELECTED_CALLS_DATA_KEY = 'selected_call_data_v2';
+        
+        // مدیریت انتخاب‌ها
+        let selectedCalls = new Set();
+        let selectedCallsData = new Map(); // برای ذخیره اطلاعات اضافی
+
+        // بارگذاری انتخاب‌های قبلی از localStorage
+        function loadSelectedCalls() {
+            try {
+                const savedIds = JSON.parse(localStorage.getItem(SELECTED_CALLS_KEY) || '[]');
+                const savedData = JSON.parse(localStorage.getItem(SELECTED_CALLS_DATA_KEY) || '{}');
+                
+                selectedCalls = new Set(savedIds);
+                selectedCallsData = new Map(Object.entries(savedData));
+                
+                updateSelectedCount();
+                updateCheckboxes();
+                toggleBulkExportSection();
+            } catch (e) {
+                console.error('Error loading selected calls:', e);
+                clearAllSelection();
+            }
+        }
+
+        // ذخیره انتخاب‌ها در localStorage
+        function saveSelectedCalls() {
+            try {
+                localStorage.setItem(SELECTED_CALLS_KEY, JSON.stringify(Array.from(selectedCalls)));
+                
+                const dataObj = {};
+                selectedCallsData.forEach((value, key) => {
+                    dataObj[key] = value;
+                });
+                localStorage.setItem(SELECTED_CALLS_DATA_KEY, JSON.stringify(dataObj));
+            } catch (e) {
+                console.error('Error saving selected calls:', e);
+            }
+        }
+
+        // اضافه کردن تماس به انتخاب‌ها
+        function addCallToSelection(callId, aNumber, bNumber) {
+            selectedCalls.add(callId.toString());
+            selectedCallsData.set(callId.toString(), {
+                callId: callId,
+                aNumber: aNumber,
+                bNumber: bNumber,
+                selectedAt: new Date().toISOString()
+            });
+            updateSelectedCount();
+            toggleBulkExportSection();
+            saveSelectedCalls();
+        }
+
+        // حذف تماس از انتخاب‌ها
+        function removeCallFromSelection(callId) {
+            selectedCalls.delete(callId.toString());
+            selectedCallsData.delete(callId.toString());
+            updateSelectedCount();
+            toggleBulkExportSection();
+            saveSelectedCalls();
+        }
+
+        // به‌روزرسانی تعداد انتخاب‌شده
+        function updateSelectedCount() {
+            const badge = document.getElementById('selectedCountBadge');
+            if (badge) {
+                badge.textContent = `${selectedCalls.size} انتخاب شده`;
+            }
+        }
+
+        // نمایش/پنهان بخش اکسپورت انتخابی
+        function toggleBulkExportSection() {
+            const section = document.getElementById('bulkExportSection');
+            if (section) {
+                if (selectedCalls.size > 0) {
+                    section.classList.remove('d-none');
+                } else {
+                    section.classList.add('d-none');
+                }
+            }
+        }
+
+        // به‌روزرسادی چک‌باکس‌ها
+        function updateCheckboxes() {
+            document.querySelectorAll('.call-checkbox').forEach(checkbox => {
+                const callId = checkbox.dataset.callId;
+                checkbox.checked = selectedCalls.has(callId);
+                
+                // بروزرسانی وضعیت ردیف
+                const row = checkbox.closest('tr');
+                if (row) {
+                    if (checkbox.checked) {
+                        row.classList.add('table-primary');
+                    } else {
+                        row.classList.remove('table-primary');
+                    }
+                }
+            });
+            
+            // بروزرسانی چک‌باکس "انتخاب همه"
+            updateSelectAllCheckbox();
+        }
+
+        // بروزرسانی چک‌باکس "انتخاب همه"
+        function updateSelectAllCheckbox() {
+            const selectAll = document.getElementById('selectAllCurrentPage');
+            if (!selectAll) return;
+            
+            const visibleCheckboxes = Array.from(document.querySelectorAll('.call-checkbox:not([style*="display: none"])'));
+            if (visibleCheckboxes.length === 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+                return;
+            }
+            
+            const checkedCount = visibleCheckboxes.filter(cb => cb.checked).length;
+            
+            if (checkedCount === 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+            } else if (checkedCount === visibleCheckboxes.length) {
+                selectAll.checked = true;
+                selectAll.indeterminate = false;
+            } else {
+                selectAll.checked = false;
+                selectAll.indeterminate = true;
+            }
+        }
+
+        // انتخاب تمام ردیف‌های صفحه جاری
+        function selectAllCurrentPage() {
+            const checkboxes = document.querySelectorAll('.call-checkbox:not([style*="display: none"])');
+            checkboxes.forEach(checkbox => {
+                const callId = checkbox.dataset.callId;
+                const aNumber = checkbox.dataset.aNumber;
+                const bNumber = checkbox.dataset.bNumber;
+                
+                if (!checkbox.checked) {
+                    addCallToSelection(callId, aNumber, bNumber);
+                }
+            });
+            updateCheckboxes();
+        }
+
+        // عدم انتخاب تمام ردیف‌های صفحه جاری
+        function deselectAllCurrentPage() {
+            const checkboxes = document.querySelectorAll('.call-checkbox:not([style*="display: none"])');
+            checkboxes.forEach(checkbox => {
+                const callId = checkbox.dataset.callId;
+                if (checkbox.checked) {
+                    removeCallFromSelection(callId);
+                }
+            });
+            updateCheckboxes();
+        }
+
+        // انتخاب تمام صفحات
+        function selectAllPages() {
+            if (typeof showToast === 'function') {
+                showToast('برای انتخاب تمام صفحات، لطفاً ابتدا گزینه "خروجی تمام نتایج" را استفاده کنید.', 'info');
+            } else {
+                alert('برای انتخاب تمام صفحات، لطفاً ابتدا گزینه "خروجی تمام نتایج" را استفاده کنید.');
+            }
+        }
+
+        // عدم انتخاب تمام صفحات
+        function deselectAllPages() {
+            clearAllSelection();
+        }
+
+        // پاک کردن تمام انتخاب‌ها
+        function clearAllSelection() {
+            selectedCalls.clear();
+            selectedCallsData.clear();
+            updateSelectedCount();
+            toggleBulkExportSection();
+            updateCheckboxes();
+            saveSelectedCalls();
+        }
+
+        // اکسپورت موارد انتخابی
+        function exportSelectedCalls() {
+            if (selectedCalls.size === 0) {
+                if (typeof showToast === 'function') {
+                    showToast('لطفاً حداقل یک مورد را انتخاب کنید', 'warning');
+                } else {
+                    alert('لطفاً حداقل یک مورد را انتخاب کنید');
+                }
+                return;
+            }
+
+            // ساخت آرایه از اطلاعات انتخاب‌شده
+            const selectedData = Array.from(selectedCallsData.values());
+            
+            // درخواست به سرور برای اکسپورت
+            fetch('/Call/ExportSelectedCalls', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                },
+                body: JSON.stringify({
+                    selectedCallIds: Array.from(selectedCalls),
+                    selectedCallsData: selectedData
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('خطا در اکسپورت');
+            })
+            .then(blob => {
+                // ایجاد لینک دانلود
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `SelectedCalls_${new Date().toISOString().slice(0, 19).replace(/[:]/g, '-')}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                if (typeof showToast === 'function') {
+                    showToast('اکسپورت با موفقیت انجام شد', 'success');
+                }
+            })
+            .catch(error => {
+                console.error('Export error:', error);
+                if (typeof showToast === 'function') {
+                    showToast('خطا در اکسپورت داده‌ها', 'error');
+                } else {
+                    alert('خطا در اکسپورت داده‌ها');
+                }
+            });
+        }
+
         // تابعی برای فیلتر کردن سطرها (سمت کلاینت) و جستجوی عمیق (سمت سرور)
         function handleClientSideFilter(isDeepSearch = false) {
             const allRows = document.querySelectorAll('#search-results-container tbody tr');
@@ -309,8 +568,8 @@
 
             // منطق پیشرفته: نمایش روابط بین شماره‌ها
             allRows.forEach(row => {
-                const aNum = row.cells[0].textContent.trim();
-                const bNum = row.cells[1].textContent.trim();
+                const aNum = row.cells[1].textContent.trim(); // سلول شماره مبدأ
+                const bNum = row.cells[2].textContent.trim(); // سلول شماره مقصد
 
                 let isVisible = false;
 
@@ -332,6 +591,9 @@
 
                 row.style.display = isVisible ? '' : 'none';
             });
+            
+            // بعد از فیلتر، چک‌باکس انتخاب همه را به‌روزرسانی کن
+            setTimeout(updateSelectAllCheckbox, 100);
         }
 
         // تابع مرتب‌سازی
@@ -359,16 +621,16 @@
                         bValue = bTimeElem ? new Date(bTimeElem.dataset.datetime) : new Date(0);
                         break;
                     case 'ANumber':
-                        aValue = a.cells[0].textContent.trim();
-                        bValue = b.cells[0].textContent.trim();
-                        break;
-                    case 'BNumber':
-                        aValue = a.cells[1].textContent.trim();
+                        aValue = a.cells[1].textContent.trim(); // سلول شماره مبدأ
                         bValue = b.cells[1].textContent.trim();
                         break;
+                    case 'BNumber':
+                        aValue = a.cells[2].textContent.trim(); // سلول شماره مقصد
+                        bValue = b.cells[2].textContent.trim();
+                        break;
                     case 'Length':
-                        aValue = parseInt(a.cells[3].textContent.trim()) || 0;
-                        bValue = parseInt(b.cells[3].textContent.trim()) || 0;
+                        aValue = parseInt(a.cells[4].textContent.trim()) || 0; // سلول مدت زمان
+                        bValue = parseInt(b.cells[4].textContent.trim()) || 0;
                         break;
                     default:
                         return 0;
@@ -381,10 +643,56 @@
 
             tbody.innerHTML = '';
             rows.forEach(row => tbody.appendChild(row));
+            
+            // بعد از مرتب‌سازی، چک‌باکس‌ها را به‌روزرسانی کن
+            updateCheckboxes();
         }
 
         // اتصال رویدادها بعد از لود شدن این پارشیال
         function initClientSideFilters() {
+            // بارگذاری انتخاب‌های قبلی
+            loadSelectedCalls();
+
+            // اتصال چک‌باکس‌های تک‌تک ردیف‌ها
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('call-checkbox')) {
+                    const callId = e.target.dataset.callId;
+                    const aNumber = e.target.dataset.aNumber;
+                    const bNumber = e.target.dataset.bNumber;
+                    
+                    if (e.target.checked) {
+                        addCallToSelection(callId, aNumber, bNumber);
+                    } else {
+                        removeCallFromSelection(callId);
+                    }
+                    updateCheckboxes();
+                }
+            });
+
+            // اتصال چک‌باکس انتخاب همه
+            const selectAll = document.getElementById('selectAllCurrentPage');
+            if (selectAll) {
+                selectAll.addEventListener('change', function() {
+                    if (this.checked) {
+                        selectAllCurrentPage();
+                    } else {
+                        deselectAllCurrentPage();
+                    }
+                });
+            }
+
+            // اتصال دکمه‌های اکسپورت
+            const exportSelectedBtn = document.getElementById('btnExportSelected');
+            if (exportSelectedBtn) {
+                exportSelectedBtn.addEventListener('click', exportSelectedCalls);
+            }
+
+            // اتصال دکمه پاک کردن همه
+            const clearAllBtn = document.getElementById('btnClearAllSelection');
+            if (clearAllBtn) {
+                clearAllBtn.addEventListener('click', clearAllSelection);
+            }
+
             // اتصال به دراپ‌داون‌ها برای فیلتر سریع
             const clientANumberSelect = document.getElementById('client-anumber-select');
             const clientBNumberSelect = document.getElementById('client-bnumber-select');
@@ -419,3 +727,26 @@
         }
     })();
 </script>
+
+<style>
+    .call-checkbox:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    tr.table-primary {
+        background-color: rgba(13, 110, 253, 0.15) !important;
+    }
+    
+    #bulkExportSection {
+        transition: all 0.3s ease;
+    }
+    
+    .form-check-input {
+        cursor: pointer;
+    }
+    
+    .form-check-label {
+        cursor: pointer;
+    }
+</style>

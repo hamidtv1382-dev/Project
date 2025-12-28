@@ -1,0 +1,5 @@
+2025-12-24 12:01:09	User: user@analysis.com	Records: 4999951-5000000	Count: 50
+2025-12-24 12:01:31	User: user@analysis.com	Records: 4999996-4999999	Count: 3
+2025-12-24 12:02:33	User: user@analysis.com	Records: 5140771-5140771	Count: 1
+2025-12-24 12:02:38	User: user@analysis.com	Records: 5140767-5140771	Count: 2
+2025-12-28 08:51:16	User: user@analysis.com	Records: 4999901-5000000	Count: 100

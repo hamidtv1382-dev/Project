@@ -31,5 +31,13 @@ namespace AnalysisCallUser._01_Domain.Core.DTOs
         public int PageSize { get; set; } = 50;
         public bool IsDeepSearch { get; set; } = false;
         public bool BidirectionalSearch { get; set; } = true;
+        public bool WeightedSearch { get; set; } = false;
+        public bool IncludeReversePairs { get; set; } = false;
+        public int MinWeight { get; set; } = 1;
+
+        // ✅ تغییر جدید: فیلتر حداقل طول تماس (برای تماس‌های موفق)
+        public int? MinLength { get; set; }
+
+        public List<string> SearchNumbers { get; set; } = new List<string>();
     }
 }

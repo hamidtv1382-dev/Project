@@ -46,9 +46,31 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">صفحه اصلی</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Call" asp-action="Search">جستجوی تماس</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="callDropdown"
+                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                تماس‌ها
+                            </a>
+                            <ul class="dropdown-menu text-end" aria-labelledby="callDropdown">
+                                <li>
+                                    <a class="dropdown-item"
+                                       asp-area=""
+                                       asp-controller="Call"
+                                       asp-action="Search">
+                                        جستجوی تماس
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item"
+                                       asp-area=""
+                                       asp-controller="Call"
+                                       asp-action="WeightedSearch">
+                                        جستجوی وزنی تماس
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
+
                          @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
                         {
                         <li class="nav-item">
