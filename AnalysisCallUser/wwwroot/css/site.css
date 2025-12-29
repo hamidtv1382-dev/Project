@@ -1505,6 +1505,15 @@ footer {
     min-height: calc(100vh - 80px);
 }
 
+@keyframes spin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
 /* --- هدر صفحه --- */
 .page-header {
     display: flex;

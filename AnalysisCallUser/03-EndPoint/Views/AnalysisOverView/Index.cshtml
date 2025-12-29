@@ -1,0 +1,677 @@
+﻿@{
+    // Layout را کامنت نکنید چون در ویو اصلی استفاده می‌شود،
+    // اما اگر لایوت را از بالای فایل صدا زده‌اید نیازی به تگ html ندارید.
+    // ViewData["Title"] = "تحلیل کلی تماس‌ها";
+}
+
+<!-- استایل‌های اختصاصی این صفحه -->
+<style>
+    /* تنظیمات کلی */
+    .stat-card.bg-primary {
+        background-color: #6f42c1 !important;
+        border-right-color: #5a32a3 !important;
+    }
+
+    .stat-card.bg-success {
+        background-color: #198754;
+        border-right-color: #146c43;
+    }
+
+    .stat-card.bg-danger {
+        background-color: #dc3545;
+        border-right-color: #b02a37;
+    }
+
+    .stat-card.bg-info {
+        background-color: #0dcaf0;
+        border-right-color: #0aa2c0;
+    }
+
+    .stat-card.bg-secondary {
+        background-color: #6c757d;
+        border-right-color: #545b62;
+    }
+
+    .stat-card {
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: none;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border-right: 5px solid;
+        color: white;
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+    .card {
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: none;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        height: 100%; /* کارت‌ها ارتفاع کامل ربع را بگیرند */
+    }
+
+    /* استایل اختصاصی برای گرید 4 ربع */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* دو ستون مساوی */
+        grid-template-rows: auto 400px; /* ردیف اول: Auto (ارتفاع محتوا)، ردیف دوم: ارتفاع ثابت برای نمودارها */
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .quadrant {
+        background: #fff;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* استایل اسکرول برای نمودارهای کوچک - دو به دو نمایش */
+    .scrolling-pie-container {
+        display: flex;
+        overflow-x: auto;
+        gap: 20px;
+        padding: 10px 5px 15px 5px;
+        align-items: stretch;
+        height: 100%;
+        min-height: 220px;
+        scrollbar-width: thin;
+        scrollbar-color: #6f42c1 #f1f1f1;
+        flex-wrap: nowrap;
+    }
+
+        /* استایل اسکرول بار */
+        .scrolling-pie-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .scrolling-pie-container::-webkit-scrollbar-thumb {
+            background: #6f42c1;
+            border-radius: 4px;
+        }
+
+        .scrolling-pie-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        /* افکت هنگام اسکرول */
+        .scrolling-pie-container::-webkit-scrollbar-thumb:hover {
+            background: #5a32a3;
+        }
+
+    /* ظرف نمودار کوچک - دو به دو */
+    .mini-pie-wrapper {
+        flex: 0 0 auto;
+        width: calc(50% - 10px); /* عرض هر کدام تقریباً نصف با احتساب گپ */
+        min-width: 280px; /* حداقل عرض برای هر نمودار */
+        text-align: center;
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+        .mini-pie-wrapper:hover {
+            border-color: #6f42c1;
+            box-shadow: 0 4px 8px rgba(111, 66, 193, 0.1);
+        }
+
+    .mini-pie-canvas {
+        width: 180px !important;
+        height: 180px !important;
+        margin: 0 auto;
+    }
+
+    /* نشانگر اسکرول */
+    .scroll-hint {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        background: rgba(111, 66, 193, 0.1);
+        color: #6f42c1;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .chart-container-main {
+        position: relative;
+        height: 100%;
+        width: 100%;
+        min-height: 350px;
+    }
+
+    .form-label {
+        font-size: 0.9rem;
+        color: #555;
+        font-weight: bold;
+    }
+
+    /* فوتر خالی */
+    .empty-quadrant {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ccc;
+        border: 2px dashed #eee;
+        background-color: #fafafa;
+    }
+
+    /* ربع بالا چپ - استایل خاص برای قاب نمودارهای اسکرولی */
+    #topLeftQuadrant {
+        position: relative;
+        overflow: hidden;
+    }
+</style>
+
+<!-- فیلترها و کارت‌های آماری (با عرض کامل) -->
+<div class="container-fluid mt-4 px-md-5">
+
+    <!-- هدر و فیلترها -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card p-4">
+                <h5 class="mb-3 fw-bold" style="color: #6f42c1;"><i class="bi bi-sliders"></i> فیلترهای گزارش</h5>
+
+                <div class="row g-3 align-items-end">
+                    <!-- فیلتر ماهانه -->
+                    <div class="col-md-2">
+                        <label class="form-label">سال:</label>
+                        <select id="selectYear" class="form-select">
+                            <option value="1403">1403</option>
+                            <option value="1402" selected>1402</option>
+                            <option value="1401">1401</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">ماه:</label>
+                        <select id="selectMonth" class="form-select">
+                            <option value="">کل سال (بدون انتخاب ماه)</option>
+                            <option value="1">فروردین</option>
+                            <option value="2">اردیبهشت</option>
+                            <option value="3">خرداد</option>
+                            <option value="4">تیر</option>
+                            <option value="5">مرداد</option>
+                            <option value="6">شهریور</option>
+                            <option value="7">مهر</option>
+                            <option value="8">آبان</option>
+                            <option value="9">آذر</option>
+                            <option value="10">دی</option>
+                            <option value="11">بهمن</option>
+                            <option value="12">اسفند</option>
+                        </select>
+                    </div>
+
+                    <div class="col-auto"><div class="vr h-100 mx-2"></div></div>
+
+                    <div class="col-md-2">
+                        <label class="form-label">از تاریخ:</label>
+                        <input type="text" id="startDate" class="form-control text-center" placeholder="مثلا 1402/01/01" readonly>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">تا تاریخ:</label>
+                        <input type="text" id="endDate" class="form-control text-center" placeholder="مثلا 1402/12/29" readonly>
+                    </div>
+
+                    <div class="col-md-2">
+                        <button id="btnFilter" class="btn w-100 shadow-sm" style="background-color: #6f42c1; color: white; border: none;">
+                            <i class="bi bi-filter-circle"></i> اعمال فیلتر
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <small id="dateRangeDisplay" class="text-muted"></small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- کارت‌های آماری (4 کارت در یک ردیف) -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card bg-primary p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0 opacity-75">کل تماس‌ها</h6>
+                        <h2 class="fw-bold mb-0" id="totalCalls">0</h2>
+                    </div>
+                    <i class="bi bi-telephone-fill fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card bg-success p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0 opacity-75">پاسخ داده شده</h6>
+                        <h2 class="fw-bold mb-0" id="totalSuccess">0</h2>
+                    </div>
+                    <i class="bi bi-check-circle-fill fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card bg-danger p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0 opacity-75">پاسخ داده نشده</h6>
+                        <h2 class="fw-bold mb-0" id="totalFail">0</h2>
+                    </div>
+                    <i class="bi bi-x-circle-fill fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card bg-info p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0 opacity-75">نرخ موفقیت</h6>
+                        <h2 class="fw-bold mb-0" id="successRate">0%</h2>
+                    </div>
+                    <i class="bi bi-pie-chart-fill fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- داشبورد 4 ربع -->
+    <div class="dashboard-grid">
+
+        <!-- ربع بالا چپ: نمودارهای دایره‌ای کشورها (اسکرول خور) -->
+        <div class="quadrant" id="topLeftQuadrant">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-muted mb-0">تحلیل کشورها بر اساس تایپ</h6>
+                <span class="scroll-hint" id="scrollHint" style="display: none;">
+                    <i class="bi bi-arrow-left-right"></i> اسکرول کنید
+                </span>
+            </div>
+            <div id="topLeftContainer" class="scrolling-pie-container">
+                <!-- نمودارها اینجا با JS ساخته می‌شوند -->
+                <div class="w-100 text-center text-muted mt-5">داده‌ای برای نمایش وجود ندارد</div>
+            </div>
+        </div>
+
+        <!-- ربع بالا راست: نمودار دایره‌ای کلی تایپ‌ها -->
+        <div class="quadrant">
+            <h6 class="fw-bold text-center mb-3 text-muted">سهم انواع تماس‌ها (تایپ)</h6>
+            <div class="chart-container-main">
+                <canvas id="mainTypePieChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ربع پایین چپ: نمودار خطی (همان قبلی) -->
+        <div class="quadrant">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-muted mb-0">نمودار روند تماس‌ها (روزانه)</h6>
+                <button class="btn btn-sm btn-outline-secondary" onclick="resetLineZoom()">
+                    <i class="bi bi-zoom-out"></i> ریست
+                </button>
+            </div>
+            <div class="chart-container-main" style="min-height: 300px;">
+                <canvas id="callsLineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ربع پایین راست: خالی -->
+        <div class="quadrant empty-quadrant">
+            <div>
+                <i class="bi bi-plus-circle fs-1"></i>
+                <p class="mt-2">محل قرارگیری نمودار آینده</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- اسکریپت‌ها -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let lineChart = null; // نمودار خطی
+        let mainPieChart = null; // نمودار دایره‌ای اصلی (تایپ‌ها)
+        let miniPieCharts = []; // آرایه‌ای برای نگهداری نمودارهای کوچک کشورها (برای حذف در هنگام رندر مجدد)
+
+        const ctxLine = document.getElementById('callsLineChart').getContext('2d');
+        const ctxMainPie = document.getElementById('mainTypePieChart').getContext('2d');
+
+        // آرایه تعداد روزهای ماه‌های شمسی
+        const persianMonthDays = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+
+        // تابع آپدیت خودکار فیلدهای تاریخ
+        function updateDateInputs() {
+            const year = document.getElementById('selectYear').value;
+            const month = document.getElementById('selectMonth').value;
+            const startInput = document.getElementById('startDate');
+            const endInput = document.getElementById('endDate');
+
+            if (month && month !== "") {
+                const lastDay = persianMonthDays[parseInt(month) - 1];
+                startInput.value = `${year}/${month.padStart(2, '0')}/01`;
+                endInput.value = `${year}/${month.padStart(2, '0')}/${lastDay}`;
+            } else if (year) {
+                startInput.value = `${year}/01/01`;
+                endInput.value = `${year}/12/29`;
+            } else {
+                startInput.value = "";
+                endInput.value = "";
+            }
+        }
+
+        document.getElementById('selectYear').addEventListener('change', updateDateInputs);
+        document.getElementById('selectMonth').addEventListener('change', updateDateInputs);
+        updateDateInputs();
+
+        // --- تنظیمات نمودار خطی (همان قبلی) ---
+        function initLineChart(labels, successData, failData, displayDates) {
+            if (lineChart) lineChart.destroy();
+
+            lineChart = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'پاسخ داده شده (موفق)',
+                            data: successData,
+                            borderColor: '#198754',
+                            backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 2,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: 'پاسخ داده نشده (ناموفق)',
+                            data: failData,
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 2,
+                            pointHoverRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Vazirmatn' } } },
+                        tooltip: {
+                            titleFont: { family: 'Vazirmatn' },
+                            bodyFont: { family: 'Vazirmatn' },
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    const index = tooltipItems[0].dataIndex;
+                                    return displayDates[index];
+                                }
+                            }
+                        },
+                        zoom: {
+                            pan: { enabled: true, mode: 'x' },
+                            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'تعداد تماس', font: {family: 'Vazirmatn'} } },
+                        x: { ticks: { font: { family: 'Vazirmatn' }, maxTicksLimit: 10 }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        window.resetLineZoom = function() {
+            if(lineChart) lineChart.resetZoom();
+        };
+
+        // --- تابع ساخت نمودار دایره‌ای اصلی (تایپ‌ها) ---
+        function initMainPieChart(typesData) {
+            if (mainPieChart) mainPieChart.destroy();
+
+            const labels = typesData.map(t => t.typeName);
+            const dataTotal = typesData.map(t => t.totalCount);
+            // رنگ‌های مختلف برای هر تایپ
+            const backgroundColors = ['#6f42c1', '#198754', '#0dcaf0', '#ffc107', '#dc3545', '#fd7e14', '#6610f2'];
+
+            mainPieChart = new Chart(ctxMainPie, {
+                type: 'doughnut', // نوع دایره‌ای توخالی (زیباتر برای داشبورد)
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataTotal,
+                        backgroundColor: backgroundColors.slice(0, labels.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { font: { family: 'Vazirmatn' } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const raw = context.raw;
+                                    const index = context.dataIndex;
+                                    const typeInfo = typesData[index];
+                                    const success = typeInfo.successCount;
+                                    const fail = typeInfo.failCount;
+                                    const percentage = ((raw / typesData.reduce((a, b) => a + b.totalCount, 0)) * 100).toFixed(1);
+                                    return ` ${typeInfo.typeName}: ${raw} (${percentage}%) [موفق: ${success}, ناموفق: ${fail}]`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- تابع ساخت نمودارهای کوچک کشورها (Top Left) ---
+        function initCountryCharts(typesData) {
+            const container = document.getElementById('topLeftContainer');
+            const scrollHint = document.getElementById('scrollHint');
+
+            // پاک کردن نمودارهای قبلی
+            miniPieCharts.forEach(chart => {
+                if (chart && typeof chart.destroy === 'function') {
+                    chart.destroy();
+                }
+            });
+            miniPieCharts = [];
+            container.innerHTML = '';
+
+            if (!typesData || typesData.length === 0) {
+                container.innerHTML = '<div class="w-100 text-center text-muted mt-5">داده‌ای برای نمایش وجود ندارد</div>';
+                scrollHint.style.display = 'none';
+                return;
+            }
+
+            // اگر بیش از 2 نوع تایپ داریم، نشانگر اسکرول را نمایش بده
+            if (typesData.length > 2) {
+                scrollHint.style.display = 'flex';
+            } else {
+                scrollHint.style.display = 'none';
+            }
+
+            // ایجاد نمودار برای هر تایپ
+            typesData.forEach((type, typeIndex) => {
+                if (!type.countries || type.countries.length === 0) return;
+
+                // ایجاد کارت برای هر تایپ
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mini-pie-wrapper';
+
+                // عنوان تایپ
+                const title = document.createElement('h6');
+                title.className = 'fw-bold text-truncate mb-2';
+                title.innerText = type.typeName;
+                title.style.color = '#6f42c1';
+                title.title = type.typeName; // tooltip برای متن طولانی
+
+                // اطلاعات آماری کوچک
+                const stats = document.createElement('div');
+                stats.className = 'small text-muted mb-2';
+                stats.innerHTML = `
+                    <span class="badge bg-success me-1">موفق: ${type.successCount}</span>
+                    <span class="badge bg-danger me-1">ناموفق: ${type.failCount}</span>
+                    <span class="badge bg-primary">کل: ${type.totalCount}</span>
+                `;
+
+                wrapper.appendChild(title);
+                wrapper.appendChild(stats);
+
+                // بوم نقاشی (Canvas)
+                const canvas = document.createElement('canvas');
+                canvas.className = 'mini-pie-canvas';
+                // یک ID یکتا برای کنترلر چارت جی اس
+                const canvasId = `miniChart_${type.typeID || typeIndex}`;
+                canvas.id = canvasId;
+
+                wrapper.appendChild(canvas);
+                container.appendChild(wrapper);
+
+                // ساخت نمودار
+                const ctxMini = document.getElementById(canvasId).getContext('2d');
+
+                // محاسبه درصد برای کشورها
+                const totalCallsForType = type.totalCount;
+
+                const chart = new Chart(ctxMini, {
+                    type: 'pie',
+                    data: {
+                        labels: type.countries.map(c => c.countryName),
+                        datasets: [{
+                            data: type.countries.map(c => c.totalCount),
+                            backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6c757d', '#20c997', '#e83e8c', '#fd7e14'], // رنگ‌های متنوع
+                            borderWidth: 1,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: false, // چون عرض ثابت داریم
+                        plugins: {
+                            legend: {
+                                display: type.countries.length <= 5, // فقط اگر تعداد کشورها کم است نمایش بده
+                                position: 'bottom',
+                                labels: {
+                                    font: {
+                                        family: 'Vazirmatn',
+                                        size: 9
+                                    },
+                                    padding: 10,
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const cIndex = context.dataIndex;
+                                        const cInfo = type.countries[cIndex];
+                                        const percentage = ((cInfo.totalCount / totalCallsForType) * 100).toFixed(1);
+                                        return ` ${cInfo.countryName}: ${cInfo.totalCount} (${percentage}%)`;
+                                    },
+                                    afterLabel: function(context) {
+                                        const cIndex = context.dataIndex;
+                                        const cInfo = type.countries[cIndex];
+                                        return [`موفق: ${cInfo.successCount}`, `ناموفق: ${cInfo.failCount}`];
+                                    }
+                                },
+                                titleFont: { family: 'Vazirmatn', size: 12 },
+                                bodyFont: { family: 'Vazirmatn', size: 11 }
+                            }
+                        }
+                    }
+                });
+
+                miniPieCharts.push(chart);
+            });
+        }
+
+        // --- تابع فراخوانی API ---
+        async function loadData() {
+            const yearVal = document.getElementById('selectYear').value;
+            const monthVal = document.getElementById('selectMonth').value;
+            const btn = document.getElementById('btnFilter');
+
+            let params = new URLSearchParams();
+
+            if (monthVal) {
+                params.append('year', yearVal);
+                params.append('month', monthVal);
+            } else if (yearVal) {
+                params.append('year', yearVal);
+            } else {
+                alert('لطفاً سال را انتخاب کنید.');
+                return;
+            }
+
+            const originalBtnText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> پردازش...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`GetChartData?${params.toString()}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    // 1. بروزرسانی آمار بالا
+                    document.getElementById('totalCalls').innerText = result.statistics.totalCalls.toLocaleString('fa-IR');
+                    document.getElementById('totalSuccess').innerText = result.statistics.totalSuccess.toLocaleString('fa-IR');
+                    document.getElementById('totalFail').innerText = result.statistics.totalFail.toLocaleString('fa-IR');
+                    document.getElementById('successRate').innerText = result.statistics.successRate + '%';
+                    document.getElementById('dateRangeDisplay').innerText = `بازه انتخابی: ${result.dateRange.persianStart} تا ${result.dateRange.persianEnd}`;
+
+                    // 2. بروزرسانی نمودار خطی (پایین چپ)
+                    const labels = result.data.map(d => d.displayDate);
+                    const displayDatesFull = result.data.map(d => d.displayDate);
+                    const successData = result.data.map(d => d.success);
+                    const failData = result.data.map(d => d.fail);
+                    initLineChart(labels, successData, failData, displayDatesFull);
+
+                    // 3. بروزرسانی نمودارهای دایره‌ای
+                    // بررسی وجود داده تایپ (اگر کنترلر شما قدیمی بود و این فیلد را نمی‌فرستاد، ارور ندهد)
+                    if (result.typeBreakdown && Array.isArray(result.typeBreakdown)) {
+                        // ربع بالا راست: تایپ کلی
+                        initMainPieChart(result.typeBreakdown);
+                        // ربع بالا چپ: کشورها
+                        initCountryCharts(result.typeBreakdown);
+                    }
+
+                } else {
+                    alert(result.message || 'خطایی رخ داد');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('ارتباط با سرور برقرار نشد');
+            } finally {
+                btn.innerHTML = originalBtnText;
+                btn.disabled = false;
+            }
+        }
+
+        // لود اولیه
+        loadData();
+        document.getElementById('btnFilter').addEventListener('click', loadData);
+    });
+</script>

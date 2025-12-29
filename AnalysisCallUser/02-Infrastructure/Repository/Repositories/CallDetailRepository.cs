@@ -26,6 +26,8 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
             return _context.CallDetails.AsNoTracking();
         }
 
+        // --- تمام متدهای قبلی بدون تغییر هستند ---
+
         public async Task<IEnumerable<CallDetail>> GetFilteredAsync(CallFilterDto filter)
         {
             var query = _context.CallDetails.AsNoTracking();
@@ -527,17 +529,14 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
             {
                 if (hasSourceNumbers && hasDestNumbers)
                 {
-                    // اگر هم مبدأ و هم مقصد وارد شده، فقط بین آنها جستجو کند
                     actualMode = WeightedSearchMode.SourceDestinationPairs;
                 }
                 else if (hasSourceNumbers)
                 {
-                    // اگر فقط مبدأ وارد شده، در کل دیتابیس برای مبدأ جستجو کند
                     actualMode = WeightedSearchMode.SourceOnly;
                 }
                 else if (hasDestNumbers)
                 {
-                    // اگر فقط مقصد وارد شده، در کل دیتابیس برای مقصد جستجو کند
                     actualMode = WeightedSearchMode.DestinationOnly;
                 }
             }
@@ -547,22 +546,18 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
             switch (actualMode)
             {
                 case WeightedSearchMode.SourceOnly:
-                    // جستجو برای شماره‌های مبدأ در کل دیتابیس
                     results = await ProcessSourceOnlySearch(query, filter);
                     break;
 
                 case WeightedSearchMode.DestinationOnly:
-                    // جستجو برای شماره‌های مقصد در کل دیتابیس
                     results = await ProcessDestinationOnlySearch(query, filter);
                     break;
 
                 case WeightedSearchMode.SourceDestinationPairs:
-                    // جستجو فقط بین جفت‌های وارد شده
                     results = await ProcessSourceDestinationPairsSearch(query, filter);
                     break;
             }
 
-            // فیلتر بر اساس حداقل وزن
             return results.Where(r => r.Weight >= filter.MinWeight)
                           .OrderByDescending(r => r.Weight)
                           .ToList();
@@ -574,8 +569,6 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
 
             foreach (var sourceNumber in filter.ANumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
             {
-                // پیدا کردن تمام تماس‌های این شماره مبدأ
-                // تغییر: فیلتر MinWeight را حذف کردیم تا همه تماس‌ها (حتی با وزن کم) بیایند
                 var calls = await query
                     .Where(x => x.ANumber == sourceNumber)
                     .GroupBy(x => x.BNumber)
@@ -585,7 +578,7 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                         Weight = g.Count(),
                         TotalLength = g.Sum(x => x.Length)
                     })
-                    .ToListAsync(); // فیلتر MinWeight بعداً در متد اصلی اعمال می‌شود
+                    .ToListAsync();
 
                 foreach (var call in calls)
                 {
@@ -609,7 +602,6 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
 
             foreach (var destNumber in filter.BNumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
             {
-                // تغییر: فیلتر MinWeight را حذف کردیم
                 var calls = await query
                     .Where(x => x.BNumber == destNumber)
                     .GroupBy(x => x.ANumber)
@@ -641,17 +633,14 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
         {
             var results = new List<WeightedCallResult>();
 
-            // ایجاد تمام ترکیب‌های ممکن بین مبدأ و مقصد
             foreach (var sourceNumber in filter.ANumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
             {
                 foreach (var destNumber in filter.BNumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
                 {
-                    // شمارش تماس‌های مستقیم
                     var directCalls = await query
                         .Where(x => x.ANumber == sourceNumber && x.BNumber == destNumber)
                         .CountAsync();
 
-                    // اگر جستجوی دوطرفه فعال باشد، تماس‌های معکوس هم محاسبه شود
                     int reverseCalls = 0;
                     if (filter.BidirectionalSearch)
                     {
@@ -662,10 +651,6 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
 
                     int totalWeight = directCalls + reverseCalls;
 
-                    // تغییر: شرط MinWeight را اینجا هم حذف کردیم تا محاسبات دقیق انجام شود
-                    // فیلتر نهایی در متد GetWeightedSearchAsync انجام می‌شود
-
-                    // محاسبه طول کل مکالمه
                     var directLength = await query
                         .Where(x => x.ANumber == sourceNumber && x.BNumber == destNumber)
                         .SumAsync(x => (int?)x.Length) ?? 0;
@@ -692,6 +677,85 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
             }
 
             return results;
+        }
+
+        // --- متد جدید برای داشبورد (اصلاح شده و بدون خطا) ---
+        public async Task<List<TypeBreakdownDto>> GetChartDataAsync(DateTime start, DateTime end)
+        {
+            // این کوئری از ایندکس ترکیبی (AccountingTime, TypeID, OriginCountryID) استفاده می‌کند
+            var query = _context.CallDetails
+                .AsNoTracking()
+                .Where(x => x.AccountingTime >= start && x.AccountingTime <= end)
+                .GroupBy(x => new { x.TypeID, TypeName = x.CallType != null ? x.CallType.TypeName : "ناشناس" })
+                .Select(g => new
+                {
+                    g.Key.TypeID,
+                    g.Key.TypeName,
+                    TotalCount = g.Count(),
+                    SuccessCount = g.Count(x => x.Answer == CallAnswerStatus.Answered),
+                    FailCount = g.Count(x => x.Answer != CallAnswerStatus.Answered),
+
+                    // محاسبه آمار کشورها به صورت لیست تو در تو
+                    CountryStats = g
+                        .GroupBy(x => new
+                        {
+                            CID = x.OriginCountryID,
+                            CName = x.OriginCountry != null ? x.OriginCountry.CountryName : "ناشناس"
+                        })
+                        .Select(cg => new
+                        {
+                            CID = cg.Key.CID,
+                            CName = cg.Key.CName,
+                            TotalCount = cg.Count(),
+                            SuccessCount = cg.Count(x => x.Answer == CallAnswerStatus.Answered),
+                            FailCount = cg.Count(x => x.Answer != CallAnswerStatus.Answered)
+                        })
+                        .OrderByDescending(c => c.TotalCount)
+                        .ToList()
+                })
+                .OrderByDescending(x => x.TotalCount);
+
+            var rawData = await query.ToListAsync();
+
+            // مپ کردن به DTO
+            var result = rawData.Select(item => new TypeBreakdownDto
+            {
+                TypeID = item.TypeID,
+                TypeName = item.TypeName,
+                TotalCount = item.TotalCount,
+                SuccessCount = item.SuccessCount,
+                FailCount = item.FailCount,
+                Countries = item.CountryStats.Select(c => new CountryBreakdownDto
+                {
+                    CountryID = c.CID,
+                    CountryName = c.CName,
+                    TotalCount = c.TotalCount,
+                    SuccessCount = c.SuccessCount,
+                    FailCount = c.FailCount
+                }).ToList()
+            }).ToList();
+
+            return result;
+        }
+
+        // --- DTO Classes for Dashboard ---
+        public class TypeBreakdownDto
+        {
+            public int TypeID { get; set; }
+            public string TypeName { get; set; }
+            public int TotalCount { get; set; }
+            public int SuccessCount { get; set; }
+            public int FailCount { get; set; }
+            public List<CountryBreakdownDto> Countries { get; set; }
+        }
+
+        public class CountryBreakdownDto
+        {
+            public int CountryID { get; set; }
+            public string CountryName { get; set; }
+            public int TotalCount { get; set; }
+            public int SuccessCount { get; set; }
+            public int FailCount { get; set; }
         }
     }
 }
