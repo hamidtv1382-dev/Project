@@ -7,7 +7,7 @@
 @{
     var tokenSet = Antiforgery.GetAndStoreTokens(Context);
 }
-<!-- استایل‌های جدید برای پاپ‌آپ اطلاعات شماره -->
+<!-- استایل‌ها -->
 <style>
     .phone-info-container {
         position: absolute;
@@ -41,7 +41,7 @@
             color: #6f42c1;
         }
 
-    /* استایل‌های سفارشی برای دراپ‌داون‌ها در تم روشن با هایلایت بنفش */
+    /* استایل دراپ‌داون */
     .custom-dropdown {
         width: 100%;
     }
@@ -60,8 +60,8 @@
 
         .custom-dropdown .dropdown-item {
             color: #212529 !important;
-            padding: 0.5rem 1rem; /* کاهش padding برای فونت کوچکتر */
-            font-size: 0.85rem; /* کاهش سایز فونت */
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
             text-align: right;
             transition: all 0.2s ease;
             border-radius: 0.25rem;
@@ -76,26 +76,14 @@
                 border-left: 3px solid #6f42c1;
             }
 
-            .custom-dropdown .dropdown-item.active,
-            .custom-dropdown .dropdown-item:active {
-                background-color: #6f42c1 !important;
-                color: #ffffff !important;
-                border-left: 3px solid #4a1e9e;
-            }
-
-            .custom-dropdown .dropdown-item:focus {
-                outline: none;
-                box-shadow: 0 0 0 0.25rem rgba(111, 66, 193, 0.25);
-            }
-
         .custom-dropdown .dropdown-toggle {
             background-color: #ffffff !important;
             border: 1px solid #ced4da !important;
             color: #212529 !important;
             text-align: right;
             width: 100%;
-            padding: 0.5rem 0.75rem; /* کاهش padding */
-            font-size: 0.85rem; /* کاهش سایز فونت */
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
             border-radius: 0.5rem;
             transition: all 0.3s ease;
             display: flex;
@@ -110,23 +98,6 @@
                 box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.15);
             }
 
-            .custom-dropdown .dropdown-toggle:focus,
-            .custom-dropdown .dropdown-toggle:active {
-                background-color: #ffffff !important;
-                border-color: #6f42c1 !important;
-                color: #212529 !important;
-                box-shadow: 0 0 0 0.25rem rgba(111, 66, 193, 0.25) !important;
-            }
-
-            .custom-dropdown .dropdown-toggle:disabled {
-                background-color: #f8f9fa !important;
-                border-color: #e9ecef !important;
-                color: #6c757d !important;
-                cursor: not-allowed;
-                opacity: 0.7;
-                font-size: 0.85rem; /* کاهش سایز فونت در حالت غیرفعال */
-            }
-
             .custom-dropdown .dropdown-toggle::after {
                 color: #6f42c1;
                 margin-right: auto;
@@ -138,7 +109,6 @@
             transform: rotate(180deg);
         }
 
-    /* استایل برای نمایش اطلاعات شماره تلفن */
     .phone-number-info {
         font-size: 0.8rem;
         margin-top: 0.25rem;
@@ -156,7 +126,6 @@
             color: #6f42c1;
         }
 
-    /* استایل برای آیکون اطلاعات */
     .phone-info-trigger {
         cursor: pointer;
         background-color: #f3e8ff;
@@ -171,7 +140,6 @@
             transform: scale(1.1);
         }
 
-    /* استایل برای فیلدهای اجباری تاریخ */
     .required-field label:after {
         content: " *";
         color: #dc3545;
@@ -190,9 +158,8 @@
     }
 </style>
 
-<!-- اضافه کردن کتابخانه jQuery که برای تقویم شمسی ضروری است -->
+<!-- Scripts Externos -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- افزودن کتابخانه تقویم شمسی -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@0.4.5/dist/css/persian-datepicker.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@0.4.5/dist/js/persian-datepicker.min.js"></script>
@@ -212,12 +179,11 @@
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="Filter.Page" id="Filter_Page" value="1" />
 
-                        <!-- فیلدهای تاریخ -->
+                        <!-- تاریخ -->
                         <div class="filter-section required-field">
                             <div class="filter-section-title">
                                 <i class="fas fa-calendar-alt"></i> بازه زمانی <span style="color: #dc3545; font-size: 0.9rem;">(اجباری)</span>
                             </div>
-                            <!-- هشدار انتخاب تاریخ -->
                             <div class="date-required-alert" id="dateRequiredAlert">
                                 <i class="fas fa-exclamation-triangle me-1"></i>
                                 لطفاً تاریخ شروع و پایان را انتخاب کنید
@@ -227,9 +193,7 @@
                                     <label asp-for="Filter.StartDate" class="form-label"></label>
                                     <div class="input-group">
                                         <input asp-for="Filter.StartDate" type="text" class="form-control persian-date-input required-date" placeholder="تاریخ شروع را انتخاب کنید" id="Filter_StartDate" maxlength="10" required />
-                                        <span class="input-group-text" id="startDateClear">
-                                            <i class="fas fa-times"></i>
-                                        </span>
+                                        <span class="input-group-text" id="startDateClear"><i class="fas fa-times"></i></span>
                                     </div>
                                     <div class="text-danger small" id="startDateError"></div>
                                 </div>
@@ -237,22 +201,18 @@
                                     <label asp-for="Filter.EndDate" class="form-label"></label>
                                     <div class="input-group">
                                         <input asp-for="Filter.EndDate" type="text" class="form-control persian-date-input required-date" placeholder="تاریخ پایان را انتخاب کنید" id="Filter_EndDate" maxlength="10" required />
-                                        <span class="input-group-text" id="endDateClear">
-                                            <i class="fas fa-times"></i>
-                                        </span>
+                                        <span class="input-group-text" id="endDateClear"><i class="fas fa-times"></i></span>
                                     </div>
                                     <div class="text-danger small" id="endDateError"></div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- فیلدهای شماره‌های مبدأ -->
+                        <!-- شماره‌های مبدأ -->
                         <div class="filter-section">
                             <div class="filter-section-title">
                                 <i class="fas fa-phone-alt"></i> شماره‌های مبدأ
-                                <button type="button" class="btn btn-sm btn-outline-info float-end" id="addANumber">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info float-end" id="addANumber"><i class="fas fa-plus"></i></button>
                             </div>
                             <div id="anumbers-container">
                                 <div class="filter-row anumber-row" data-index="0">
@@ -260,31 +220,21 @@
                                         <label class="form-label">شماره مبدأ 1</label>
                                         <div class="input-group">
                                             <input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" name="Filter.ANumbers" />
-                                            <button class="btn btn-outline-secondary remove-anumber" type="button" title="حذف شماره">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                            <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;">
-                                                <i class="fas fa-info-circle"></i>
-                                            </span>
-                                            <div class="phone-info-container" style="display: none;">
-                                                <div class="phone-info-content"></div>
-                                            </div>
+                                            <button class="btn btn-outline-secondary remove-anumber" type="button" title="حذف شماره"><i class="fas fa-times"></i></button>
+                                            <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;"><i class="fas fa-info-circle"></i></span>
+                                            <div class="phone-info-container" style="display: none;"><div class="phone-info-content"></div></div>
                                         </div>
-                                        <div class="phone-number-info" id="anumber-info-0" style="display: none;">
-                                            <i class="fas fa-map-marker-alt"></i> <span id="anumber-location-0"></span>
-                                        </div>
+                                        <div class="phone-number-info" id="anumber-info-0" style="display: none;"><i class="fas fa-map-marker-alt"></i> <span id="anumber-location-0"></span></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- فیلدهای شماره‌های مقصد -->
+                        <!-- شماره‌های مقصد -->
                         <div class="filter-section">
                             <div class="filter-section-title">
                                 <i class="fas fa-phone-alt"></i> شماره‌های مقصد
-                                <button type="button" class="btn btn-sm btn-outline-info float-end" id="addBNumber">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info float-end" id="addBNumber"><i class="fas fa-plus"></i></button>
                             </div>
                             <div id="bnumbers-container">
                                 <div class="filter-row bnumber-row" data-index="0">
@@ -292,19 +242,11 @@
                                         <label class="form-label">شماره مقصد 1</label>
                                         <div class="input-group">
                                             <input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" name="Filter.BNumbers" />
-                                            <button class="btn btn-outline-secondary remove-bnumber" type="button" title="حذف شماره">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                            <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;">
-                                                <i class="fas fa-info-circle"></i>
-                                            </span>
-                                            <div class="phone-info-container" style="display: none;">
-                                                <div class="phone-info-content"></div>
-                                            </div>
+                                            <button class="btn btn-outline-secondary remove-bnumber" type="button" title="حذف شماره"><i class="fas fa-times"></i></button>
+                                            <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;"><i class="fas fa-info-circle"></i></span>
+                                            <div class="phone-info-container" style="display: none;"><div class="phone-info-content"></div></div>
                                         </div>
-                                        <div class="phone-number-info" id="bnumber-info-0" style="display: none;">
-                                            <i class="fas fa-map-marker-alt"></i> <span id="bnumber-location-0"></span>
-                                        </div>
+                                        <div class="phone-number-info" id="bnumber-info-0" style="display: none;"><i class="fas fa-map-marker-alt"></i> <span id="bnumber-location-0"></span></div>
                                     </div>
                                 </div>
                             </div>
@@ -314,18 +256,14 @@
                         <div class="filter-section" id="origin-location-section">
                             <div class="filter-section-title">
                                 <i class="fas fa-map-marker-alt"></i> اطلاعات مکان مبدأ
-                                <button type="button" class="btn btn-sm btn-outline-info float-end" id="swapOriginDest">
-                                    <i class="fas fa-exchange-alt"></i>
-                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info float-end" id="swapOriginDest"><i class="fas fa-exchange-alt"></i></button>
                             </div>
                             <div class="filter-row">
                                 <div class="filter-field">
                                     <label asp-for="Filter.OriginCountryID" class="form-label"></label>
                                     <input type="hidden" asp-for="Filter.OriginCountryID" id="origin-country-input" />
                                     <div class="dropdown custom-dropdown" id="origin-country-dropdown">
-                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="origin-country-button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            انتخاب کنید
-                                        </button>
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="origin-country-button" data-bs-toggle="dropdown" aria-expanded="false">انتخاب کنید</button>
                                         <ul class="dropdown-menu" aria-labelledby="origin-country-button">
                                             <li><a class="dropdown-item" href="#" data-value="">همه</a></li>
                                             @if (Model.Countries != null)
@@ -342,12 +280,8 @@
                                     <label asp-for="Filter.OriginCityID" class="form-label"></label>
                                     <input type="hidden" asp-for="Filter.OriginCityID" id="origin-city-input" />
                                     <div class="dropdown custom-dropdown" id="origin-city-dropdown">
-                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="origin-city-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
-                                            ابتدا کشور را انتخاب کنید
-                                        </button>
-                                        <ul class="dropdown-menu" aria-labelledby="origin-city-button">
-                                            <li><a class="dropdown-item" href="#" data-value="">همه</a></li>
-                                        </ul>
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="origin-city-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>ابتدا کشور را انتخاب کنید</button>
+                                        <ul class="dropdown-menu" aria-labelledby="origin-city-button"><li><a class="dropdown-item" href="#" data-value="">همه</a></li></ul>
                                     </div>
                                 </div>
                             </div>
@@ -356,12 +290,8 @@
                                     <label asp-for="Filter.OriginOperatorID" class="form-label"></label>
                                     <input type="hidden" asp-for="Filter.OriginOperatorID" id="origin-operator-input" />
                                     <div class="dropdown custom-dropdown" id="origin-operator-dropdown">
-                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="origin-operator-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
-                                            ابتدا کشور را انتخاب کنید
-                                        </button>
-                                        <ul class="dropdown-menu" aria-labelledby="origin-operator-button">
-                                            <li><a class="dropdown-item" href="#" data-value="">همه</a></li>
-                                        </ul>
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="origin-operator-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>ابتدا کشور را انتخاب کنید</button>
+                                        <ul class="dropdown-menu" aria-labelledby="origin-operator-button"><li><a class="dropdown-item" href="#" data-value="">همه</a></li></ul>
                                     </div>
                                 </div>
                             </div>
@@ -377,9 +307,7 @@
                                     <label asp-for="Filter.DestCountryID" class="form-label"></label>
                                     <input type="hidden" asp-for="Filter.DestCountryID" id="dest-country-input" />
                                     <div class="dropdown custom-dropdown" id="dest-country-dropdown">
-                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dest-country-button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            انتخاب کنید
-                                        </button>
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dest-country-button" data-bs-toggle="dropdown" aria-expanded="false">انتخاب کنید</button>
                                         <ul class="dropdown-menu" aria-labelledby="dest-country-button">
                                             <li><a class="dropdown-item" href="#" data-value="">همه</a></li>
                                             @if (Model.Countries != null)
@@ -396,12 +324,8 @@
                                     <label asp-for="Filter.DestCityID" class="form-label"></label>
                                     <input type="hidden" asp-for="Filter.DestCityID" id="dest-city-input" />
                                     <div class="dropdown custom-dropdown" id="dest-city-dropdown">
-                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dest-city-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
-                                            ابتدا کشور را انتخاب کنید
-                                        </button>
-                                        <ul class="dropdown-menu" aria-labelledby="dest-city-button">
-                                            <li><a class="dropdown-item" href="#" data-value="">همه</a></li>
-                                        </ul>
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dest-city-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>ابتدا کشور را انتخاب کنید</button>
+                                        <ul class="dropdown-menu" aria-labelledby="dest-city-button"><li><a class="dropdown-item" href="#" data-value="">همه</a></li></ul>
                                     </div>
                                 </div>
                             </div>
@@ -410,12 +334,8 @@
                                     <label asp-for="Filter.DestOperatorID" class="form-label"></label>
                                     <input type="hidden" asp-for="Filter.DestOperatorID" id="dest-operator-input" />
                                     <div class="dropdown custom-dropdown" id="dest-operator-dropdown">
-                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dest-operator-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
-                                            ابتدا کشور را انتخاب کنید
-                                        </button>
-                                        <ul class="dropdown-menu" aria-labelledby="dest-operator-button">
-                                            <li><a class="dropdown-item" href="#" data-value="">همه</a></li>
-                                        </ul>
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dest-operator-button" data-bs-toggle="dropdown" aria-expanded="false" disabled>ابتدا کشور را انتخاب کنید</button>
+                                        <ul class="dropdown-menu" aria-labelledby="dest-operator-button"><li><a class="dropdown-item" href="#" data-value="">همه</a></li></ul>
                                     </div>
                                 </div>
                             </div>
@@ -423,17 +343,13 @@
 
                         <!-- فیلدهای دیگر -->
                         <div class="filter-section">
-                            <div class="filter-section-title">
-                                <i class="fas fa-filter"></i> سایر فیلترها
-                            </div>
+                            <div class="filter-section-title"><i class="fas fa-filter"></i> سایر فیلترها</div>
                             <div class="filter-row">
                                 <div class="filter-field">
                                     <label asp-for="Filter.Answer" class="form-label"></label>
                                     <input type="hidden" asp-for="Filter.Answer" id="answer-input" />
                                     <div class="dropdown custom-dropdown" id="answer-dropdown">
-                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="answer-button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            همه
-                                        </button>
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="answer-button" data-bs-toggle="dropdown" aria-expanded="false">همه</button>
                                         <ul class="dropdown-menu" aria-labelledby="answer-button">
                                             <li><a class="dropdown-item" href="#" data-value="">همه</a></li>
                                             <li><a class="dropdown-item" href="#" data-value="@AnalysisCallUser._01_Domain.Core.Enums.CallAnswerStatus.Answered">پاسخ داده شده</a></li>
@@ -445,9 +361,7 @@
                                     <label asp-for="Filter.PageSize" class="form-label"></label>
                                     <input type="hidden" asp-for="Filter.PageSize" id="pagesize-input" value="50" />
                                     <div class="dropdown custom-dropdown" id="pagesize-dropdown">
-                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="pagesize-button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            50
-                                        </button>
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="pagesize-button" data-bs-toggle="dropdown" aria-expanded="false">50</button>
                                         <ul class="dropdown-menu" aria-labelledby="pagesize-button">
                                             <li><a class="dropdown-item" href="#" data-value="10">10</a></li>
                                             <li><a class="dropdown-item" href="#" data-value="25">25</a></li>
@@ -462,17 +376,11 @@
                         <!-- دکمه‌ها -->
                         <div class="filter-section">
                             <div class="filter-row">
-                                <button type="submit" class="btn btn-primary flex-fill" id="searchButton">
-                                    <i class="fas fa-search"></i> جستجو
-                                </button>
-                                <button type="button" id="reset-filter" class="btn btn-warning flex-fill" style="background-color: #ffc107; border-color: #ffc107; color: #212529;">
-                                    <i class="fas fa-redo"></i> بازنشانی
-                                </button>
+                                <button type="submit" class="btn btn-primary flex-fill" id="searchButton"><i class="fas fa-search"></i> جستجو</button>
+                                <button type="button" id="reset-filter" class="btn btn-warning flex-fill" style="background-color: #ffc107; border-color: #ffc107; color: #212529;"><i class="fas fa-redo"></i> بازنشانی</button>
                             </div>
                             <div class="filter-row mt-2">
-                                <button type="button" id="export-results" class="btn btn-success flex-fill" disabled>
-                                    <i class="fas fa-file-export"></i> خروجی اکسل
-                                </button>
+                                <button type="button" id="export-results" class="btn btn-success flex-fill" disabled><i class="fas fa-file-export"></i> خروجی اکسل</button>
                             </div>
                         </div>
                     </form>
@@ -515,9 +423,7 @@
             <strong class="me-auto">اطلاعیه</strong>
             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
-        <div class="toast-body" id="toastMessage">
-            پیام اطلاع‌رسانی
-        </div>
+        <div class="toast-body" id="toastMessage">پیام اطلاع‌رسانی</div>
     </div>
 </div>
 
@@ -530,24 +436,17 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- گزینه‌های اکسپورت -->
                 <div class="mb-3">
                     <label class="form-label">نوع اکسپورت</label>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="exportType" id="exportAll" value="all" checked>
-                        <label class="form-check-label" for="exportAll">
-                            تمام نتایج فیلتر شده بر اساس تعداد ردیف مشخص شده
-                        </label>
+                        <label class="form-check-label" for="exportAll">تمام نتایج فیلتر شده بر اساس تعداد ردیف مشخص شده</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="exportType" id="exportCurrent" value="current">
-                        <label class="form-check-label" for="exportCurrent">
-                            تمامی نتایج فیلتر شده
-                        </label>
+                        <label class="form-check-label" for="exportCurrent">تمامی نتایج فیلتر شده</label>
                     </div>
                 </div>
-
-                <!-- بخش مربوط به تمام نتایج -->
                 <div id="allResultsSection">
                     <div class="mb-3">
                         <label class="form-label">تعداد کل رکوردها: <span id="totalRecords" class="badge bg-primary">100</span></label>
@@ -561,64 +460,25 @@
                         <div class="form-text">حداکثر حجم فایل: <span id="estimatedSize">0</span> MB (حداکثر مجاز: 50MB)</div>
                     </div>
                 </div>
-
-                <!-- بخش مربوط به نتایج نمایش داده شده -->
                 <div id="currentResultsSection" style="display: none;">
                     <div class="mb-3">
                         <label class="form-label">تعداد رکوردهای نمایش داده شده: <span id="currentRecords" class="badge bg-info">50</span></label>
                     </div>
                 </div>
-
                 <div class="mb-3">
                     <label class="form-label">ستون‌های مورد نظر برای اکسپورت</label>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="colDetailID" checked>
-                        <label class="form-check-label" for="colDetailID">شناسه تماس</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="colANumber" checked>
-                        <label class="form-check-label" for="colANumber">شماره مبدأ</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="colBNumber" checked>
-                        <label class="form-check-label" for="colBNumber">شماره مقصد</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="colAccountingTime" checked>
-                        <label class="form-check-label" for="colAccountingTime">تاریخ و زمان</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="colLength" checked>
-                        <label class="form-check-label" for="colLength">مدت زمان (ثانیه)</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="colOriginCountry" checked>
-                        <label class="form-check-label" for="colOriginCountry">کشور مبدأ</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="colOriginCity">
-                        <label class="form-check-label" for="colOriginCity">شهر مبدأ</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="colOriginOperator">
-                        <label class="form-check-label" for="colOriginOperator">اپراتور مبدأ</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="colDestCountry" checked>
-                        <label class="form-check-label" for="colDestCountry">کشور مقصد</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="colDestCity">
-                        <label class="form-check-label" for="colDestCity">شهر مقصد</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="colDestOperator">
-                        <label class="form-check-label" for="colDestOperator">اپراتور مقصد</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="colAnswer" checked>
-                        <label class="form-check-label" for="colAnswer">وضعیت پاسخ</label>
-                    </div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" id="colDetailID" checked><label class="form-check-label" for="colDetailID">شناسه تماس</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" id="colANumber" checked><label class="form-check-label" for="colANumber">شماره مبدأ</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" id="colBNumber" checked><label class="form-check-label" for="colBNumber">شماره مقصد</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" id="colAccountingTime" checked><label class="form-check-label" for="colAccountingTime">تاریخ و زمان</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" id="colLength" checked><label class="form-check-label" for="colLength">مدت زمان (ثانیه)</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" id="colOriginCountry" checked><label class="form-check-label" for="colOriginCountry">کشور مبدأ</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" id="colOriginCity"><label class="form-check-label" for="colOriginCity">شهر مبدأ</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" id="colOriginOperator"><label class="form-check-label" for="colOriginOperator">اپراتور مبدأ</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" id="colDestCountry" checked><label class="form-check-label" for="colDestCountry">کشور مقصد</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" id="colDestCity"><label class="form-check-label" for="colDestCity">شهر مقصد</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" id="colDestOperator"><label class="form-check-label" for="colDestOperator">اپراتور مقصد</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" id="colAnswer" checked><label class="form-check-label" for="colAnswer">وضعیت پاسخ</label></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -633,60 +493,27 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // --- تعریف متغیرهای اصلی ---
-            let aNumberCount = 1;
-            let bNumberCount = 1;
-            let totalResultsCount = 0;
-            let isResetting = false; // فلگ برای تشخیص عملیات بازنشانی
-
-            // --- کلیدهای ذخیره‌سازی ---
+            let aNumberCount = 1, bNumberCount = 1, totalResultsCount = 0, isResetting = false;
             const LOCAL_STORAGE_KEY = 'callSearchFilters_v3';
             const SESSION_FLAG_KEY = 'sessionFiltersApplied';
 
-            // --- عناصر فرم ---
             const filterForm = document.getElementById('filter-form');
             const resetBtn = document.getElementById('reset-filter');
             const exportBtn = document.getElementById('export-results');
             const searchButton = document.getElementById('searchButton');
             const searchResultsContainer = document.getElementById('search-results-container');
-
-            // --- فیلدهای dropdown ---
-            const originCountryInput = document.getElementById('origin-country-input');
-            const originCityInput = document.getElementById('origin-city-input');
-            const destCountryInput = document.getElementById('dest-country-input');
-            const destCityInput = document.getElementById('dest-city-input');
-            const originOperatorInput = document.getElementById('origin-operator-input');
-            const destOperatorInput = document.getElementById('dest-operator-input');
-            const answerInput = document.getElementById('answer-input');
-            const pageSizeInput = document.getElementById('pagesize-input');
-
-            const originCountryButton = document.getElementById('origin-country-button');
-            const originCityButton = document.getElementById('origin-city-button');
-            const destCountryButton = document.getElementById('dest-country-button');
-            const destCityButton = document.getElementById('dest-city-button');
-            const originOperatorButton = document.getElementById('origin-operator-button');
-            const destOperatorButton = document.getElementById('dest-operator-button');
-            const answerButton = document.getElementById('answer-button');
-            const pageSizeButton = document.getElementById('pagesize-button');
-
-            // --- فیلدهای تاریخ ---
+            const dateRequiredAlert = document.getElementById('dateRequiredAlert');
             const startDateInput = document.getElementById('Filter_StartDate');
             const endDateInput = document.getElementById('Filter_EndDate');
             const startDateError = document.getElementById('startDateError');
             const endDateError = document.getElementById('endDateError');
-            const startDateClear = document.getElementById('startDateClear');
-            const endDateClear = document.getElementById('endDateClear');
-            const dateRequiredAlert = document.getElementById('dateRequiredAlert');
-
-            // --- عناصر دیگر ---
-            const filterToggleIcon = document.getElementById('filterToggleIcon');
-            const swapOriginDestBtn = document.getElementById('swapOriginDest');
             const notificationToast = new bootstrap.Toast(document.getElementById('notificationToast'));
             const toastMessage = document.getElementById('toastMessage');
             const globalAnimation = document.getElementById('globalAnimation');
             const animationText = document.getElementById('animationText');
             const signalPulse = document.getElementById('signalPulse');
 
-            // --- عناصر مودال اکسپورت ---
+            // Modal Elements
             const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
             const exportLimitInput = document.getElementById('exportLimit');
             const totalRecordsSpan = document.getElementById('totalRecords');
@@ -698,682 +525,333 @@
             const allResultsSection = document.getElementById('allResultsSection');
             const currentResultsSection = document.getElementById('currentResultsSection');
 
-            // --- توابع کمکی ---
-            function toEnglishDigits(s) {
-                return s.toString().replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-            }
-
+            // --- Helpers ---
+            function toEnglishDigits(s) { return s.toString().replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)); }
             function showToast(message, type = 'info') {
                 toastMessage.textContent = message;
                 const toastHeader = document.querySelector('#notificationToast .toast-header i');
                 toastHeader.className = `fas me-2 ${type === 'success' ? 'fa-check-circle text-success' : type === 'error' ? 'fa-exclamation-circle text-danger' : 'fa-info-circle text-primary'}`;
                 notificationToast.show();
             }
+            function startGlobalAnimation() { if (!globalAnimation) return; signalPulse.style.opacity = '1'; animationText.textContent = 'در حال انتظار برای جستجو...'; }
+            function stopGlobalAnimation() { if (signalPulse) { signalPulse.style.opacity = '0'; } }
 
-            function startGlobalAnimation() {
-                if (!globalAnimation) return;
-                signalPulse.style.opacity = '1';
-                animationText.textContent = 'در حال انتظار برای جستجو...';
-            }
-
-            function stopGlobalAnimation() {
-                if (signalPulse) {
-                    signalPulse.style.opacity = '0';
-                }
-            }
-
-            // --- اعتبارسنجی اجباری تاریخ ---
+            // --- Validation ---
             function validateRequiredDates() {
                 const startDateValue = startDateInput.value.trim();
                 const endDateValue = endDateInput.value.trim();
-
-                // بررسی آیا هر دو تاریخ پر شده‌اند
                 if (!startDateValue || !endDateValue) {
-                    // نمایش هشدار
                     dateRequiredAlert.style.display = 'block';
-
-                    // هایلایت کردن فیلدهای خالی
-                    if (!startDateValue) {
-                        startDateInput.classList.add('is-invalid');
-                        startDateInput.style.borderColor = '#dc3545';
-                        startDateInput.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
-                    } else {
-                        startDateInput.classList.remove('is-invalid');
-                        startDateInput.style.borderColor = '';
-                        startDateInput.style.boxShadow = '';
-                    }
-
-                    if (!endDateValue) {
-                        endDateInput.classList.add('is-invalid');
-                        endDateInput.style.borderColor = '#dc3545';
-                        endDateInput.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
-                    } else {
-                        endDateInput.classList.remove('is-invalid');
-                        endDateInput.style.borderColor = '';
-                        endDateInput.style.boxShadow = '';
-                    }
-
+                    if (!startDateValue) { startDateInput.classList.add('is-invalid'); startDateInput.style.borderColor = '#dc3545'; startDateInput.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)'; }
+                    else { startDateInput.classList.remove('is-invalid'); startDateInput.style.borderColor = ''; startDateInput.style.boxShadow = ''; }
+                    if (!endDateValue) { endDateInput.classList.add('is-invalid'); endDateInput.style.borderColor = '#dc3545'; endDateInput.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)'; }
+                    else { endDateInput.classList.remove('is-invalid'); endDateInput.style.borderColor = ''; endDateInput.style.boxShadow = ''; }
                     return false;
                 }
-
-                // مخفی کردن هشدار اگر تاریخ‌ها پر شده‌اند
                 dateRequiredAlert.style.display = 'none';
                 startDateInput.classList.remove('is-invalid');
                 endDateInput.classList.remove('is-invalid');
-                startDateInput.style.borderColor = '';
-                endDateInput.style.borderColor = '';
-                startDateInput.style.boxShadow = '';
-                endDateInput.style.boxShadow = '';
+                startDateInput.style.borderColor = ''; endDateInput.style.borderColor = '';
+                startDateInput.style.boxShadow = ''; endDateInput.style.boxShadow = '';
 
-                // اعتبارسنجی فرمت تاریخ
                 const datePattern = /^(\d{4})\/(\d{2})\/(\d{2})$/;
                 if (!datePattern.test(startDateValue) || !datePattern.test(endDateValue)) {
-                    dateRequiredAlert.style.display = 'block';
-                    dateRequiredAlert.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>فرمت تاریخ‌ها باید به صورت YYYY/MM/DD باشد';
-                    return false;
+                    dateRequiredAlert.style.display = 'block'; dateRequiredAlert.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>فرمت تاریخ‌ها باید به صورت YYYY/MM/DD باشد'; return false;
                 }
-
-                // اعتبارسنجی بازه زمانی
                 const rangeValidation = validateDateRangeStepByStep();
-                if (!rangeValidation.isValid) {
-                    dateRequiredAlert.style.display = 'block';
-                    dateRequiredAlert.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>${rangeValidation.message}`;
-                    return false;
-                }
-
+                if (!rangeValidation.isValid) { dateRequiredAlert.style.display = 'block'; dateRequiredAlert.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>${rangeValidation.message}`; return false; }
                 return true;
             }
-
-            // پنهان کردن هشدار هنگام تغییر تاریخ
-            function hideDateRequiredAlert() {
-                dateRequiredAlert.style.display = 'none';
+            function hideDateRequiredAlert() { dateRequiredAlert.style.display = 'none'; }
+            function parsePersianDate(dateString) {
+                if (!dateString || dateString.length !== 10) return null;
+                const parts = dateString.split('/');
+                if (parts.length !== 3) return null;
+                const year = parseInt(parts[0]), month = parseInt(parts[1]), day = parseInt(parts[2]);
+                if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+                return [year, month, day];
+            }
+            function validateDateRangeStepByStep() {
+                const startDateValue = startDateInput.value;
+                const endDateValue = endDateInput.value;
+                const dateRangeErrorElement = document.getElementById('dateRangeError');
+                if (!startDateValue || !endDateValue) {
+                    if (dateRangeErrorElement) dateRangeErrorElement.textContent = '';
+                    return { isValid: true, message: '' };
+                }
+                const start = parsePersianDate(startDateValue);
+                const end = parsePersianDate(endDateValue);
+                if (!start || !end) {
+                    if (dateRangeErrorElement) dateRangeErrorElement.textContent = '';
+                    return { isValid: true, message: '' };
+                }
+                const [startYear, startMonth, startDay] = start;
+                const [endYear, endMonth, endDay] = end;
+                if (startYear > endYear) { return { isValid: false, message: 'سال شروع نباید از سال پایان بزرگتر باشد.' }; }
+                if (startYear < endYear) { return { isValid: true, message: '' }; }
+                if (startMonth > endMonth) { return { isValid: false, message: 'ماه شروع نباید از ماه پایان بزرگتر باشد.' }; }
+                if (startMonth < endMonth) { return { isValid: true, message: '' }; }
+                if (startDay > endDay) { return { isValid: false, message: 'روز شروع نباید از روز پایان بزرگتر باشد.' }; }
+                return { isValid: true, message: '' };
             }
 
-            // --- توابع مدیریت Session و LocalStorage ---
+            // --- Filters & Storage ---
             function saveFiltersToLocalStorage() {
                 try {
                     const formData = collectFormDataForStorage();
                     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
-                } catch (error) {
-                    console.error('Error saving to localStorage:', error);
-                }
+                } catch (error) { console.error('Error saving to localStorage:', error); }
             }
-
             function loadFiltersFromLocalStorage() {
-                try {
-                    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-                    return saved ? JSON.parse(saved) : null;
-                } catch (error) {
-                    console.error('Error loading from localStorage:', error);
-                    return null;
-                }
+                try { const saved = localStorage.getItem(LOCAL_STORAGE_KEY); return saved ? JSON.parse(saved) : null; }
+                catch (error) { console.error('Error loading from localStorage:', error); return null; }
             }
-
-            function clearLocalStorageFilters() {
-                localStorage.removeItem(LOCAL_STORAGE_KEY);
-            }
-
+            function clearLocalStorageFilters() { localStorage.removeItem(LOCAL_STORAGE_KEY); }
             function collectFormDataForStorage() {
                 const filters = {};
-
-                // جمع‌آوری مقادیر از فرم
                 const formData = new FormData(filterForm);
                 for (let [key, value] of formData.entries()) {
-                    if (key === 'Filter.ANumbers' || key === 'Filter.BNumbers') {
-                        if (!filters[key]) filters[key] = [];
-                        if (value) filters[key].push(value);
-                    } else if (value) {
-                        filters[key] = value;
-                    }
+                    if (key === 'Filter.ANumbers' || key === 'Filter.BNumbers') { if (!filters[key]) filters[key] = []; if (value) filters[key].push(value); }
+                    else if (value) filters[key] = value;
                 }
-
                 return filters;
             }
-
             async function clearServerFilters() {
                 try {
                     const response = await fetch('@Url.Action("ClearSessionFilters", "Call")', {
                         method: 'POST',
-                        headers: {
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
+                        headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value, 'X-Requested-With': 'XMLHttpRequest' }
                     });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to clear server filters');
-                    }
-                } catch (error) {
-                    console.error('Error clearing server filters:', error);
-                }
+                    if (!response.ok) throw new Error('Failed to clear server filters');
+                } catch (error) { console.error('Error clearing server filters:', error); }
             }
 
-            // --- توابع بارگذاری فیلترهای ذخیره شده ---
-            async function loadSavedFilters() {
-                // اگر در حال بازنشانی هستیم، چیزی بارگذاری نکن
-                if (isResetting) return;
+            // --- Checkbox Logic (Integrado) ---
+            function initializeCheckboxLogic() {
+                const SELECTED_CALLS_KEY = 'selected_call_ids_v4';
+                const SELECTED_CALLS_DATA_KEY = 'selected_call_data_v4';
+                let selectedCalls = new Set();
+                let selectedCallsData = new Map();
 
-                // بررسی وضعیت Session
-                const sessionApplied = sessionStorage.getItem(SESSION_FLAG_KEY);
-
-                // اگر قبلاً فیلترهای Session اعمال شده‌اند، از LocalStorage استفاده کن
-                if (sessionApplied === 'true') {
-                    const localFilters = loadFiltersFromLocalStorage();
-                    if (localFilters) {
-                        await applySavedFilters(localFilters);
-                    }
-                } else {
-                    // در اولین بار، از Session سرور استفاده کن
+                function loadSelectedCalls() {
                     try {
-                        const response = await fetch('@Url.Action("GetSessionFilters", "Call")');
-                        if (response.ok) {
-                            const result = await response.json();
-                            if (result.success && result.filters) {
-                                await applySavedFiltersFromServer(result.filters);
-                                // علامت بزن که Session اعمال شده
-                                sessionStorage.setItem(SESSION_FLAG_KEY, 'true');
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error loading server filters:', error);
-                        // اگر خطا رخ داد، از LocalStorage استفاده کن
-                        const localFilters = loadFiltersFromLocalStorage();
-                        if (localFilters) {
-                            await applySavedFilters(localFilters);
-                        }
+                        const savedIds = JSON.parse(localStorage.getItem(SELECTED_CALLS_KEY) || '[]');
+                        const savedData = JSON.parse(localStorage.getItem(SELECTED_CALLS_DATA_KEY) || '{}');
+                        selectedCalls = new Set(savedIds);
+                        selectedCallsData = new Map(Object.entries(savedData));
+                        syncUI();
+                    } catch (e) { console.error('Error loading selected calls:', e); }
+                }
+
+                function saveSelectedCalls() {
+                    try {
+                        localStorage.setItem(SELECTED_CALLS_KEY, JSON.stringify(Array.from(selectedCalls)));
+                        const dataObj = {};
+                        selectedCallsData.forEach((value, key) => { dataObj[key] = value; });
+                        localStorage.setItem(SELECTED_CALLS_DATA_KEY, JSON.stringify(dataObj));
+                    } catch (e) { console.error('Error saving selected calls:', e); }
+                }
+
+                function syncUI() {
+                    const badge = document.getElementById('selectedCountBadge');
+                    if (badge) badge.textContent = `${selectedCalls.size} انتخاب شده`;
+                    const section = document.getElementById('bulkExportSection');
+                    if (section) {
+                        if (selectedCalls.size > 0) { section.style.display = 'flex'; section.classList.remove('d-none'); }
+                        else { section.style.display = 'none'; section.classList.add('d-none'); }
                     }
-                }
-            }
-
-            async function applySavedFiltersFromServer(filterData) {
-                if (!filterData) return;
-
-                // اعمال مقادیر اصلی
-                if (filterData.StartDate) {
-                    startDateInput.value = filterData.StartDate;
-                }
-                if (filterData.EndDate) {
-                    endDateInput.value = filterData.EndDate;
-                }
-
-                // اعمال شماره‌های مبدأ
-                if (filterData.ANumbers && Array.isArray(filterData.ANumbers)) {
-                    filterData.ANumbers.forEach((number, index) => {
-                        if (index > 0) addANumber();
-                        const inputs = document.querySelectorAll('input[name="Filter.ANumbers"]');
-                        if (inputs[index]) inputs[index].value = number;
+                    const checkboxes = document.querySelectorAll('tbody .call-checkbox');
+                    checkboxes.forEach(cb => {
+                        const id = cb.dataset.callId;
+                        const isChecked = selectedCalls.has(id.toString());
+                        if (cb.checked !== isChecked) cb.checked = isChecked;
+                        const row = cb.closest('tr');
+                        if (row) { if (isChecked) row.classList.add('table-primary'); else row.classList.remove('table-primary'); }
                     });
+                    const selectAllCb = document.getElementById('selectAllCurrentPage');
+                    if (selectAllCb) {
+                        const visibleCheckboxes = Array.from(document.querySelectorAll('tbody .call-checkbox')).filter(cb => cb.offsetParent !== null);
+                        if (visibleCheckboxes.length === 0) { selectAllCb.checked = false; selectAllCb.indeterminate = false; }
+                        else {
+                            const checkedCount = visibleCheckboxes.filter(cb => cb.checked).length;
+                            if (checkedCount === 0) { selectAllCb.checked = false; selectAllCb.indeterminate = false; }
+                            else if (checkedCount === visibleCheckboxes.length) { selectAllCb.checked = true; selectAllCb.indeterminate = false; }
+                            else { selectAllCb.checked = false; selectAllCb.indeterminate = true; }
+                        }
+                    }
                 }
 
-                // اعمال شماره‌های مقصد
-                if (filterData.BNumbers && Array.isArray(filterData.BNumbers)) {
-                    filterData.BNumbers.forEach((number, index) => {
-                        if (index > 0) addBNumber();
-                        const inputs = document.querySelectorAll('input[name="Filter.BNumbers"]');
-                        if (inputs[index]) inputs[index].value = number;
+                function toggleCallSelection(callId, aNumber, bNumber, forceState = null) {
+                    const idStr = callId.toString();
+                    const isSelected = selectedCalls.has(idStr);
+                    const newState = forceState !== null ? forceState : !isSelected;
+                    if (newState) { selectedCalls.add(idStr); selectedCallsData.set(idStr, { callId, aNumber, bNumber, selectedAt: new Date().toISOString() }); }
+                    else { selectedCalls.delete(idStr); selectedCallsData.delete(idStr); }
+                    syncUI();
+                    saveSelectedCalls();
+                }
+
+                const tableBody = document.querySelector('tbody');
+                if (tableBody) {
+                    loadSelectedCalls();
+                    tableBody.addEventListener('change', function(e) {
+                        if (e.target.classList.contains('call-checkbox')) {
+                            const cb = e.target;
+                            toggleCallSelection(cb.dataset.callId, cb.dataset.aNumber, cb.dataset.bNumber, cb.checked);
+                        }
                     });
-                }
-
-                // اعمال dropdown‌ها
-                if (filterData.OriginCountryID) {
-                    originCountryInput.value = filterData.OriginCountryID;
-                    await loadCities('origin-country-input', 'origin-city-button', 'origin-city-input', 'origin-city-dropdown');
-                    await loadOperators('origin-country-input', 'origin-operator-button', 'origin-operator-input', 'origin-operator-dropdown');
-
-                    setTimeout(() => {
-                        if (filterData.OriginCityID) {
-                            originCityInput.value = filterData.OriginCityID;
-                            setDropdownButtonText('origin-city-button', filterData.OriginCityID);
-                        }
-                        if (filterData.OriginOperatorID) {
-                            originOperatorInput.value = filterData.OriginOperatorID;
-                            setDropdownButtonText('origin-operator-button', filterData.OriginOperatorID);
-                        }
-                    }, 500);
-                }
-
-                if (filterData.DestCountryID) {
-                    destCountryInput.value = filterData.DestCountryID;
-                    await loadCities('dest-country-input', 'dest-city-button', 'dest-city-input', 'dest-city-dropdown');
-                    await loadOperators('dest-country-input', 'dest-operator-button', 'dest-operator-input', 'dest-operator-dropdown');
-
-                    setTimeout(() => {
-                        if (filterData.DestCityID) {
-                            destCityInput.value = filterData.DestCityID;
-                            setDropdownButtonText('dest-city-button', filterData.DestCityID);
-                        }
-                        if (filterData.DestOperatorID) {
-                            destOperatorInput.value = filterData.DestOperatorID;
-                            setDropdownButtonText('dest-operator-button', filterData.DestOperatorID);
-                        }
-                    }, 500);
-                }
-
-                if (filterData.Answer) {
-                    answerInput.value = filterData.Answer;
-                    setDropdownButtonText('answer-button', filterData.Answer);
-                }
-
-                if (filterData.PageSize) {
-                    pageSizeInput.value = filterData.PageSize;
-                    setDropdownButtonText('pagesize-button', filterData.PageSize);
-                }
-
-                if (filterData.Page) {
-                    document.getElementById('Filter_Page').value = filterData.Page;
-                }
-
-                // اگر فیلتری اعمال شده، جستجو را اجرا کن
-                if (hasAnyFiltersApplied()) {
-                    setTimeout(() => {
-                        if (typeof performSearch === 'function') {
-                            performSearch(filterData.Page || 1, false);
-                        }
-                    }, 1000);
-                }
-            }
-
-            async function applySavedFilters(filters) {
-                if (!filters) return;
-
-                // اعمال مقادیر ساده
-                Object.keys(filters).forEach(key => {
-                    if (key === 'Filter.ANumbers' || key === 'Filter.BNumbers') {
-                        const values = filters[key];
-                        if (Array.isArray(values)) {
-                            values.forEach((value, index) => {
-                                if (index > 0) {
-                                    if (key === 'Filter.ANumbers') addANumber();
-                                    else addBNumber();
-                                }
-                                const inputs = document.querySelectorAll(`[name="${key}"]`);
-                                if (inputs[index]) inputs[index].value = value;
-                            });
-                        }
-                    } else {
-                        const element = document.querySelector(`[name="${key}"]`);
-                        if (element) {
-                            element.value = filters[key];
-
-                            // به‌روزرسانی dropdown‌ها
-                            if (element.type === 'hidden') {
-                                setDropdownButtonText(getDropdownButtonId(key), filters[key]);
-                            }
-                        }
+                    const selectAllCb = document.getElementById('selectAllCurrentPage');
+                    if (selectAllCb) {
+                        selectAllCb.addEventListener('change', function() {
+                            const visibleCheckboxes = Array.from(document.querySelectorAll('tbody .call-checkbox')).filter(cb => cb.offsetParent !== null);
+                            visibleCheckboxes.forEach(cb => toggleCallSelection(cb.dataset.callId, cb.dataset.aNumber, cb.dataset.bNumber, this.checked));
+                        });
                     }
-                });
-
-                // بارگذاری وابسته‌ها
-                await loadDependentFilters(filters);
-
-                // اگر فیلتری اعمال شده، جستجو را اجرا کن
-                if (hasAnyFiltersApplied()) {
-                    setTimeout(() => {
-                        if (typeof performSearch === 'function') {
-                            const page = filters['Filter.Page'] || 1;
-                            performSearch(page, false);
-                        }
-                    }, 1000);
-                }
-            }
-
-            function setDropdownButtonText(buttonId, value) {
-                const button = document.getElementById(buttonId);
-                if (!button || value === undefined) return;
-
-                const menu = button.nextElementSibling;
-                let textContent = 'انتخاب کنید';
-
-                if (value === '') {
-                    textContent = 'همه';
-                } else {
-                    const item = menu.querySelector(`a[data-value="${value}"]`);
-                    if (item) {
-                        textContent = item.textContent;
+                    const exportBtn = document.getElementById('btnExportSelected');
+                    if (exportBtn) {
+                        exportBtn.addEventListener('click', function() {
+                            if (selectedCalls.size === 0) { showToast('لطفاً حداقل یک مورد را انتخاب کنید', 'warning'); return; }
+                            const selectedData = Array.from(selectedCallsData.values());
+                            fetch('/Call/ExportSelectedCalls', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value },
+                                body: JSON.stringify({ selectedCallIds: Array.from(selectedCalls), selectedCallsData: selectedData })
+                            })
+                            .then(response => { if (response.ok) return response.blob(); throw new Error('خطا در اکسپورت'); })
+                            .then(blob => {
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `SelectedCalls_${new Date().toISOString().slice(0, 19).replace(/[:]/g, '-')}.csv`;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                                showToast('اکسپورت با موفقیت انجام شد', 'success');
+                            })
+                            .catch(error => { console.error('Export error:', error); showToast('خطا در اکسپورت داده‌ها', 'error'); });
+                        });
                     }
-                }
-
-                button.textContent = textContent;
-            }
-
-            function getDropdownButtonId(inputName) {
-                const buttonMap = {
-                    'Filter.OriginCountryID': 'origin-country-button',
-                    'Filter.OriginCityID': 'origin-city-button',
-                    'Filter.OriginOperatorID': 'origin-operator-button',
-                    'Filter.DestCountryID': 'dest-country-button',
-                    'Filter.DestCityID': 'dest-city-button',
-                    'Filter.DestOperatorID': 'dest-operator-button',
-                    'Filter.Answer': 'answer-button',
-                    'Filter.PageSize': 'pagesize-button'
-                };
-
-                return buttonMap[inputName] || '';
-            }
-
-            async function loadDependentFilters(filters) {
-                if (filters['Filter.OriginCountryID']) {
-                    originCountryInput.value = filters['Filter.OriginCountryID'];
-                    await loadCities('origin-country-input', 'origin-city-button', 'origin-city-input', 'origin-city-dropdown');
-                    await loadOperators('origin-country-input', 'origin-operator-button', 'origin-operator-input', 'origin-operator-dropdown');
-
-                    if (filters['Filter.OriginCityID']) {
-                        setTimeout(() => {
-                            originCityInput.value = filters['Filter.OriginCityID'];
-                            setDropdownButtonText('origin-city-button', filters['Filter.OriginCityID']);
-                        }, 300);
-                    }
-                    if (filters['Filter.OriginOperatorID']) {
-                        setTimeout(() => {
-                            originOperatorInput.value = filters['Filter.OriginOperatorID'];
-                            setDropdownButtonText('origin-operator-button', filters['Filter.OriginOperatorID']);
-                        }, 300);
-                    }
-                }
-
-                if (filters['Filter.DestCountryID']) {
-                    destCountryInput.value = filters['Filter.DestCountryID'];
-                    await loadCities('dest-country-input', 'dest-city-button', 'dest-city-input', 'dest-city-dropdown');
-                    await loadOperators('dest-country-input', 'dest-operator-button', 'dest-operator-input', 'dest-operator-dropdown');
-
-                    if (filters['Filter.DestCityID']) {
-                        setTimeout(() => {
-                            destCityInput.value = filters['Filter.DestCityID'];
-                            setDropdownButtonText('dest-city-button', filters['Filter.DestCityID']);
-                        }, 300);
-                    }
-                    if (filters['Filter.DestOperatorID']) {
-                        setTimeout(() => {
-                            destOperatorInput.value = filters['Filter.DestOperatorID'];
-                            setDropdownButtonText('dest-operator-button', filters['Filter.DestOperatorID']);
-                        }, 300);
+                    const clearBtn = document.getElementById('btnClearAllSelection');
+                    if (clearBtn) {
+                        clearBtn.addEventListener('click', function() {
+                            selectedCalls.clear(); selectedCallsData.clear(); syncUI(); saveSelectedCalls();
+                        });
                     }
                 }
             }
 
-            function hasAnyFiltersApplied() {
-                const hasDate = startDateInput.value || endDateInput.value;
-                const hasNumbers = document.querySelectorAll('.anumber-input[value], .bnumber-input[value]').length > 0;
-                const hasDropdowns = originCountryInput.value || destCountryInput.value ||
-                                    originCityInput.value || destCityInput.value ||
-                                    originOperatorInput.value || destOperatorInput.value ||
-                                    answerInput.value || pageSizeInput.value !== '50';
-
-                return hasDate || hasNumbers || hasDropdowns;
-            }
-
-            // --- توابع مدیریت dropdown ---
+            // --- Dropdowns ---
             function setupDropdownListener(buttonId, inputId, menuId) {
                 const button = document.getElementById(buttonId);
                 const input = document.getElementById(inputId);
                 const menu = document.querySelector(`#${menuId} .dropdown-menu`);
-
-                menu.addEventListener('click', function (e) {
+                menu.addEventListener('click', function(e) {
                     e.preventDefault();
                     if (e.target.classList.contains('dropdown-item')) {
                         const value = e.target.getAttribute('data-value');
                         const text = e.target.textContent;
-
                         input.value = value;
                         button.textContent = text;
                         button.classList.remove('placeholder');
-
                         menu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
                         e.target.classList.add('active');
-
                         const event = new Event('change', { bubbles: true });
                         input.dispatchEvent(event);
                     }
                 });
             }
-
             async function loadCities(countryInputId, cityButtonId, cityInputId, cityMenuId) {
                 const countryId = document.getElementById(countryInputId).value;
                 const cityButton = document.getElementById(cityButtonId);
                 const cityInput = document.getElementById(cityInputId);
                 const cityMenu = document.querySelector(`#${cityMenuId} .dropdown-menu`);
-
                 cityButton.textContent = 'در حال بارگذاری...';
                 cityButton.disabled = true;
                 cityMenu.innerHTML = '';
-
-                if (!countryId) {
-                    cityButton.textContent = 'ابتدا کشور را انتخاب کنید';
-                    cityButton.disabled = true;
-                    cityInput.value = '';
-                    return;
-                }
-
+                if (!countryId) { cityButton.textContent = 'ابتدا کشور را انتخاب کنید'; cityButton.disabled = true; cityInput.value = ''; return; }
                 try {
                     const response = await fetch(`/Call/GetCities?countryId=${countryId}`);
                     if (!response.ok) throw new Error('Network response was not ok.');
                     const cities = await response.json();
-
                     cityMenu.innerHTML = '<li><a class="dropdown-item" href="#" data-value="">همه</a></li>';
                     cities.forEach(city => {
                         const li = document.createElement('li');
                         const a = document.createElement('a');
-                        a.className = 'dropdown-item';
-                        a.href = '#';
-                        a.setAttribute('data-value', city.cityID);
-                        a.textContent = city.cityName;
-                        li.appendChild(a);
-                        cityMenu.appendChild(li);
+                        a.className = 'dropdown-item'; a.href = '#'; a.setAttribute('data-value', city.cityID); a.textContent = city.cityName;
+                        li.appendChild(a); cityMenu.appendChild(li);
                     });
-
-                    cityButton.textContent = 'انتخاب کنید';
-                    cityButton.disabled = false;
-                    cityInput.value = '';
-
-                } catch (error) {
-                    console.error('Error loading cities:', error);
-                    cityButton.textContent = 'خطا در بارگذاری';
-                    cityButton.disabled = true;
-                    showToast('خطا در بارگذاری شهرها', 'error');
-                }
+                    cityButton.textContent = 'انتخاب کنید'; cityButton.disabled = false; cityInput.value = '';
+                } catch (error) { console.error('Error loading cities:', error); cityButton.textContent = 'خطا در بارگذاری'; cityButton.disabled = true; showToast('خطا در بارگذاری شهرها', 'error'); }
             }
-
             async function loadOperators(countryInputId, operatorButtonId, operatorInputId, operatorMenuId) {
                 const countryId = document.getElementById(countryInputId).value;
                 const operatorButton = document.getElementById(operatorButtonId);
                 const operatorInput = document.getElementById(operatorInputId);
                 const operatorMenu = document.querySelector(`#${operatorMenuId} .dropdown-menu`);
-
-                operatorButton.textContent = 'در حال بارگذاری...';
-                operatorButton.disabled = true;
-                operatorMenu.innerHTML = '';
-
-                if (!countryId) {
-                    operatorButton.textContent = 'ابتدا کشور را انتخاب کنید';
-                    operatorButton.disabled = true;
-                    operatorInput.value = '';
-                    return;
-                }
-
+                operatorButton.textContent = 'در حال بارگذاری...'; operatorButton.disabled = true; operatorMenu.innerHTML = '';
+                if (!countryId) { operatorButton.textContent = 'ابتدا کشور را انتخاب کنید'; operatorButton.disabled = true; operatorInput.value = ''; return; }
                 try {
                     const response = await fetch(`/Call/GetOperators?countryId=${countryId}`);
                     if (!response.ok) throw new Error('Network response was not ok.');
                     const operators = await response.json();
-
                     operatorMenu.innerHTML = '<li><a class="dropdown-item" href="#" data-value="">همه</a></li>';
                     operators.forEach(op => {
                         const li = document.createElement('li');
                         const a = document.createElement('a');
-                        a.className = 'dropdown-item';
-                        a.href = '#';
-                        a.setAttribute('data-value', op.operatorID);
-                        a.textContent = op.operatorName;
-                        li.appendChild(a);
-                        operatorMenu.appendChild(li);
+                        a.className = 'dropdown-item'; a.href = '#'; a.setAttribute('data-value', op.operatorID); a.textContent = op.operatorName;
+                        li.appendChild(a); operatorMenu.appendChild(li);
                     });
-
-                    operatorButton.textContent = 'انتخاب کنید';
-                    operatorButton.disabled = false;
-                    operatorInput.value = '';
-
-                } catch (error) {
-                    console.error('Error loading operators:', error);
-                    operatorButton.textContent = 'خطا در بارگذاری';
-                    operatorButton.disabled = true;
-                    showToast('خطا در بارگذاری اپراتورها', 'error');
-                }
+                    operatorButton.textContent = 'انتخاب کنید'; operatorButton.disabled = false; operatorInput.value = '';
+                } catch (error) { console.error('Error loading operators:', error); operatorButton.textContent = 'خطا در بارگذاری'; operatorButton.disabled = true; showToast('خطا در بارگذاری اپراتورها', 'error'); }
             }
 
-            // --- توابع مدیریت شماره‌ها ---
+            // --- Numbers ---
             function addANumber() {
-                if (aNumberCount >= 5) {
-                    showToast('حداکثر 5 شماره مبدأ می‌توانید وارد کنید', 'error');
-                    return;
-                }
-
+                if (aNumberCount >= 5) { showToast('حداکثر 5 شماره مبدأ می‌توانید وارد کنید', 'error'); return; }
                 const container = document.getElementById('anumbers-container');
                 const newRow = document.createElement('div');
-                newRow.className = 'filter-row anumber-row';
-                newRow.dataset.index = aNumberCount;
-
-                newRow.innerHTML = `
-                    <div class="filter-field">
-                        <label class="form-label">شماره مبدأ ${aNumberCount + 1}</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" name="Filter.ANumbers" />
-                            <button class="btn btn-outline-secondary remove-anumber" type="button" title="حذف شماره">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;">
-                                <i class="fas fa-info-circle"></i>
-                            </span>
-                            <div class="phone-info-container" style="display: none;">
-                                <div class="phone-info-content"></div>
-                            </div>
-                        </div>
-                        <div class="phone-number-info" id="anumber-info-${aNumberCount}" style="display: none;">
-                            <i class="fas fa-map-marker-alt"></i> <span id="anumber-location-${aNumberCount}"></span>
-                        </div>
-                    </div>
-                `;
-
-                container.appendChild(newRow);
-                aNumberCount++;
-
-                // اتصال رویدادهای جدید
-                newRow.querySelector('.remove-anumber').addEventListener('click', function() {
-                    removeANumber(this);
-                });
+                newRow.className = 'filter-row anumber-row'; newRow.dataset.index = aNumberCount;
+                newRow.innerHTML = `<div class="filter-field"><label class="form-label">شماره مبدأ ${aNumberCount + 1}</label><div class="input-group"><input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" name="Filter.ANumbers" /><button class="btn btn-outline-secondary remove-anumber" type="button" title="حذف شماره"><i class="fas fa-times"></i></button><span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;"><i class="fas fa-info-circle"></i></span><div class="phone-info-container" style="display: none;"><div class="phone-info-content"></div></div></div><div class="phone-number-info" id="anumber-info-${aNumberCount}" style="display: none;"><i class="fas fa-map-marker-alt"></i> <span id="anumber-location-${aNumberCount}"></span></div></div>`;
+                container.appendChild(newRow); aNumberCount++;
+                newRow.querySelector('.remove-anumber').addEventListener('click', function() { removeANumber(this); });
                 newRow.querySelector('.anumber-input').addEventListener('input', handlePhoneInput);
                 newRow.querySelector('.phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
             }
-
             function addBNumber() {
-                if (bNumberCount >= 5) {
-                    showToast('حداکثر 5 شماره مقصد می‌توانید وارد کنید', 'error');
-                    return;
-                }
-
+                if (bNumberCount >= 5) { showToast('حداکثر 5 شماره مقصد می‌توانید وارد کنید', 'error'); return; }
                 const container = document.getElementById('bnumbers-container');
                 const newRow = document.createElement('div');
-                newRow.className = 'filter-row bnumber-row';
-                newRow.dataset.index = bNumberCount;
-
-                newRow.innerHTML = `
-                    <div class="filter-field">
-                        <label class="form-label">شماره مقصد ${bNumberCount + 1}</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" name="Filter.BNumbers" />
-                            <button class="btn btn-outline-secondary remove-bnumber" type="button" title="حذف شماره">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;">
-                                <i class="fas fa-info-circle"></i>
-                            </span>
-                            <div class="phone-info-container" style="display: none;">
-                                <div class="phone-info-content"></div>
-                            </div>
-                        </div>
-                        <div class="phone-number-info" id="bnumber-info-${bNumberCount}" style="display: none;">
-                            <i class="fas fa-map-marker-alt"></i> <span id="bnumber-location-${bNumberCount}"></span>
-                        </div>
-                    </div>
-                `;
-
-                container.appendChild(newRow);
-                bNumberCount++;
-
-                // اتصال رویدادهای جدید
-                newRow.querySelector('.remove-bnumber').addEventListener('click', function() {
-                    removeBNumber(this);
-                });
+                newRow.className = 'filter-row bnumber-row'; newRow.dataset.index = bNumberCount;
+                newRow.innerHTML = `<div class="filter-field"><label class="form-label">شماره مقصد ${bNumberCount + 1}</label><div class="input-group"><input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" name="Filter.BNumbers" /><button class="btn btn-outline-secondary remove-bnumber" type="button" title="حذف شماره"><i class="fas fa-times"></i></button><span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;"><i class="fas fa-info-circle"></i></span><div class="phone-info-container" style="display: none;"><div class="phone-info-content"></div></div></div><div class="phone-number-info" id="bnumber-info-${bNumberCount}" style="display: none;"><i class="fas fa-map-marker-alt"></i> <span id="bnumber-location-${bNumberCount}"></span></div></div>`;
+                container.appendChild(newRow); bNumberCount++;
+                newRow.querySelector('.remove-bnumber').addEventListener('click', function() { removeBNumber(this); });
                 newRow.querySelector('.bnumber-input').addEventListener('input', handlePhoneInput);
                 newRow.querySelector('.phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
             }
+            function removeANumber(button) { if (document.querySelectorAll('.anumber-row').length <= 1) { showToast('حداقل یک شماره مبدأ باید وارد کنید', 'error'); return; } button.closest('.anumber-row').remove(); aNumberCount--; updateLocationFieldsState(); }
+            function removeBNumber(button) { if (document.querySelectorAll('.bnumber-row').length <= 1) { showToast('حداقل یک شماره مقصد باید وارد کنید', 'error'); return; } button.closest('.bnumber-row').remove(); bNumberCount--; updateLocationFieldsState(); }
 
-            function removeANumber(button) {
-                if (document.querySelectorAll('.anumber-row').length <= 1) {
-                    showToast('حداقل یک شماره مبدأ باید وارد کنید', 'error');
-                    return;
-                }
-
-                const row = button.closest('.anumber-row');
-                row.remove();
-                aNumberCount--;
-                updateLocationFieldsState();
-            }
-
-            function removeBNumber(button) {
-                if (document.querySelectorAll('.bnumber-row').length <= 1) {
-                    showToast('حداقل یک شماره مقصد باید وارد کنید', 'error');
-                    return;
-                }
-
-                const row = button.closest('.bnumber-row');
-                row.remove();
-                bNumberCount--;
-                updateLocationFieldsState();
-            }
-
-            // --- توابع اطلاعات شماره تلفن ---
             async function fetchAndDisplayPhoneInfo(phoneNumber, containerElement, locationElement) {
-                if (!phoneNumber) {
-                    containerElement.style.display = 'none';
-                    if (locationElement) locationElement.style.display = 'none';
-                    return;
-                }
-
+                if (!phoneNumber) { containerElement.style.display = 'none'; if (locationElement) locationElement.style.display = 'none'; return; }
                 try {
                     const response = await fetch(`/Call/GetPhoneInfo?number=${phoneNumber}`);
                     if (!response.ok) throw new Error('Network response was not ok.');
                     const data = await response.json();
-
                     const contentDiv = containerElement.querySelector('.phone-info-content');
                     if (data.success) {
-                        let infoHtml = `<strong>کشور:</strong> ${data.countryName || 'نامشخص'}<br>`;
-                        infoHtml += `<strong>شهر:</strong> ${data.cityName || 'نامشخص'}<br>`;
-                        infoHtml += `<strong>اپراتور:</strong> ${data.operatorName || 'نامشخص'}`;
-                        contentDiv.innerHTML = infoHtml;
-                        containerElement.style.display = 'block';
-
+                        let infoHtml = `<strong>کشور:</strong> ${data.countryName || 'نامشخص'}<br>`; infoHtml += `<strong>شهر:</strong> ${data.cityName || 'نامشخص'}<br>`; infoHtml += `<strong>اپراتور:</strong> ${data.operatorName || 'نامشخص'}`;
+                        contentDiv.innerHTML = infoHtml; containerElement.style.display = 'block';
                         if (locationElement) {
                             let locationText = '';
                             if (data.countryName) locationText += data.countryName;
                             if (data.cityName) locationText += (locationText ? ', ' : '') + data.cityName;
                             if (data.operatorName) locationText += (locationText ? ', ' : '') + data.operatorName;
-
-                            locationElement.textContent = locationText;
-                            locationElement.parentElement.style.display = 'block';
+                            locationElement.textContent = locationText; locationElement.parentElement.style.display = 'block';
                         }
-                    } else {
-                        contentDiv.innerHTML = 'اطلاعاتی یافت نشد';
-                        containerElement.style.display = 'block';
-                        if (locationElement) locationElement.parentElement.style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error('Error fetching phone info:', error);
-                    const contentDiv = containerElement.querySelector('.phone-info-content');
-                    contentDiv.innerHTML = 'خطا در دریافت اطلاعات';
-                    containerElement.style.display = 'block';
-                    if (locationElement) locationElement.parentElement.style.display = 'none';
-                }
+                    } else { contentDiv.innerHTML = 'اطلاعاتی یافت نشد'; containerElement.style.display = 'block'; if (locationElement) locationElement.parentElement.style.display = 'none'; }
+                } catch (error) { console.error('Error fetching phone info:', error); const contentDiv = containerElement.querySelector('.phone-info-content'); contentDiv.innerHTML = 'خطا در دریافت اطلاعات'; containerElement.style.display = 'block'; if (locationElement) locationElement.parentElement.style.display = 'none'; }
             }
-
             function handlePhoneInput(event) {
                 const input = event.target;
                 const row = input.closest('.filter-row');
@@ -1382,29 +860,17 @@
                 const index = row.dataset.index;
                 const isANumber = input.classList.contains('anumber-input');
                 const locationElement = document.getElementById(`${isANumber ? 'anumber' : 'bnumber'}-location-${index}`);
-
-                if (input.value.trim().length > 0) {
-                    trigger.style.display = 'flex';
-                    container.style.display = 'none';
-                    fetchAndDisplayPhoneInfo(input.value, container, locationElement);
-                } else {
-                    trigger.style.display = 'none';
-                    container.style.display = 'none';
-                    if (locationElement) locationElement.parentElement.style.display = 'none';
-                }
-
+                if (input.value.trim().length > 0) { trigger.style.display = 'flex'; container.style.display = 'none'; fetchAndDisplayPhoneInfo(input.value, container, locationElement); }
+                else { trigger.style.display = 'none'; container.style.display = 'none'; if (locationElement) locationElement.parentElement.style.display = 'none'; }
                 updateLocationFieldsState();
             }
-
             function handlePhoneInfoClick(event) {
                 const trigger = event.currentTarget;
                 const row = trigger.closest('.filter-row');
                 const input = row.querySelector('.anumber-input, .bnumber-input');
                 const container = row.querySelector('.phone-info-container');
-
-                if (container.style.display === 'block') {
-                    container.style.display = 'none';
-                } else {
+                if (container.style.display === 'block') container.style.display = 'none';
+                else {
                     const index = row.dataset.index;
                     const isANumber = input.classList.contains('anumber-input');
                     const locationElement = document.getElementById(`${isANumber ? 'anumber' : 'bnumber'}-location-${index}`);
@@ -1412,344 +878,71 @@
                 }
             }
 
-            // --- توابع مدیریت مکان ---
-            function disableLocationFields(section) {
-                section.querySelectorAll('button, input, select').forEach(el => el.disabled = true);
-                section.style.opacity = '0.6';
-            }
-
-            function enableLocationFields(section) {
-                section.querySelectorAll('button, input, select').forEach(el => el.disabled = false);
-                section.style.opacity = '1';
-            }
-
             async function updateLocationFieldsState() {
                 const aNumbers = Array.from(document.querySelectorAll('.anumber-input')).map(input => input.value.trim()).filter(v => v);
                 const bNumbers = Array.from(document.querySelectorAll('.bnumber-input')).map(input => input.value.trim()).filter(v => v);
-
                 const originLocationSection = document.getElementById('origin-location-section');
                 const destLocationSection = document.getElementById('dest-location-section');
-
-                if (aNumbers.length === 0 && bNumbers.length === 0) {
-                    enableLocationFields(originLocationSection);
-                    enableLocationFields(destLocationSection);
-                    return;
-                }
-
-                if (aNumbers.length > 0 && bNumbers.length === 0) {
-                    disableLocationFields(originLocationSection);
-                    enableLocationFields(destLocationSection);
-
-                    if (aNumbers.length === 1) {
-                        await populateOriginLocationFromPhone(aNumbers[0]);
-                    }
-                    return;
-                }
-
-                if (aNumbers.length === 0 && bNumbers.length > 0) {
-                    enableLocationFields(originLocationSection);
-                    disableLocationFields(destLocationSection);
-
-                    if (bNumbers.length === 1) {
-                        await populateDestLocationFromPhone(bNumbers[0]);
-                    }
-                    return;
-                }
-
-                if (aNumbers.length > 0 && bNumbers.length > 0) {
-                    disableLocationFields(originLocationSection);
-                    disableLocationFields(destLocationSection);
-
-                    if (aNumbers.length === 1 && bNumbers.length === 1) {
-                        await Promise.all([
-                            populateOriginLocationFromPhone(aNumbers[0]),
-                            populateDestLocationFromPhone(bNumbers[0])
-                        ]);
-                    }
-                    return;
-                }
+                if (aNumbers.length === 0 && bNumbers.length === 0) { enableLocationFields(originLocationSection); enableLocationFields(destLocationSection); return; }
+                if (aNumbers.length > 0 && bNumbers.length === 0) { disableLocationFields(originLocationSection); enableLocationFields(destLocationSection); if (aNumbers.length === 1) await populateOriginLocationFromPhone(aNumbers[0]); return; }
+                if (aNumbers.length === 0 && bNumbers.length > 0) { enableLocationFields(originLocationSection); disableLocationFields(destLocationSection); if (bNumbers.length === 1) await populateDestLocationFromPhone(bNumbers[0]); return; }
+                if (aNumbers.length > 0 && bNumbers.length > 0) { disableLocationFields(originLocationSection); disableLocationFields(destLocationSection); if (aNumbers.length === 1 && bNumbers.length === 1) { await Promise.all([populateOriginLocationFromPhone(aNumbers[0]), populateDestLocationFromPhone(bNumbers[0])]); } return; }
             }
-
+            function disableLocationFields(section) { section.querySelectorAll('button, input, select').forEach(el => el.disabled = true); section.style.opacity = '0.6'; }
+            function enableLocationFields(section) { section.querySelectorAll('button, input, select').forEach(el => el.disabled = false); section.style.opacity = '1'; }
             async function populateOriginLocationFromPhone(phoneNumber) {
                 if (!phoneNumber) return;
-
                 try {
                     const response = await fetch(`/Call/GetPhoneInfo?number=${phoneNumber}`);
                     if (!response.ok) throw new Error('Network response was not ok.');
                     const data = await response.json();
-
                     if (data.success) {
                         if (data.countryID) {
-                            originCountryInput.value = data.countryID;
-                            originCountryButton.textContent = data.countryName || 'انتخاب کنید';
-
+                            document.getElementById('origin-country-input').value = data.countryID;
+                            document.getElementById('origin-country-button').textContent = data.countryName || 'انتخاب کنید';
                             await loadCities('origin-country-input', 'origin-city-button', 'origin-city-input', 'origin-city-dropdown');
                             await loadOperators('origin-country-input', 'origin-operator-button', 'origin-operator-input', 'origin-operator-dropdown');
-
-                            if (data.cityID) {
-                                originCityInput.value = data.cityID;
-                                originCityButton.textContent = data.cityName || 'انتخاب کنید';
-                            }
-
-                            if (data.operatorID) {
-                                originOperatorInput.value = data.operatorID;
-                                originOperatorButton.textContent = data.operatorName || 'انتخاب کنید';
-                            }
+                            if (data.cityID) { document.getElementById('origin-city-input').value = data.cityID; document.getElementById('origin-city-button').textContent = data.cityName || 'انتخاب کنید'; }
+                            if (data.operatorID) { document.getElementById('origin-operator-input').value = data.operatorID; document.getElementById('origin-operator-button').textContent = data.operatorName || 'انتخاب کنید'; }
                         }
                     }
-                } catch (error) {
-                    console.error('Error populating origin location from phone:', error);
-                }
+                } catch (error) { console.error('Error populating origin location from phone:', error); }
             }
-
             async function populateDestLocationFromPhone(phoneNumber) {
                 if (!phoneNumber) return;
-
                 try {
                     const response = await fetch(`/Call/GetPhoneInfo?number=${phoneNumber}`);
                     if (!response.ok) throw new Error('Network response was not ok.');
                     const data = await response.json();
-
                     if (data.success) {
                         if (data.countryID) {
-                            destCountryInput.value = data.countryID;
-                            destCountryButton.textContent = data.countryName || 'انتخاب کنید';
-
+                            document.getElementById('dest-country-input').value = data.countryID;
+                            document.getElementById('dest-country-button').textContent = data.countryName || 'انتخاب کنید';
                             await loadCities('dest-country-input', 'dest-city-button', 'dest-city-input', 'dest-city-dropdown');
                             await loadOperators('dest-country-input', 'dest-operator-button', 'dest-operator-input', 'dest-operator-dropdown');
-
-                            if (data.cityID) {
-                                destCityInput.value = data.cityID;
-                                destCityButton.textContent = data.cityName || 'انتخاب کنید';
-                            }
-
-                            if (data.operatorID) {
-                                destOperatorInput.value = data.operatorID;
-                                destOperatorButton.textContent = data.operatorName || 'انتخاب کنید';
-                            }
+                            if (data.cityID) { document.getElementById('dest-city-input').value = data.cityID; document.getElementById('dest-city-button').textContent = data.cityName || 'انتخاب کنید'; }
+                            if (data.operatorID) { document.getElementById('dest-operator-input').value = data.operatorID; document.getElementById('dest-operator-button').textContent = data.operatorName || 'انتخاب کنید'; }
                         }
                     }
-                } catch (error) {
-                    console.error('Error populating dest location from phone:', error);
-                }
+                } catch (error) { console.error('Error populating dest location from phone:', error); }
             }
 
-            // --- توابع مدیریت تاریخ ---
-            function formatDateInput(input) {
-                let value = toEnglishDigits(input.value);
-                value = value.replace(/[^\d]/g, '');
-                if (value.length > 10) value = value.substring(0, 10);
-                if (value.length > 4) value = value.substring(0, 4) + '/' + value.substring(4);
-                if (value.length > 7) value = value.substring(0, 7) + '/' + value.substring(7);
-                input.value = value;
-
-                // پنهان کردن هشدار هنگام تغییر تاریخ
-                hideDateRequiredAlert();
-            }
-
-            function validateDate(input, errorElement) {
-                const value = input.value;
-                if (!value) {
-                    errorElement.textContent = '';
-                    updateSearchButtonState();
-                    return;
-                }
-
-                const datePattern = /^(\d{4})\/(\d{2})\/(\d{2})$/;
-                if (!datePattern.test(value)) {
-                    errorElement.textContent = 'فرمت تاریخ باید به صورت YYYY/MM/DD باشد';
-                    updateSearchButtonState();
-                    return;
-                }
-
-                const match = value.match(datePattern);
-                const year = parseInt(match[1]);
-                const month = parseInt(match[2]);
-                const day = parseInt(match[3]);
-                const currentYear = new persianDate().year();
-
-                if (year < 1390) {
-                    errorElement.textContent = 'سال نباید کمتر از 1390 باشد';
-                    updateSearchButtonState();
-                    return;
-                }
-                if (year > currentYear) {
-                    errorElement.textContent = 'سال نباید از سال جاری بیشتر باشد';
-                    updateSearchButtonState();
-                    return;
-                }
-                if (month < 1 || month > 12) {
-                    errorElement.textContent = 'ماه باید بین 1 تا 12 باشد';
-                    updateSearchButtonState();
-                    return;
-                }
-                if (day < 1 || day > 31) {
-                    errorElement.textContent = 'روز باید بین 1 تا 31 باشد';
-                    updateSearchButtonState();
-                    return;
-                }
-                if (month >= 7 && month <= 11 && day > 30) {
-                    errorElement.textContent = 'این ماه حداکثر 30 روز دارد';
-                    updateSearchButtonState();
-                    return;
-                }
-                if (month === 12) {
-                    const isLeapYear = (year % 4 === 3);
-                    const maxDay = isLeapYear ? 30 : 29;
-                    if (day > maxDay) {
-                        errorElement.textContent = `اسفند در سال ${year} حداکثر ${maxDay} روز دارد`;
-                        updateSearchButtonState();
-                        return;
-                    }
-                }
-
-                const today = new persianDate();
-                const inputDate = new persianDate([year, month, day]);
-                if (inputDate.isAfter(today)) {
-                    errorElement.textContent = 'تاریخ نباید از امروز بیشتر باشد';
-                    updateSearchButtonState();
-                    return;
-                }
-
-                errorElement.textContent = '';
-                updateSearchButtonState();
-            }
-
-            function parsePersianDate(dateString) {
-                if (!dateString || dateString.length !== 10) return null;
-                const parts = dateString.split('/');
-                if (parts.length !== 3) return null;
-                const year = parseInt(parts[0]);
-                const month = parseInt(parts[1]);
-                const day = parseInt(parts[2]);
-                if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
-                return [year, month, day];
-            }
-
-            function validateDateRangeStepByStep() {
-                const startDateValue = startDateInput.value;
-                const endDateValue = endDateInput.value;
-                const dateRangeErrorElement = document.getElementById('dateRangeError');
-
-                if (!startDateValue || !endDateValue) {
-                    if (dateRangeErrorElement) {
-                        dateRangeErrorElement.textContent = '';
-                    }
-                    return { isValid: true, message: '' };
-                }
-
-                const start = parsePersianDate(startDateValue);
-                const end = parsePersianDate(endDateValue);
-
-                if (!start || !end) {
-                    if (dateRangeErrorElement) {
-                        dateRangeErrorElement.textContent = '';
-                    }
-                    return { isValid: true, message: '' };
-                }
-
-                const [startYear, startMonth, startDay] = start;
-                const [endYear, endMonth, endDay] = end;
-
-                if (startYear > endYear) {
-                    return { isValid: false, message: 'سال شروع نباید از سال پایان بزرگتر باشد.' };
-                }
-                if (startYear < endYear) {
-                    return { isValid: true, message: '' };
-                }
-
-                if (startMonth > endMonth) {
-                    return { isValid: false, message: 'ماه شروع نباید از ماه پایان بزرگتر باشد.' };
-                }
-                if (startMonth < endMonth) {
-                    return { isValid: true, message: '' };
-                }
-
-                if (startDay > endDay) {
-                    return { isValid: false, message: 'روز شروع نباید از روز پایان بزرگتر باشد.' };
-                }
-
-                return { isValid: true, message: '' };
-            }
-
-            function updateSearchButtonState() {
-                const submitButton = document.querySelector('button[type="submit"]');
-                const dateRangeErrorElement = document.getElementById('dateRangeError');
-
-                const hasStartDateError = startDateError.textContent.trim() !== '';
-                const hasEndDateError = endDateError.textContent.trim() !== '';
-
-                const rangeValidation = validateDateRangeStepByStep();
-                const hasDateRangeError = !rangeValidation.isValid;
-
-                if (dateRangeErrorElement) {
-                    dateRangeErrorElement.textContent = rangeValidation.message;
-                } else if (!rangeValidation.isValid) {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.id = 'dateRangeError';
-                    errorDiv.className = 'text-danger small mt-1';
-                    endDateInput.closest('.filter-field').appendChild(errorDiv);
-                    errorDiv.textContent = rangeValidation.message;
-                }
-
-                if (hasStartDateError || hasEndDateError || hasDateRangeError) {
-                    submitButton.disabled = true;
-                } else {
-                    submitButton.disabled = false;
-                }
-            }
-
-            // --- توابع جستجو و نتایج ---
-            function collectFormData() {
-                const formData = new FormData(filterForm);
-                return formData;
-            }
-
+            // --- Search & Results ---
+            function collectFormData() { return new FormData(filterForm); }
             async function performSearch(page = 1, pushHistory = true, isDeepSearch = false) {
-                // اعتبارسنجی تاریخ قبل از جستجو
-                if (!validateRequiredDates()) {
-                    showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error');
-                    return;
-                }
-
+                if (!validateRequiredDates()) { showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error'); return; }
                 stopGlobalAnimation();
                 document.getElementById('Filter_Page').value = page;
                 const formData = collectFormData();
-
-                if (isDeepSearch) {
-                    formData.append('deepSearch', 'true');
-                }
-
-                searchResultsContainer.innerHTML = `
-                    <div class="text-center p-4">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">در حال بارگذاری...</span>
-                        </div>
-                        <p class="mt-2">در حال جستجو...</p>
-                    </div>
-                `;
-
+                if (isDeepSearch) formData.append('deepSearch', 'true');
+                searchResultsContainer.innerHTML = `<div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">در حال بارگذاری...</span></div><p class="mt-2">در حال جستجو...</p></div>`;
                 try {
                     const response = await fetch(`/Call/Search?deepSearch=${isDeepSearch}`, {
                         method: 'POST',
-                        headers: {
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
+                        headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value, 'X-Requested-With': 'XMLHttpRequest' },
                         body: formData
                     });
-
                     if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
-
-                    const contentType = response.headers.get("content-type");
-                    if (contentType && contentType.indexOf("application/json") !== -1) {
-                        const errorData = await response.json();
-                        console.error("Server-side validation errors:", errorData);
-                        searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطای اعتبارسنجی در سرور. جزئیات در کنسول.</div>`;
-                        showToast('خطای اعتبارسنجی', 'error');
-                        return;
-                    }
-
                     const html = await response.text();
                     if (html.includes('<html') || html.includes('<!DOCTYPE')) {
                         console.error("Error: Received full page HTML instead of partial view.");
@@ -1757,46 +950,31 @@
                         showToast('خطا در جستجو', 'error');
                         return;
                     }
-
                     searchResultsContainer.innerHTML = html;
                     exportBtn.disabled = false;
                     convertDatesToPersian();
-
                     const totalCountMatch = html.match(/نتایج جستجو \((\d+) رکورد\)/);
-                    if (totalCountMatch) {
-                        totalResultsCount = parseInt(totalCountMatch[1]);
-                    }
-
+                    if (totalCountMatch) totalResultsCount = parseInt(totalCountMatch[1]);
                     setupPaginationListeners();
                     updateClientNumberPairSelects();
                     setupClientFilterEvents();
-
+                    // Initialize Checkbox Logic Here!
+                    initializeCheckboxLogic();
                     if (pushHistory) {
                         const params = new URLSearchParams();
                         const formElements = filterForm.elements;
-
                         for (let i = 0; i < formElements.length; i++) {
                             const element = formElements[i];
                             if (element.name && element.value) {
-                                if (element.name === 'Filter.ANumbers' || element.name === 'Filter.BNumbers') {
-                                    params.append(element.name, element.value);
-                                } else {
-                                    params.set(element.name, element.value);
-                                }
+                                if (element.name === 'Filter.ANumbers' || element.name === 'Filter.BNumbers') params.append(element.name, element.value);
+                                else params.set(element.name, element.value);
                             }
                         }
-
-                        if (isDeepSearch) {
-                            params.set('deepSearch', 'true');
-                        }
-
+                        if (isDeepSearch) params.set('deepSearch', 'true');
                         const newUrl = `${window.location.pathname}?${params.toString()}`;
                         window.history.pushState({ path: newUrl }, '', newUrl);
-
-                        // ذخیره فیلترها در LocalStorage
                         saveFiltersToLocalStorage();
                     }
-
                 } catch (error) {
                     console.error('Error during search fetch:', error);
                     searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطا در دریافت نتایج جستجو. (${error.message})</div>`;
@@ -1809,85 +987,54 @@
                     link.addEventListener('click', function(e) {
                         e.preventDefault();
                         const page = this.getAttribute('data-page');
-                        if (page) {
-                            performSearch(parseInt(page));
-                        }
+                        if (page) performSearch(parseInt(page));
                     });
                 });
             }
-
-            // --- توابع فیلتر سمت کلاینت ---
             function updateClientNumberPairSelects() {
                 const aNumbers = Array.from(document.querySelectorAll('.anumber-input')).map(input => input.value.trim()).filter(v => v);
                 const bNumbers = Array.from(document.querySelectorAll('.bnumber-input')).map(input => input.value.trim()).filter(v => v);
-
                 const clientANumberSelect = document.querySelector('.client-anumber-select');
                 const clientBNumberSelect = document.querySelector('.client-bnumber-select');
-
                 if (!clientANumberSelect || !clientBNumberSelect) return;
-
                 const currentValueA = clientANumberSelect.value;
                 const currentValueB = clientBNumberSelect.value;
-
                 clientANumberSelect.innerHTML = '<option value="">همه</option>';
                 aNumbers.sort().forEach(number => {
                     const option = document.createElement('option');
-                    option.value = number;
-                    option.textContent = number;
-                    if (currentValueA === number) {
-                        option.selected = true;
-                    }
+                    option.value = number; option.textContent = number;
+                    if (currentValueA === number) option.selected = true;
                     clientANumberSelect.appendChild(option);
                 });
-
                 clientBNumberSelect.innerHTML = '<option value="">همه</option>';
                 bNumbers.sort().forEach(number => {
                     const option = document.createElement('option');
-                    option.value = number;
-                    option.textContent = number;
-                    if (currentValueB === number) {
-                        option.selected = true;
-                    }
+                    option.value = number; option.textContent = number;
+                    if (currentValueB === number) option.selected = true;
                     clientBNumberSelect.appendChild(option);
                 });
             }
-
             function setupClientFilterEvents() {
                 const clientANumberSelect = document.querySelector('.client-anumber-select');
                 const clientBNumberSelect = document.querySelector('.client-bnumber-select');
                 const deepSearchBtn = document.getElementById('btnDeepSearch');
                 const sortSelect = document.getElementById('sort-select');
-
-                if (clientANumberSelect) {
-                    clientANumberSelect.addEventListener('change', () => handleClientSideFilter(false));
-                }
-                if (clientBNumberSelect) {
-                    clientBNumberSelect.addEventListener('change', () => handleClientSideFilter(false));
-                }
-                if (deepSearchBtn) {
-                    deepSearchBtn.addEventListener('click', () => handleClientSideFilter(true));
-                }
-                if (sortSelect) {
-                    sortSelect.addEventListener('change', handleClientSort);
-                }
+                if (clientANumberSelect) clientANumberSelect.addEventListener('change', () => handleClientSideFilter(false));
+                if (clientBNumberSelect) clientBNumberSelect.addEventListener('change', () => handleClientSideFilter(false));
+                if (deepSearchBtn) deepSearchBtn.addEventListener('click', () => handleClientSideFilter(true));
+                if (sortSelect) sortSelect.addEventListener('change', handleClientSort);
             }
-
             function handleClientSort() {
                 const sortSelect = document.getElementById('sort-select');
                 if (!sortSelect) return;
-
                 const sortValue = sortSelect.value;
                 const [column, direction] = sortValue.split('-');
                 const isAscending = direction === 'asc';
-
                 const tbody = document.querySelector('#search-results-container tbody');
                 if (!tbody) return;
-
                 const rows = Array.from(tbody.querySelectorAll('tr'));
-
                 rows.sort((a, b) => {
                     let aValue, bValue;
-
                     switch(column) {
                         case 'AccountingTime':
                             const aTimeElem = a.querySelector('[data-datetime]');
@@ -1896,336 +1043,158 @@
                             bValue = bTimeElem ? new Date(bTimeElem.dataset.datetime) : new Date(0);
                             break;
                         case 'ANumber':
-                            aValue = a.cells[0].textContent.trim();
-                            bValue = b.cells[0].textContent.trim();
-                            break;
-                        case 'BNumber':
                             aValue = a.cells[1].textContent.trim();
                             bValue = b.cells[1].textContent.trim();
                             break;
-                        case 'Length':
-                            aValue = parseInt(a.cells[3].textContent.trim()) || 0;
-                            bValue = parseInt(b.cells[3].textContent.trim()) || 0;
+                        case 'BNumber':
+                            aValue = a.cells[2].textContent.trim();
+                            bValue = b.cells[2].textContent.trim();
                             break;
-                        default:
-                            return 0;
+                        case 'Length':
+                            aValue = parseInt(a.cells[4].textContent.trim()) || 0;
+                            bValue = parseInt(b.cells[4].textContent.trim()) || 0;
+                            break;
+                        default: return 0;
                     }
-
                     if (aValue < bValue) return isAscending ? -1 : 1;
                     if (aValue > bValue) return isAscending ? 1 : -1;
                     return 0;
                 });
-
                 tbody.innerHTML = '';
                 rows.forEach(row => tbody.appendChild(row));
             }
-
             function handleClientSideFilter(isDeepSearch = false) {
-                // برای جستجوی عمیق، اعتبارسنجی تاریخ انجام می‌شود
                 if (isDeepSearch) {
-                    if (!validateRequiredDates()) {
-                        showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error');
-                        return;
-                    }
-                }
-
+                    if (!validateRequiredDates()) { showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error'); return; }
                 const allRows = document.querySelectorAll('#search-results-container tbody tr');
                 const aSelect = document.querySelector('.client-anumber-select');
                 const bSelect = document.querySelector('.client-bnumber-select');
-
                 if (!aSelect || !bSelect) return;
-
                 const selectedA = aSelect.value;
                 const selectedB = bSelect.value;
-
-                // منطق جستجوی عمیق
-                if (isDeepSearch) {
-                    if (!selectedA && !selectedB) {
-                        showToast('لطفاً حداقل یک شماره برای جستجوی عمیق انتخاب کنید', 'info');
-                        return;
-                    }
-
-                    // پاک کردن ورودی‌های شماره‌ها در فرم اصلی
-                    const aInputs = filterForm.querySelectorAll('input[name="Filter.ANumbers"]');
-                    aInputs.forEach(input => input.value = '');
-
-                    const bInputs = filterForm.querySelectorAll('input[name="Filter.BNumbers"]');
-                    bInputs.forEach(input => input.value = '');
-
-                    // مقداردهی دوباره ورودی‌ها
-                    if (selectedA) {
-                        const firstAInput = aInputs[0];
-                        if (firstAInput) firstAInput.value = selectedA;
-                    }
-
-                    if (selectedB) {
-                        const firstBInput = bInputs[0];
-                        if (firstBInput) firstBInput.value = selectedB;
-                    }
-
-                    const pageInput = document.getElementById('Filter_Page');
-                    if (pageInput) pageInput.value = 1;
-
-                    performSearch(1, true, true);
-                    return;
+                if (!selectedA && !selectedB) { showToast('لطفاً حداقل یک شماره برای جستجوی عمیق انتخاب کنید', 'info'); return; }
+                const aInputs = filterForm.querySelectorAll('input[name="Filter.ANumbers"]');
+                aInputs.forEach(input => input.value = '');
+                const bInputs = filterForm.querySelectorAll('input[name="Filter.BNumbers"]');
+                bInputs.forEach(input => input.value = '');
+                if (selectedA) {
+                    const firstAInput = aInputs[0];
+                    if (firstAInput) firstAInput.value = selectedA;
                 }
-
-                // منطق فیلتر سریع
-                if (!selectedA && !selectedB) {
-                    allRows.forEach(row => row.style.display = '');
-                    return;
+                if (selectedB) {
+                    const firstBInput = bInputs[0];
+                    if (firstBInput) firstBInput.value = selectedB;
                 }
-
-                allRows.forEach(row => {
-                    const aNum = row.cells[0].textContent.trim();
-                    const bNum = row.cells[1].textContent.trim();
-
-                    let isVisible = false;
-
-                    if (selectedA && selectedB) {
-                        if ((aNum === selectedA && bNum === selectedB) ||
-                            (aNum === selectedB && bNum === selectedA)) {
-                            isVisible = true;
-                        }
-                    }
-                    else if (selectedA && (aNum === selectedA || bNum === selectedA)) {
-                        isVisible = true;
-                    }
-                    else if (selectedB && (aNum === selectedB || bNum === selectedB)) {
-                        isVisible = true;
-                    }
-
-                    row.style.display = isVisible ? '' : 'none';
-                });
+                const pageInput = document.getElementById('Filter_Page');
+                if (pageInput) pageInput.value = 1;
+                performSearch(1, true, true);
+                return;
             }
+            // Quick Filter Logic
+            const allRows = document.querySelectorAll('tbody tr');
+            const aSelect = document.querySelector('.client-anumber-select');
+            const bSelect = document.querySelector('.client-bnumber-select');
+            if (!aSelect || !bSelect) return;
+            const selectedA = aSelect.value;
+            const selectedB = bSelect.value;
+            if (!selectedA && !selectedB) { allRows.forEach(row => row.style.display = ''); return; }
+            allRows.forEach(row => {
+                const aNum = row.cells[1].textContent.trim();
+                const bNum = row.cells[2].textContent.trim();
+                let isVisible = false;
+                if (selectedA && selectedB) { if ((aNum === selectedA && bNum === selectedB) || (aNum === selectedB && bNum === selectedA)) isVisible = true; }
+                else if (selectedA && (aNum === selectedA || bNum === selectedA)) isVisible = true;
+                else if (selectedB && (aNum === selectedB || bNum === selectedB)) isVisible = true;
+                row.style.display = isVisible ? '' : 'none';
+            });
+            setTimeout(() => {
+                const selectAllCb = document.getElementById('selectAllCurrentPage');
+                if (selectAllCb) {
+                    const visibleCheckboxes = Array.from(document.querySelectorAll('tbody .call-checkbox')).filter(cb => cb.offsetParent !== null);
+                    if (visibleCheckboxes.length === 0) { selectAllCb.checked = false; selectAllCb.indeterminate = false; }
+                    else {
+                        const checkedCount = visibleCheckboxes.filter(cb => cb.checked).length;
+                        if (checkedCount === 0) { selectAllCb.checked = false; selectAllCb.indeterminate = false; }
+                        else if (checkedCount === visibleCheckboxes.length) { selectAllCb.checked = true; selectAllCb.indeterminate = false; }
+                        else { selectAllCb.checked = false; selectAllCb.indeterminate = true; }
+                    }
+                }
+            }, 50);
+        }
 
-            // --- تابع اصلی بازنشانی فرم ---
+            // --- Reset ---
             async function resetForm(e) {
                 if (e) e.preventDefault();
-
                 isResetting = true;
-
-                // 1. پاک کردن LocalStorage
                 clearLocalStorageFilters();
-
-                // 2. پاک کردن Session در سرور
                 await clearServerFilters();
-
-                // 3. پاک کردن فلگ Session
                 sessionStorage.removeItem(SESSION_FLAG_KEY);
-
-                // 4. بازنشانی مقادیر hidden
                 document.getElementById('Filter_Page').value = '1';
-                document.getElementById('origin-country-input').value = '';
-                document.getElementById('origin-city-input').value = '';
-                document.getElementById('origin-operator-input').value = '';
-                document.getElementById('dest-country-input').value = '';
-                document.getElementById('dest-city-input').value = '';
-                document.getElementById('dest-operator-input').value = '';
-                document.getElementById('answer-input').value = '';
-                document.getElementById('pagesize-input').value = '50';
-
-                // 5. بازنشانی دکمه‌های dropdown
-                document.getElementById('origin-country-button').textContent = 'انتخاب کنید';
-                document.getElementById('origin-city-button').textContent = 'ابتدا کشور را انتخاب کنید';
-                document.getElementById('origin-city-button').disabled = true;
-                document.getElementById('origin-operator-button').textContent = 'ابتدا کشور را انتخاب کنید';
-                document.getElementById('origin-operator-button').disabled = true;
-                document.getElementById('dest-country-button').textContent = 'انتخاب کنید';
-                document.getElementById('dest-city-button').textContent = 'ابتدا کشور را انتخاب کنید';
-                document.getElementById('dest-city-button').disabled = true;
-                document.getElementById('dest-operator-button').textContent = 'ابتدا کشور را انتخاب کنید';
-                document.getElementById('dest-operator-button').disabled = true;
-                document.getElementById('answer-button').textContent = 'همه';
-                document.getElementById('pagesize-button').textContent = '50';
-
-                // 6. بازنشانی فیلدهای text
-                startDateInput.value = '';
-                endDateInput.value = '';
-                startDateError.textContent = '';
-                endDateError.textContent = '';
-
+                document.getElementById('origin-country-input').value = ''; document.getElementById('origin-city-input').value = ''; document.getElementById('origin-operator-input').value = '';
+                document.getElementById('dest-country-input').value = ''; document.getElementById('dest-city-input').value = ''; document.getElementById('dest-operator-input').value = '';
+                document.getElementById('answer-input').value = ''; document.getElementById('pagesize-input').value = '50';
+                document.getElementById('origin-country-button').textContent = 'انتخاب کنید'; document.getElementById('origin-city-button').textContent = 'ابتدا کشور را انتخاب کنید'; document.getElementById('origin-city-button').disabled = true;
+                document.getElementById('origin-operator-button').textContent = 'ابتدا کشور را انتخاب کنید'; document.getElementById('origin-operator-button').disabled = true;
+                document.getElementById('dest-country-button').textContent = 'انتخاب کنید'; document.getElementById('dest-city-button').textContent = 'ابتدا کشور را انتخاب کنید'; document.getElementById('dest-city-button').disabled = true;
+                document.getElementById('dest-operator-button').textContent = 'ابتدا کشور را انتخاب کنید'; document.getElementById('dest-operator-button').disabled = true;
+                document.getElementById('answer-button').textContent = 'همه'; document.getElementById('pagesize-button').textContent = '50';
+                startDateInput.value = ''; endDateInput.value = ''; startDateError.textContent = ''; endDateError.textContent = '';
                 const dateRangeError = document.getElementById('dateRangeError');
-                if (dateRangeError) {
-                    dateRangeError.textContent = '';
-                }
-
-                // پنهان کردن هشدار تاریخ
-                dateRequiredAlert.style.display = 'none';
-                startDateInput.classList.remove('is-invalid');
-                endDateInput.classList.remove('is-invalid');
-                startDateInput.style.borderColor = '';
-                endDateInput.style.borderColor = '';
-                startDateInput.style.boxShadow = '';
-                endDateInput.style.boxShadow = '';
-
-                // 7. فعال‌سازی بخش‌های مکان
-                enableLocationFields(document.getElementById('origin-location-section'));
-                enableLocationFields(document.getElementById('dest-location-section'));
-
-                // 8. غیرفعال کردن دکمه اکسپورت
+                if (dateRangeError) dateRangeError.textContent = '';
+                dateRequiredAlert.style.display = 'none'; startDateInput.classList.remove('is-invalid'); endDateInput.classList.remove('is-invalid');
+                startDateInput.style.borderColor = ''; endDateInput.style.borderColor = ''; startDateInput.style.boxShadow = ''; endDateInput.style.boxShadow = '';
+                enableLocationFields(document.getElementById('origin-location-section')); enableLocationFields(document.getElementById('dest-location-section'));
                 exportBtn.disabled = true;
-
-                // 9. بازنشانی شماره‌ها
                 const anumbersContainer = document.getElementById('anumbers-container');
                 const bnumbersContainer = document.getElementById('bnumbers-container');
-
-                // پاک کردن تمام ردیف‌های موجود
                 anumbersContainer.innerHTML = '';
                 bnumbersContainer.innerHTML = '';
-
-                // ایجاد ردیف اول برای هر دو نوع شماره
-                anumbersContainer.innerHTML = `
-                    <div class="filter-row anumber-row" data-index="0">
-                        <div class="filter-field">
-                            <label class="form-label">شماره مبدأ 1</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" name="Filter.ANumbers" />
-                                <button class="btn btn-outline-secondary remove-anumber" type="button" title="حذف شماره">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                                <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;">
-                                    <i class="fas fa-info-circle"></i>
-                                </span>
-                                <div class="phone-info-container" style="display: none;">
-                                    <div class="phone-info-content"></div>
-                                </div>
-                            </div>
-                            <div class="phone-number-info" id="anumber-info-0" style="display: none;">
-                                <i class="fas fa-map-marker-alt"></i> <span id="anumber-location-0"></span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                bnumbersContainer.innerHTML = `
-                    <div class="filter-row bnumber-row" data-index="0">
-                        <div class="filter-field">
-                            <label class="form-label">شماره مقصد 1</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" name="Filter.BNumbers" />
-                                <button class="btn btn-outline-secondary remove-bnumber" type="button" title="حذف شماره">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                                <span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;">
-                                    <i class="fas fa-info-circle"></i>
-                                </span>
-                                <div class="phone-info-container" style="display: none;">
-                                    <div class="phone-info-content"></div>
-                                </div>
-                            </div>
-                            <div class="phone-number-info" id="bnumber-info-0" style="display: none;">
-                                <i class="fas fa-map-marker-alt"></i> <span id="bnumber-location-0"></span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // 10. ریست شمارنده‌ها
-                aNumberCount = 1;
-                bNumberCount = 1;
-
-                // 11. اتصال مجدد رویدادها برای شماره‌ها
-                document.querySelector('.anumber-row .remove-anumber').addEventListener('click', function() {
-                    removeANumber(this);
-                });
+                anumbersContainer.innerHTML = `<div class="filter-row anumber-row" data-index="0"><div class="filter-field"><label class="form-label">شماره مبدأ 1</label><div class="input-group"><input type="text" class="form-control anumber-input" placeholder="شماره مبدأ را وارد کنید" name="Filter.ANumbers" /><button class="btn btn-outline-secondary remove-anumber" type="button" title="حذف شماره"><i class="fas fa-times"></i></button><span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;"><i class="fas fa-info-circle"></i></span><div class="phone-info-container" style="display: none;"><div class="phone-info-content"></div></div></div><div class="phone-number-info" id="anumber-info-0" style="display: none;"><i class="fas fa-map-marker-alt"></i> <span id="anumber-location-0"></span></div></div></div>`;
+                bnumbersContainer.innerHTML = `<div class="filter-row bnumber-row" data-index="0"><div class="filter-field"><label class="form-label">شماره مقصد 1</label><div class="input-group"><input type="text" class="form-control bnumber-input" placeholder="شماره مقصد را وارد کنید" name="Filter.BNumbers" /><button class="btn btn-outline-secondary remove-bnumber" type="button" title="حذف شماره"><i class="fas fa-times"></i></button><span class="input-group-text phone-info-trigger" title="نمایش اطلاعات" style="display: none;"><i class="fas fa-info-circle"></i></span><div class="phone-info-container" style="display: none;"><div class="phone-info-content"></div></div></div><div class="phone-number-info" id="bnumber-info-0" style="display: none;"><i class="fas fa-map-marker-alt"></i> <span id="bnumber-location-0"></span></div></div></div>`;
+                aNumberCount = 1; bNumberCount = 1;
+                document.querySelector('.anumber-row .remove-anumber').addEventListener('click', function() { removeANumber(this); });
                 document.querySelector('.anumber-row .anumber-input').addEventListener('input', handlePhoneInput);
                 document.querySelector('.anumber-row .phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
-
-                document.querySelector('.bnumber-row .remove-bnumber').addEventListener('click', function() {
-                    removeBNumber(this);
-                });
+                document.querySelector('.bnumber-row .remove-bnumber').addEventListener('click', function() { removeBNumber(this); });
                 document.querySelector('.bnumber-row .bnumber-input').addEventListener('input', handlePhoneInput);
                 document.querySelector('.bnumber-row .phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
-
-                // 12. پاک کردن نتایج و نمایش حالت اولیه
-                searchResultsContainer.innerHTML = `
-                    <div class="text-center p-4">
-                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p>
-                        <div class="global-animation-container" id="globalAnimation">
-                            <div class="animation-text" id="animationText">در انتظار برای انجام جستجو</div>
-                            <div class="signal-pulse-container" id="signalPulse">
-                                <div class="signal-pulse-point">
-                                    <div class="signal-pulse-ring"></div>
-                                    <div class="signal-pulse-ring"></div>
-                                    <div class="signal-pulse-ring"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // 13. ریست URL مرورگر
+                searchResultsContainer.innerHTML = `<div class="text-center p-4"><i class="fas fa-search fa-3x text-muted mb-3"></i><p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p><div class="global-animation-container" id="globalAnimation"><div class="animation-text" id="animationText">در انتظار برای انجام جستجو</div><div class="signal-pulse-container" id="signalPulse"><div class="signal-pulse-point"><div class="signal-pulse-ring"></div><div class="signal-pulse-ring"></div><div class="signal-pulse-ring"></div></div></div></div></div>`;
                 window.history.pushState({}, document.title, window.location.pathname);
-
-                // 14. شروع انیمیشن
-                setTimeout(() => {
-                    startGlobalAnimation();
-                }, 100);
-
-                // 15. نمایش پیام موفقیت
+                setTimeout(() => { startGlobalAnimation(); }, 100);
                 showToast('فیلترها با موفقیت بازنشانی شدند', 'success');
-
-                // 16. به‌روزرسانی وضعیت فیلدهای مکان
                 updateLocationFieldsState();
-
-                // 17. ریست flag بعد از 2 ثانیه
-                setTimeout(() => {
-                    isResetting = false;
-                }, 2000);
+                setTimeout(() => { isResetting = false; }, 2000);
             }
 
-            // --- توابع اکسپورت ---
+            // --- Export Options ---
             function estimateFileSize(recordCount, columnCount) {
                 const estimatedBytes = recordCount * columnCount * 100;
                 const estimatedMB = (estimatedBytes / (1024 * 1024)).toFixed(2);
                 return estimatedMB;
             }
-
             function countSelectedColumns() {
                 const checkboxes = document.querySelectorAll('#exportModal .form-check-input[type="checkbox"]');
                 let count = 0;
-                checkboxes.forEach(checkbox => {
-                    if (checkbox.checked) count++;
-                });
+                checkboxes.forEach(checkbox => { if (checkbox.checked) count++; });
                 return count;
             }
-
             function updateEstimatedSize() {
                 const limit = parseInt(exportLimitInput.value) || 0;
                 const columnCount = countSelectedColumns();
                 const estimatedSize = estimateFileSize(limit, columnCount);
                 estimatedSizeSpan.textContent = estimatedSize;
-
-                if (estimatedSize > 50) {
-                    estimatedSizeSpan.classList.add('text-danger');
-                    confirmExportBtn.disabled = true;
-                } else {
-                    estimatedSizeSpan.classList.remove('text-danger');
-                    confirmExportBtn.disabled = false;
-                }
+                if (estimatedSize > 50) { estimatedSizeSpan.classList.add('text-danger'); confirmExportBtn.disabled = true; }
+                else { estimatedSizeSpan.classList.remove('text-danger'); confirmExportBtn.disabled = false; }
             }
-
             function toggleExportSections() {
-                if (exportAllRadio.checked) {
-                    allResultsSection.style.display = 'block';
-                    currentResultsSection.style.display = 'none';
-                    updateEstimatedSize();
-                } else {
-                    allResultsSection.style.display = 'none';
-                    currentResultsSection.style.display = 'block';
-                }
+                if (exportAllRadio.checked) { allResultsSection.style.display = 'block'; currentResultsSection.style.display = 'none'; updateEstimatedSize(); }
+                else { allResultsSection.style.display = 'none'; currentResultsSection.style.display = 'block'; }
             }
-
             async function performExportWithOptions() {
                 const formData = collectFormData();
                 const exportType = document.querySelector('input[name="exportType"]:checked').value;
                 formData.append('exportType', exportType);
-                if (exportType === 'all') {
-                    formData.append('limit', exportLimitInput.value);
-                }
-
+                if (exportType === 'all') formData.append('limit', exportLimitInput.value);
                 const columns = [];
                 if (document.getElementById('colDetailID').checked) columns.push('DetailID');
                 if (document.getElementById('colANumber').checked) columns.push('ANumber');
@@ -2240,22 +1209,15 @@
                 if (document.getElementById('colDestOperator').checked) columns.push('DestOperatorName');
                 if (document.getElementById('colAnswer').checked) columns.push('Answer');
                 formData.append('columns', columns.join(','));
-
                 try {
                     const response = await fetch(`/Call/ExportWithOptions`, {
                         method: 'POST',
-                        headers: {
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
+                        headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value, 'X-Requested-With': 'XMLHttpRequest' },
                         body: formData
                     });
-
                     if (!response.ok) throw new Error('Network response was not ok.');
-
                     exportModal.hide();
                     showToast('در حال آماده‌سازی فایل اکسپورت...');
-
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -2267,20 +1229,11 @@
                     a.click();
                     window.URL.revokeObjectURL(url);
                     document.body.removeChild(a);
-
                     showToast('خروجی با موفقیت دانلود شد', 'success');
-                } catch (error) {
-                    console.error('Error:', error);
-                    showToast('خطا در آماده‌سازی خروجی', 'error');
-                }
+                } catch (error) { console.error('Error:', error); showToast('خطا در آماده‌سازی خروجی', 'error'); }
             }
-
-            // --- توابع کمکی دیگر ---
             function convertDatesToPersian() {
-                if (typeof persianDate === 'undefined') {
-                    console.error("persianDate library is not loaded. Dates will not be converted.");
-                    return;
-                }
+                if (typeof persianDate === 'undefined') { console.error("persianDate library is not loaded. Dates will not be converted."); return; }
                 const dateElements = document.querySelectorAll('.datetime-cell, [data-datetime]');
                 dateElements.forEach(element => {
                     if (element.dataset.datetime) {
@@ -2290,7 +1243,7 @@
                 });
             }
 
-            // --- اتصال رویدادها ---
+            // --- Event Binding ---
             setupDropdownListener('origin-country-button', 'origin-country-input', 'origin-country-dropdown');
             setupDropdownListener('origin-city-button', 'origin-city-input', 'origin-city-dropdown');
             setupDropdownListener('dest-country-button', 'dest-country-input', 'dest-country-dropdown');
@@ -2300,290 +1253,221 @@
             setupDropdownListener('answer-button', 'answer-input', 'answer-dropdown');
             setupDropdownListener('pagesize-button', 'pagesize-input', 'pagesize-dropdown');
 
-            originCountryInput.addEventListener('change', () => {
-                const countryId = originCountryInput.value;
+            document.getElementById('origin-country-input').addEventListener('change', () => {
+                const countryId = document.getElementById('origin-country-input').value;
                 const cityButton = document.getElementById('origin-city-button');
                 const operatorButton = document.getElementById('origin-operator-button');
-
                 if (!countryId || countryId === '') {
-                    cityButton.disabled = true;
-                    operatorButton.disabled = true;
-                    cityButton.textContent = 'ابتدا کشور را انتخاب کنید';
-                    operatorButton.textContent = 'ابتدا کشور را انتخاب کنید';
-                    originCityInput.value = '';
-                    originOperatorInput.value = '';
+                    cityButton.disabled = true; operatorButton.disabled = true;
+                    cityButton.textContent = 'ابتدا کشور را انتخاب کنید'; operatorButton.textContent = 'ابتدا کشور را انتخاب کنید';
+                    document.getElementById('origin-city-input').value = ''; document.getElementById('origin-operator-input').value = '';
                 } else {
                     loadCities('origin-country-input', 'origin-city-button', 'origin-city-input', 'origin-city-dropdown');
                     loadOperators('origin-country-input', 'origin-operator-button', 'origin-operator-input', 'origin-operator-dropdown');
                 }
             });
-
-            destCountryInput.addEventListener('change', () => {
-                const countryId = destCountryInput.value;
+            document.getElementById('dest-country-input').addEventListener('change', () => {
+                const countryId = document.getElementById('dest-country-input').value;
                 const cityButton = document.getElementById('dest-city-button');
                 const operatorButton = document.getElementById('dest-operator-button');
-
                 if (!countryId || countryId === '') {
-                    cityButton.disabled = true;
-                    operatorButton.disabled = true;
-                    cityButton.textContent = 'ابتدا کشور را انتخاب کنید';
-                    operatorButton.textContent = 'ابتدا کشور را انتخاب کنید';
-                    destCityInput.value = '';
-                    destOperatorInput.value = '';
+                    cityButton.disabled = true; operatorButton.disabled = true;
+                    cityButton.textContent = 'ابتدا کشور را انتخاب کنید'; operatorButton.textContent = 'ابتدا کشور را انتخاب کنید';
+                    document.getElementById('dest-city-input').value = ''; document.getElementById('dest-operator-input').value = '';
                 } else {
                     loadCities('dest-country-input', 'dest-city-button', 'dest-city-input', 'dest-city-dropdown');
                     loadOperators('dest-country-input', 'dest-operator-button', 'dest-operator-input', 'dest-operator-dropdown');
                 }
             });
 
-            // رویدادهای دکمه بازنشانی
             resetBtn.addEventListener('click', resetForm);
-
-            // رویدادهای دیگر
-            swapOriginDestBtn.addEventListener('click', () => {
-                const tempCountry = originCountryInput.value;
-                originCountryInput.value = destCountryInput.value;
-                destCountryInput.value = tempCountry;
-                originCountryInput.dispatchEvent(new Event('change'));
-                destCountryInput.dispatchEvent(new Event('change'));
-
+            document.getElementById('swapOriginDest').addEventListener('click', () => {
+                const tempCountry = document.getElementById('origin-country-input').value;
+                document.getElementById('origin-country-input').value = document.getElementById('dest-country-input').value;
+                document.getElementById('dest-country-input').value = tempCountry;
+                document.getElementById('origin-country-input').dispatchEvent(new Event('change'));
+                document.getElementById('dest-country-input').dispatchEvent(new Event('change'));
                 setTimeout(() => {
-                    const tempCity = originCityInput.value;
-                    originCityInput.value = destCityInput.value;
-                    destCityInput.value = tempCity;
-                    const tempOperator = originOperatorInput.value;
-                    originOperatorInput.value = destOperatorInput.value;
-                    destOperatorInput.value = tempOperator;
+                    const tempCity = document.getElementById('origin-city-input').value;
+                    document.getElementById('origin-city-input').value = document.getElementById('dest-city-input').value;
+                    document.getElementById('dest-city-input').value = tempCity;
+                    const tempOperator = document.getElementById('origin-operator-input').value;
+                    document.getElementById('origin-operator-input').value = document.getElementById('dest-operator-input').value;
+                    document.getElementById('dest-operator-input').value = tempOperator;
                 }, 500);
-
-                const tempButtonText = originCountryButton.textContent;
-                originCountryButton.textContent = destCountryButton.textContent;
-                destCountryButton.textContent = tempButtonText;
-                const tempCityButtonText = originCityButton.textContent;
-                originCityButton.textContent = destCityButton.textContent;
-                destCityButton.textContent = tempCityButtonText;
-                const tempOperatorButtonText = originOperatorButton.textContent;
-                originOperatorButton.textContent = destOperatorButton.textContent;
-                destOperatorButton.textContent = tempOperatorButtonText;
-
+                const tempButtonText = document.getElementById('origin-country-button').textContent;
+                document.getElementById('origin-country-button').textContent = document.getElementById('dest-country-button').textContent;
+                document.getElementById('dest-country-button').textContent = tempButtonText;
+                const tempCityButtonText = document.getElementById('origin-city-button').textContent;
+                document.getElementById('origin-city-button').textContent = document.getElementById('dest-city-button').textContent;
+                document.getElementById('dest-city-button').textContent = tempCityButtonText;
+                const tempOperatorButtonText = document.getElementById('origin-operator-button').textContent;
+                document.getElementById('origin-operator-button').textContent = document.getElementById('dest-operator-button').textContent;
+                document.getElementById('dest-operator-button').textContent = tempOperatorButtonText;
                 showToast('مبدأ و مقصد با موفقیت جابجا شدند', 'success');
             });
-
             exportBtn.addEventListener('click', () => {
                 totalRecordsSpan.textContent = totalResultsCount;
                 exportLimitInput.value = totalResultsCount > 0 ? Math.min(totalResultsCount, 1000) : 100;
                 updateEstimatedSize();
                 exportModal.show();
             });
-
             filterForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-
-                if (!validateRequiredDates()) {
-                    showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error');
-                    return false;
-                }
-
+                if (!validateRequiredDates()) { showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error'); return false; }
                 const hasStartDateError = startDateError.textContent.trim() !== '';
                 const hasEndDateError = endDateError.textContent.trim() !== '';
                 const rangeValidation = validateDateRangeStepByStep();
-
-                if (hasStartDateError || hasEndDateError || !rangeValidation.isValid) {
-                    showToast('لطفاً تاریخ‌ها را به درستی وارد کنید', 'error');
-                    return false;
-                }
-
+                if (hasStartDateError || hasEndDateError || !rangeValidation.isValid) { showToast('لطفاً تاریخ‌ها را به درستی وارد کنید', 'error'); return false; }
                 document.getElementById('Filter_Page').value = 1;
                 performSearch(1);
                 return true;
             });
-
             document.querySelector('[data-bs-toggle="collapse"]').addEventListener('click', function() {
-                filterToggleIcon.classList.toggle('fa-chevron-up');
-                filterToggleIcon.classList.toggle('fa-chevron-down');
+                document.getElementById('filterToggleIcon').classList.toggle('fa-chevron-up');
+                document.getElementById('filterToggleIcon').classList.toggle('fa-chevron-down');
             });
-
             confirmExportBtn.addEventListener('click', performExportWithOptions);
             exportLimitInput.addEventListener('input', updateEstimatedSize);
-            document.querySelectorAll('#exportModal .form-check-input[type="checkbox"]').forEach(checkbox => {
-                checkbox.addEventListener('change', updateEstimatedSize);
-            });
+            document.querySelectorAll('#exportModal .form-check-input[type="checkbox"]').forEach(checkbox => { checkbox.addEventListener('change', updateEstimatedSize); });
             exportAllRadio.addEventListener('change', toggleExportSections);
             exportCurrentRadio.addEventListener('change', toggleExportSections);
-
             document.getElementById('addANumber').addEventListener('click', addANumber);
             document.getElementById('addBNumber').addEventListener('click', addBNumber);
-
-            document.querySelector('.anumber-row .remove-anumber').addEventListener('click', function() {
-                removeANumber(this);
-            });
+            document.querySelector('.anumber-row .remove-anumber').addEventListener('click', function() { removeANumber(this); });
             document.querySelector('.anumber-row .anumber-input').addEventListener('input', handlePhoneInput);
             document.querySelector('.anumber-row .phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
-
-            document.querySelector('.bnumber-row .remove-bnumber').addEventListener('click', function() {
-                removeBNumber(this);
-            });
+            document.querySelector('.bnumber-row .remove-bnumber').addEventListener('click', function() { removeBNumber(this); });
             document.querySelector('.bnumber-row .bnumber-input').addEventListener('input', handlePhoneInput);
             document.querySelector('.bnumber-row .phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
-
             document.addEventListener('keydown', function(e) {
                 if (e.ctrlKey && e.key === 'Enter') {
                     e.preventDefault();
-                    if (!validateRequiredDates()) {
-                        showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error');
-                        return;
-                    }
-
+                    if (!validateRequiredDates()) { showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error'); return; }
                     const hasStartDateError = startDateError.textContent.trim() !== '';
                     const hasEndDateError = endDateError.textContent.trim() !== '';
                     const rangeValidation = validateDateRangeStepByStep();
-
-                    if (!hasStartDateError && !hasEndDateError && rangeValidation.isValid) {
-                        document.getElementById('Filter_Page').value = 1;
-                        performSearch(1);
-                    } else {
-                        showToast('لطفاً تاریخ‌ها را به درستی وارد کنید', 'error');
-                    }
+                    if (!hasStartDateError && !hasEndDateError && rangeValidation.isValid) { document.getElementById('Filter_Page').value = 1; performSearch(1); }
+                    else { showToast('لطفاً تاریخ‌ها را به درستی وارد کنید', 'error'); }
                 }
-                if (e.ctrlKey && e.key === 'r') {
-                    e.preventDefault();
-                    resetForm(e);
+                if (e.ctrlKey && e.key === 'r') { e.preventDefault(); resetForm(e); }
+            });
+            document.getElementById('startDateClear').addEventListener('click', () => { startDateInput.value = ''; startDateError.textContent = ''; hideDateRequiredAlert(); updateSearchButtonState(); });
+            document.getElementById('endDateClear').addEventListener('click', () => { endDateInput.value = ''; endDateError.textContent = ''; hideDateRequiredAlert(); updateSearchButtonState(); });
+            startDateInput.addEventListener('input', function() { formatDateInput(this); hideDateRequiredAlert(); updateSearchButtonState(); });
+            startDateInput.addEventListener('blur', function() { validateDate(this, startDateError); hideDateRequiredAlert(); });
+            endDateInput.addEventListener('input', function() { formatDateInput(this); hideDateRequiredAlert(); updateSearchButtonState(); });
+            endDateInput.addEventListener('blur', function() { validateDate(this, endDateError); hideDateRequiredAlert(); });
+            document.addEventListener('click', function(e) { if (!startDateInput.contains(e.target) && !endDateInput.contains(e.target)) hideDateRequiredAlert(); });
+            function formatDateInput(input) {
+                let value = toEnglishDigits(input.value);
+                value = value.replace(/[^\d]/g, '');
+                if (value.length > 10) value = value.substring(0, 10);
+                if (value.length > 4) value = value.substring(0, 4) + '/' + value.substring(4);
+                if (value.length > 7) value = value.substring(0, 7) + '/' + value.substring(7);
+                input.value = value;
+            }
+            function validateDate(input, errorElement) {
+                const value = input.value;
+                if (!value) { errorElement.textContent = ''; return; }
+                const datePattern = /^(\d{4})\/(\d{2})\/(\d{2})$/;
+                if (!datePattern.test(value)) { errorElement.textContent = 'فرمت تاریخ باید به صورت YYYY/MM/DD باشد'; return; }
+                const match = value.match(datePattern);
+                const year = parseInt(match[1]), month = parseInt(match[2]), day = parseInt(match[3]);
+                const currentYear = new persianDate().year();
+                if (year < 1390) { errorElement.textContent = 'سال نباید کمتر از 1390 باشد'; return; }
+                if (year > currentYear) { errorElement.textContent = 'سال نباید از سال جاری بیشتر باشد'; return; }
+                if (month < 1 || month > 12) { errorElement.textContent = 'ماه باید بین 1 تا 12 باشد'; return; }
+                if (day < 1 || day > 31) { errorElement.textContent = 'روز باید بین 1 تا 31 باشد'; return; }
+                if (month >= 7 && month <= 11 && day > 30) { errorElement.textContent = 'این ماه حداکثر 30 روز دارد'; return; }
+                if (month === 12) {
+                    const isLeapYear = (year % 4 === 3);
+                    const maxDay = isLeapYear ? 30 : 29;
+                    if (day > maxDay) { errorElement.textContent = `اسفند در سال ${year} حداکثر ${maxDay} روز دارد`; return; }
                 }
-            });
-
-            startDateClear.addEventListener('click', () => {
-                startDateInput.value = '';
-                startDateError.textContent = '';
-                hideDateRequiredAlert();
-                updateSearchButtonState();
-            });
-            endDateClear.addEventListener('click', () => {
-                endDateInput.value = '';
-                endDateError.textContent = '';
-                hideDateRequiredAlert();
-                updateSearchButtonState();
-            });
-
-            startDateInput.addEventListener('input', function() {
-                formatDateInput(this);
-                hideDateRequiredAlert();
-                updateSearchButtonState();
-            });
-            startDateInput.addEventListener('blur', function() {
-                validateDate(this, startDateError);
-                hideDateRequiredAlert();
-            });
-            endDateInput.addEventListener('input', function() {
-                formatDateInput(this);
-                hideDateRequiredAlert();
-                updateSearchButtonState();
-            });
-            endDateInput.addEventListener('blur', function() {
-                validateDate(this, endDateError);
-                hideDateRequiredAlert();
-            });
-
-            document.addEventListener('click', function(e) {
-                if (!startDateInput.contains(e.target) && !endDateInput.contains(e.target)) {
-                    hideDateRequiredAlert();
+                const today = new persianDate();
+                const inputDate = new persianDate([year, month, day]);
+                if (inputDate.isAfter(today)) { errorElement.textContent = 'تاریخ نباید از امروز بیشتر باشد'; return; }
+                errorElement.textContent = '';
+            }
+            function updateSearchButtonState() {
+                const submitButton = document.querySelector('button[type="submit"]');
+                const dateRangeErrorElement = document.getElementById('dateRangeError');
+                const hasStartDateError = startDateError.textContent.trim() !== '';
+                const hasEndDateError = endDateError.textContent.trim() !== '';
+                const rangeValidation = validateDateRangeStepByStep();
+                const hasDateRangeError = !rangeValidation.isValid;
+                if (dateRangeErrorElement) { dateRangeErrorElement.textContent = rangeValidation.message; }
+                else if (!rangeValidation.isValid) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.id = 'dateRangeError'; errorDiv.className = 'text-danger small mt-1';
+                    endDateInput.closest('.filter-field').appendChild(errorDiv); errorDiv.textContent = rangeValidation.message;
                 }
-            });
-
+                if (hasStartDateError || hasEndDateError || hasDateRangeError) submitButton.disabled = true;
+                else submitButton.disabled = false;
+            }
             function setInitialDropdown(inputId, buttonId) {
                 const input = document.getElementById(inputId);
                 const button = document.getElementById(buttonId);
-                if (input.value || input.value === '') {
-                    setDropdownButtonText(buttonId, input.value);
-                }
+                if (input.value || input.value === '') setDropdownButtonText(buttonId, input.value);
             }
-
+            function setDropdownButtonText(buttonId, value) {
+                const button = document.getElementById(buttonId);
+                if (!button || value === undefined) return;
+                const menu = button.nextElementSibling;
+                let textContent = 'انتخاب کنید';
+                if (value === '') textContent = 'همه';
+                else {
+                    const item = menu.querySelector(`a[data-value="${value}"]`);
+                    if (item) textContent = item.textContent;
+                }
+                button.textContent = textContent;
+            }
             setInitialDropdown('origin-country-input', 'origin-country-button');
             setInitialDropdown('dest-country-input', 'dest-country-button');
             setInitialDropdown('answer-input', 'answer-button');
             setInitialDropdown('pagesize-input', 'pagesize-button');
-
             const initialOriginCountryId = '@Model.Filter.OriginCountryID';
             const initialDestCountryId = '@Model.Filter.DestCountryID';
-
             if (initialOriginCountryId) {
-                originCountryInput.dispatchEvent(new Event('change'));
-                setTimeout(() => {
-                    setInitialDropdown('origin-city-input', 'origin-city-button');
-                    setInitialDropdown('origin-operator-input', 'origin-operator-button');
-                }, 500);
+                document.getElementById('origin-country-input').dispatchEvent(new Event('change'));
+                setTimeout(() => { setInitialDropdown('origin-city-input', 'origin-city-button'); setInitialDropdown('origin-operator-input', 'origin-operator-button'); }, 500);
             }
-
             if (initialDestCountryId) {
-                destCountryInput.dispatchEvent(new Event('change'));
-                setTimeout(() => {
-                    setInitialDropdown('dest-city-input', 'dest-city-button');
-                    setInitialDropdown('dest-operator-input', 'dest-operator-button');
-                }, 500);
+                document.getElementById('dest-country-input').dispatchEvent(new Event('change'));
+                setTimeout(() => { setInitialDropdown('dest-city-input', 'dest-city-button'); setInitialDropdown('dest-operator-input', 'dest-operator-button'); }, 500);
             }
-
             @if (Model.Results != null)
             {
-                        <text>
-                            exportBtn.disabled = false;
-                            totalResultsCount = @Model.Results.TotalCount;
-                            setupPaginationListeners();
-                            updateClientNumberPairSelects();
-                            setupClientFilterEvents();
-                        </text>
+                            <text>
+                                exportBtn.disabled = false;
+                                totalResultsCount = @Model.Results.TotalCount;
+                                setupPaginationListeners();
+                                updateClientNumberPairSelects();
+                                setupClientFilterEvents();
+                                initializeCheckboxLogic();
+                            </text>
             }
             else
             {
-                        <text>
-                            setTimeout(() => {
-                                startGlobalAnimation();
-                            }, 100);
-                        </text>
+                            <text>
+                                setTimeout(() => { startGlobalAnimation(); }, 100);
+                            </text>
             }
-
             if (typeof $ !== 'undefined' && $.fn.persianDatepicker) {
                 $(startDateInput).persianDatepicker({
-                    format: 'YYYY/MM/DD',
-                    autoClose: true,
-                    observer: true,
-                    initialValue: false,
-                    onSelect: function() {
-                        const persianDateString = $(this).val();
-                        const englishDateString = toEnglishDigits(persianDateString);
-                        $(this).val(englishDateString);
-                        $(this).trigger('change');
-                        validateDate(this, startDateError);
-                        hideDateRequiredAlert();
-                    }
+                    format: 'YYYY/MM/DD', autoClose: true, observer: true, initialValue: false,
+                    onSelect: function() { const persianDateString = $(this).val(); const englishDateString = toEnglishDigits(persianDateString); $(this).val(englishDateString); $(this).trigger('change'); validateDate(this, startDateError); hideDateRequiredAlert(); }
                 });
                 $(endDateInput).persianDatepicker({
-                    format: 'YYYY/MM/DD',
-                    autoClose: true,
-                    observer: true,
-                    initialValue: false,
-                    onSelect: function() {
-                        const persianDateString = $(this).val();
-                        const englishDateString = toEnglishDigits(persianDateString);
-                        $(this).val(englishDateString);
-                        $(this).trigger('change');
-                        validateDate(this, endDateError);
-                        hideDateRequiredAlert();
-                    }
+                    format: 'YYYY/MM/DD', autoClose: true, observer: true, initialValue: false,
+                    onSelect: function() { const persianDateString = $(this).val(); const englishDateString = toEnglishDigits(persianDateString); $(this).val(englishDateString); $(this).trigger('change'); validateDate(this, endDateError); hideDateRequiredAlert(); }
                 });
-            } else {
-                console.warn("jQuery or persianDatepicker is not loaded. Date pickers will not be initialized.");
-            }
-
+            } else { console.warn("jQuery or persianDatepicker is not loaded. Date pickers will not be initialized."); }
             convertDatesToPersian();
-
-            if (startDateInput.value || endDateInput.value) {
-                updateSearchButtonState();
-            }
-
+            if (startDateInput.value || endDateInput.value) updateSearchButtonState();
             updateLocationFieldsState();
-
-            setTimeout(() => {
-                loadSavedFilters();
-            }, 500);
+            setTimeout(() => { loadSavedFilters(); }, 500);
         });
     </script>
 }

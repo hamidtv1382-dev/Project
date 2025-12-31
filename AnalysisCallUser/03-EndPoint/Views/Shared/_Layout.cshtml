@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.rtl.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-  
+
 </head>
 <body>
 
@@ -46,12 +46,16 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">صفحه اصلی</a>
                         </li>
+
+                        <!-- منوی تماس‌ها (بدون آیکون فلش) -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="callDropdown"
+                            <!-- حذف کلاس dropdown-toggle از اینجا باعث حذف فلش می‌شود -->
+                            <a class="nav-link" href="#" id="callDropdown"
                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 تماس‌ها
                             </a>
-                            <ul class="dropdown-menu text-end" aria-labelledby="callDropdown">
+                            <!-- اضافه شدن کلاس dropdown-menu-end برای نمایش صحیح در دسکتاپ -->
+                            <ul class="dropdown-menu dropdown-menu-end text-end" aria-labelledby="callDropdown">
                                 <li>
                                     <a class="dropdown-item"
                                        asp-area=""
@@ -70,16 +74,17 @@
                                 </li>
                             </ul>
                         </li>
+
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="AnalysisOverView" asp-action="Index">نمای کلی </a>
                         </li>
-                         @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                        @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
                         {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Dashboard" asp-action="Analytics">داشبورد تحلیلی</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Dashboard" asp-action="Analytics">داشبورد تحلیلی</a>
+                            </li>
                         }
-                        @if ( User.IsInRole("SuperAdmin"))
+                        @if (User.IsInRole("SuperAdmin"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="Users">مدیریت کاربران</a>
@@ -107,6 +112,51 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- اسکریپت بازشونده منو با حرکت موس -->
+    <script>
+        $(document).ready(function () {
+            // تنظیم تاخیر برای جلوگیری از بسته شدن ناخواسته هنگام حرکت موس
+            var dropdownTimeout;
+
+            // وقتی موس روی دکمه یا منوی کشویی قرار می‌گیرد
+            $('.nav-item.dropdown').on('mouseenter', function () {
+                // پاک کردن تایمر قبلی اگر وجود داشته باشد
+                clearTimeout(dropdownTimeout);
+
+                // باز کردن منوی کشویی
+                var $dropdown = $(this);
+                $dropdown.addClass('show');
+                $dropdown.children('.dropdown-menu').addClass('show');
+            });
+
+            // وقتی موس از روی دکمه یا منوی کشویی خارج می‌شود
+            $('.nav-item.dropdown').on('mouseleave', function () {
+                var $dropdown = $(this);
+
+                // تنظیم تایمر برای بسته شدن منو بعد از 300 میلی‌ثانیه
+                dropdownTimeout = setTimeout(function () {
+                    $dropdown.removeClass('show');
+                    $dropdown.children('.dropdown-menu').removeClass('show');
+                }, 300);
+            });
+
+            // اطمینان از اینکه وقتی موس روی خود منوی کشویی (UL) حرکت می‌کند، باز می‌ماند
+            $('.dropdown-menu').on('mouseenter', function () {
+                clearTimeout(dropdownTimeout);
+            });
+
+            // بسته شدن منو وقتی موس از منوی کشویی خارج می‌شود
+            $('.dropdown-menu').on('mouseleave', function () {
+                var $dropdown = $(this).parent('.nav-item.dropdown');
+                dropdownTimeout = setTimeout(function () {
+                    $dropdown.removeClass('show');
+                    $(this).removeClass('show'); // this refers to .dropdown-menu
+                }, 300);
+            });
+        });
+    </script>
 </body>
 </html>

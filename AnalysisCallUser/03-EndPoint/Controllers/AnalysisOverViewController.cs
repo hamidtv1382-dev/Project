@@ -36,32 +36,25 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             [FromQuery] string endDateStr,
             [FromQuery] int? year = null,
             [FromQuery] int? month = null,
-            [FromQuery] int maxCountriesPerType = 10)
+            [FromQuery] int maxItemsPerGroup = 20)
         {
             try
             {
-                // ------------------------------
                 // 1. تعیین بازه زمانی
-                // ------------------------------
                 DateTime start, end;
                 GetDateRange(startDateStr, endDateStr, year, month, out start, out end);
 
-                // ------------------------------
-                // 2. اجرای کوئری‌ها با DbContextهای جداگانه
-                // ------------------------------
+                // 2. اجرای کوئری‌ها با DbContextهای جداگانه برای موازی‌سازی
                 using var scope1 = _serviceProvider.CreateScope();
                 using var scope2 = _serviceProvider.CreateScope();
 
                 var dailyStatsTask = GetDailyStatisticsAsync(scope1.ServiceProvider, start, end);
-                var aggregatedStatsTask = GetAggregatedStatisticsAsync(scope2.ServiceProvider, start, end, maxCountriesPerType);
+                var aggregatedStatsTask = GetAggregatedStatisticsAsync(scope2.ServiceProvider, start, end, maxItemsPerGroup);
 
-                // انتظار برای تکمیل هر دو تسک
                 var dailyResult = await dailyStatsTask;
                 var aggregatedResult = await aggregatedStatsTask;
 
-                // ------------------------------
                 // 3. پردازش داده‌های روزانه
-                // ------------------------------
                 var chartData = GenerateChartData(start, end, dailyResult.dailyData);
                 int totalCalls = aggregatedResult.totalSuccess + aggregatedResult.totalFail;
                 double successRate = totalCalls > 0 ? (double)aggregatedResult.totalSuccess / totalCalls * 100 : 0;
@@ -93,12 +86,9 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             }
         }
 
-        // ------------------------------
-        // متدهای اصلی (با dependency injection جداگانه)
-        // ------------------------------
+        // --- Helper Methods ---
 
-        private void GetDateRange(string startDateStr, string endDateStr, int? year, int? month,
-            out DateTime start, out DateTime end)
+        private void GetDateRange(string startDateStr, string endDateStr, int? year, int? month, out DateTime start, out DateTime end)
         {
             if (year.HasValue && month.HasValue && month.Value >= 1 && month.Value <= 12)
             {
@@ -121,36 +111,32 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             }
         }
 
-        private async Task<(Dictionary<DateTime, (int Success, int Fail)> dailyData, int totalSuccess, int totalFail)>
-            GetDailyStatisticsAsync(IServiceProvider serviceProvider, DateTime start, DateTime end)
+        private async Task<(Dictionary<DateTime, (int Success, int Fail)> dailyData, int totalSuccess, int totalFail)> GetDailyStatisticsAsync(IServiceProvider serviceProvider, DateTime start, DateTime end)
         {
-            // ایجاد repository جدید با scope جدید
             var repository = serviceProvider.GetRequiredService<ICallDetailRepository>();
 
-            // کوئری بهینه‌شده - فقط فیلدهای مورد نیاز
+            // کوئری بهینه‌شده با استفاده از GroupBy در دیتابیس
             var query = repository.GetAll()
                 .Where(x => x.AccountingTime >= start && x.AccountingTime <= end)
-                .Select(x => new
+                .GroupBy(x => new { Date = x.AccountingTime.Date, IsSuccess = x.Answer == CallAnswerStatus.Answered })
+                .Select(g => new
                 {
-                    Date = x.AccountingTime.Date,
-                    IsSuccess = x.Answer == CallAnswerStatus.Answered
+                    g.Key.Date,
+                    g.Key.IsSuccess,
+                    Count = g.Count()
                 });
 
-            // اجرای کوئری
-            var data = await query
-                .AsNoTracking()
-                .ToListAsync();
+            var data = await query.AsNoTracking().ToListAsync();
 
-            // پردازش در حافظه
             var dailyStats = new Dictionary<DateTime, (int Success, int Fail)>();
             int totalSuccess = 0, totalFail = 0;
 
             foreach (var item in data)
             {
                 if (item.IsSuccess)
-                    totalSuccess++;
+                    totalSuccess += item.Count;
                 else
-                    totalFail++;
+                    totalFail += item.Count;
 
                 if (!dailyStats.ContainsKey(item.Date))
                 {
@@ -159,24 +145,23 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
                 var current = dailyStats[item.Date];
                 if (item.IsSuccess)
-                    dailyStats[item.Date] = (current.Success + 1, current.Fail);
+                    dailyStats[item.Date] = (current.Success + item.Count, current.Fail);
                 else
-                    dailyStats[item.Date] = (current.Success, current.Fail + 1);
+                    dailyStats[item.Date] = (current.Success, current.Fail + item.Count);
             }
 
             return (dailyStats, totalSuccess, totalFail);
         }
 
         private async Task<(List<TypeBreakdownDto> typeBreakdown, int totalSuccess, int totalFail)>
-            GetAggregatedStatisticsAsync(IServiceProvider serviceProvider, DateTime start, DateTime end, int maxCountriesPerType)
+            GetAggregatedStatisticsAsync(IServiceProvider serviceProvider, DateTime start, DateTime end, int maxItems)
         {
-            // ایجاد repository جدید با scope جدید
             var repository = serviceProvider.GetRequiredService<ICallDetailRepository>();
 
-            // استراتژی: ابتدا آمار کلی را بگیریم
+            // استراتژی اول: دریافت آمار کلی با یک کوئری بهینه
             var summaryQuery = repository.GetAll()
                 .Where(x => x.AccountingTime >= start && x.AccountingTime <= end)
-                .GroupBy(x => 1) // گروه‌بندی کل
+                .GroupBy(x => 1)
                 .Select(g => new
                 {
                     TotalCount = g.Count(),
@@ -185,79 +170,206 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 });
 
             var summary = await summaryQuery.AsNoTracking().FirstOrDefaultAsync();
-
             if (summary == null)
                 return (new List<TypeBreakdownDto>(), 0, 0);
 
-            // سپس داده‌های تفکیک شده را بگیریم
-            var rawData = await repository.GetAll()
-                .Where(x => x.AccountingTime >= start && x.AccountingTime <= end)
-                .Select(x => new
-                {
-                    x.TypeID,
-                    TypeName = x.CallType.TypeName,
-                    x.OriginCountryID,
-                    CountryName = x.OriginCountry.CountryName,
-                    IsSuccess = x.Answer == CallAnswerStatus.Answered
-                })
-                .AsNoTracking()
-                .ToListAsync();
-
-            // پردازش در حافظه
-            var typeGroups = rawData
-                .GroupBy(x => new { x.TypeID, x.TypeName })
-                .Select(g => new
-                {
-                    g.Key.TypeID,
-                    g.Key.TypeName,
-                    TotalCount = g.Count(),
-                    SuccessCount = g.Count(x => x.IsSuccess),
-                    FailCount = g.Count(x => !x.IsSuccess),
-                    CountryGroups = g
-                        .GroupBy(x => new { x.OriginCountryID, x.CountryName })
-                        .Select(cg => new
-                        {
-                            cg.Key.OriginCountryID,
-                            cg.Key.CountryName,
-                            TotalCount = cg.Count(),
-                            SuccessCount = cg.Count(x => x.IsSuccess),
-                            FailCount = cg.Count(x => !x.IsSuccess)
-                        })
-                        .OrderByDescending(c => c.TotalCount)
-                        .Take(maxCountriesPerType)
-                        .ToList()
-                })
-                .OrderByDescending(x => x.TotalCount)
-                .ToList();
-
-            var typeBreakdown = typeGroups.Select(g => new TypeBreakdownDto
-            {
-                TypeID = g.TypeID,
-                TypeName = g.TypeName,
-                TotalCount = g.TotalCount,
-                SuccessCount = g.SuccessCount,
-                FailCount = g.FailCount,
-                Countries = g.CountryGroups.Select(c => new CountryBreakdownDto
-                {
-                    CountryID = c.OriginCountryID,
-                    CountryName = c.CountryName,
-                    TotalCount = c.TotalCount,
-                    SuccessCount = c.SuccessCount,
-                    FailCount = c.FailCount
-                }).ToList()
-            }).ToList();
+            // استراتژی دوم: استفاده از کوئری‌های مجزا برای هر سطح
+            var typeBreakdown = await GetHierarchicalStatisticsAsync(
+                start, end, maxItems);
 
             return (typeBreakdown, summary.SuccessCount, summary.FailCount);
         }
 
-        private List<object> GenerateChartData(DateTime start, DateTime end,
-            Dictionary<DateTime, (int Success, int Fail)> dailyData)
+        private async Task<List<TypeBreakdownDto>> GetHierarchicalStatisticsAsync(
+            DateTime start, DateTime end, int maxItems)
+        {
+            // 1. دریافت Typeها
+            var typeData = await GetTypeDataAsync(start, end, maxItems * 2);
+
+            var typeBreakdown = new List<TypeBreakdownDto>();
+
+            // پردازش متوالی (نه موازی) برای جلوگیری از خطای DbContext
+            foreach (var typeInfo in typeData)
+            {
+                var countryData = await GetCountryDataForTypeAsync(
+                    start, end, typeInfo.TypeID, maxItems);
+
+                typeBreakdown.Add(new TypeBreakdownDto
+                {
+                    TypeID = typeInfo.TypeID,
+                    TypeName = typeInfo.TypeName,
+                    TotalCount = typeInfo.TotalCount,
+                    SuccessCount = typeInfo.SuccessCount,
+                    FailCount = typeInfo.FailCount,
+                    Countries = countryData
+                });
+            }
+
+            // مرتب‌سازی نهایی
+            return typeBreakdown.OrderByDescending(x => x.TotalCount).ToList();
+        }
+
+        private async Task<List<TypeInfo>> GetTypeDataAsync(DateTime start, DateTime end, int maxItems)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var repository = scope.ServiceProvider.GetRequiredService<ICallDetailRepository>();
+
+            return await repository.GetAll()
+                .Where(x => x.AccountingTime >= start && x.AccountingTime <= end)
+                .GroupBy(x => new { x.TypeID, TypeName = x.CallType.TypeName })
+                .Select(g => new TypeInfo
+                {
+                    TypeID = g.Key.TypeID,
+                    TypeName = g.Key.TypeName,
+                    TotalCount = g.Count(),
+                    SuccessCount = g.Count(x => x.Answer == CallAnswerStatus.Answered),
+                    FailCount = g.Count(x => x.Answer != CallAnswerStatus.Answered)
+                })
+                .OrderByDescending(x => x.TotalCount)
+                .Take(maxItems)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        private async Task<List<CountryBreakdownDto>> GetCountryDataForTypeAsync(
+            DateTime start, DateTime end, int typeId, int maxItems)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var repository = scope.ServiceProvider.GetRequiredService<ICallDetailRepository>();
+
+            var countryData = await repository.GetAll()
+                .Where(x => x.AccountingTime >= start && x.AccountingTime <= end && x.TypeID == typeId)
+                .GroupBy(x => new { x.OriginCountryID, CountryName = x.OriginCountry.CountryName })
+                .Select(g => new CountryInfo
+                {
+                    CountryID = g.Key.OriginCountryID,
+                    CountryName = g.Key.CountryName,
+                    TotalCount = g.Count(),
+                    SuccessCount = g.Count(x => x.Answer == CallAnswerStatus.Answered),
+                    FailCount = g.Count(x => x.Answer != CallAnswerStatus.Answered)
+                })
+                .OrderByDescending(x => x.TotalCount)
+                .Take(maxItems)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var countryBreakdown = new List<CountryBreakdownDto>();
+
+            // پردازش متوالی برای هر Country
+            foreach (var countryInfo in countryData)
+            {
+                var cityData = await GetCityDataForCountryAsync(
+                    start, end, typeId, countryInfo.CountryID, maxItems);
+
+                countryBreakdown.Add(new CountryBreakdownDto
+                {
+                    CountryID = countryInfo.CountryID,
+                    CountryName = countryInfo.CountryName,
+                    TotalCount = countryInfo.TotalCount,
+                    SuccessCount = countryInfo.SuccessCount,
+                    FailCount = countryInfo.FailCount,
+                    Cities = cityData
+                });
+            }
+
+            return countryBreakdown.OrderByDescending(x => x.TotalCount).ToList();
+        }
+
+        private async Task<List<CityBreakdownDto>> GetCityDataForCountryAsync(
+            DateTime start, DateTime end, int typeId, int countryId, int maxItems)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var repository = scope.ServiceProvider.GetRequiredService<ICallDetailRepository>();
+
+            var cityData = await repository.GetAll()
+                .Where(x => x.AccountingTime >= start && x.AccountingTime <= end &&
+                           x.TypeID == typeId && x.OriginCountryID == countryId)
+                .GroupBy(x => new { x.OriginCityID, CityName = x.OriginCity.CityName })
+                .Select(g => new CityInfo
+                {
+                    CityID = g.Key.OriginCityID,
+                    CityName = g.Key.CityName,
+                    TotalCount = g.Count(),
+                    SuccessCount = g.Count(x => x.Answer == CallAnswerStatus.Answered),
+                    FailCount = g.Count(x => x.Answer != CallAnswerStatus.Answered)
+                })
+                .OrderByDescending(x => x.TotalCount)
+                .Take(maxItems)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var cityBreakdown = new List<CityBreakdownDto>();
+
+            // پردازش متوالی برای هر City
+            foreach (var cityInfo in cityData)
+            {
+                var operatorData = await GetOperatorDataForCityAsync(
+                    start, end, typeId, countryId, cityInfo.CityID, maxItems);
+
+                cityBreakdown.Add(new CityBreakdownDto
+                {
+                    CityID = cityInfo.CityID,
+                    CityName = cityInfo.CityName,
+                    TotalCount = cityInfo.TotalCount,
+                    SuccessCount = cityInfo.SuccessCount,
+                    FailCount = cityInfo.FailCount,
+                    Operators = operatorData
+                });
+            }
+
+            return cityBreakdown.OrderByDescending(x => x.TotalCount).ToList();
+        }
+
+        private async Task<List<OperatorBreakdownDto>> GetOperatorDataForCityAsync(
+            DateTime start, DateTime end, int typeId, int countryId, int cityId, int maxItems)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var repository = scope.ServiceProvider.GetRequiredService<ICallDetailRepository>();
+
+            var operatorData = await repository.GetAll()
+                .Where(x => x.AccountingTime >= start && x.AccountingTime <= end &&
+                           x.TypeID == typeId && x.OriginCountryID == countryId &&
+                           x.OriginCityID == cityId)
+                .GroupBy(x => new { x.OriginOperatorID, OperatorName = x.OriginOperator.OperatorName })
+                .Select(g => new OperatorInfo
+                {
+                    OperatorID = g.Key.OriginOperatorID,
+                    OperatorName = g.Key.OperatorName,
+                    TotalCount = g.Count(),
+                    SuccessCount = g.Count(x => x.Answer == CallAnswerStatus.Answered),
+                    FailCount = g.Count(x => x.Answer != CallAnswerStatus.Answered)
+                })
+                .OrderByDescending(x => x.TotalCount)
+                .Take(maxItems)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return operatorData.Select(op => new OperatorBreakdownDto
+            {
+                OperatorID = op.OperatorID,
+                OperatorName = op.OperatorName,
+                TotalCount = op.TotalCount,
+                SuccessCount = op.SuccessCount,
+                FailCount = op.FailCount
+            }).ToList();
+        }
+
+        private List<object> GenerateChartData(DateTime start, DateTime end, Dictionary<DateTime, (int Success, int Fail)> dailyData)
         {
             var chartData = new List<object>();
 
+            // محدود کردن تعداد روزها برای جلوگیری از حجم زیاد داده
+            int maxDays = 365; // حداکثر یک سال
+            var totalDays = (int)(end.Date - start.Date).TotalDays + 1;
+
+            if (totalDays > maxDays)
+            {
+                // اگر تعداد روزها زیاد است، گروه‌بندی ماهانه انجام دهید
+                return GenerateMonthlyChartData(start, end, dailyData);
+            }
+
             if (dailyData == null || dailyData.Count == 0)
             {
-                // اگر داده‌ای نداریم، حداقل یک روز خالی برگردانیم
                 for (DateTime day = start.Date; day <= end.Date && day <= DateTime.Today; day = day.AddDays(1))
                 {
                     chartData.Add(new
@@ -271,47 +383,101 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 return chartData;
             }
 
-            int totalDays = (int)(end - start).TotalDays + 1;
+            DateTime current = start.Date;
+            DateTime lastDate = end.Date > DateTime.Today ? DateTime.Today : end.Date;
 
-            if (totalDays > 0)
+            while (current <= lastDate)
             {
-                chartData.Capacity = Math.Min(totalDays, 365); // حداکثر یک سال
-
-                DateTime current = start.Date;
-                DateTime lastDate = end.Date > DateTime.Today ? DateTime.Today : end.Date;
-
-                while (current <= lastDate)
+                if (dailyData.TryGetValue(current, out var stats))
                 {
-                    if (dailyData.TryGetValue(current, out var stats))
+                    chartData.Add(new
                     {
-                        chartData.Add(new
-                        {
-                            date = current.Ticks,
-                            displayDate = ConvertToPersianDate(current),
-                            success = stats.Success,
-                            fail = stats.Fail
-                        });
-                    }
-                    else
-                    {
-                        chartData.Add(new
-                        {
-                            date = current.Ticks,
-                            displayDate = ConvertToPersianDate(current),
-                            success = 0,
-                            fail = 0
-                        });
-                    }
-                    current = current.AddDays(1);
+                        date = current.Ticks,
+                        displayDate = ConvertToPersianDate(current),
+                        success = stats.Success,
+                        fail = stats.Fail
+                    });
                 }
+                else
+                {
+                    chartData.Add(new
+                    {
+                        date = current.Ticks,
+                        displayDate = ConvertToPersianDate(current),
+                        success = 0,
+                        fail = 0
+                    });
+                }
+                current = current.AddDays(1);
             }
 
             return chartData;
         }
 
-        // ------------------------------
-        // DTO Classes
-        // ------------------------------
+        private List<object> GenerateMonthlyChartData(DateTime start, DateTime end, Dictionary<DateTime, (int Success, int Fail)> dailyData)
+        {
+            var chartData = new List<object>();
+            var monthlyStats = new Dictionary<(int Year, int Month), (int Success, int Fail)>();
+
+            // گروه‌بندی داده‌های روزانه بر اساس ماه
+            if (dailyData != null)
+            {
+                foreach (var kvp in dailyData)
+                {
+                    var date = kvp.Key;
+                    var monthKey = (_persianCalendar.GetYear(date), _persianCalendar.GetMonth(date));
+
+                    if (!monthlyStats.ContainsKey(monthKey))
+                    {
+                        monthlyStats[monthKey] = (0, 0);
+                    }
+
+                    var current = monthlyStats[monthKey];
+                    monthlyStats[monthKey] = (
+                        current.Success + kvp.Value.Success,
+                        current.Fail + kvp.Value.Fail
+                    );
+                }
+            }
+
+            // تولید داده‌های ماهانه
+            DateTime currentMonth = new DateTime(_persianCalendar.GetYear(start), _persianCalendar.GetMonth(start), 1);
+            DateTime lastMonth = new DateTime(_persianCalendar.GetYear(end), _persianCalendar.GetMonth(end), 1);
+
+            while (currentMonth <= lastMonth)
+            {
+                var year = _persianCalendar.GetYear(currentMonth);
+                var month = _persianCalendar.GetMonth(currentMonth);
+                var monthKey = (year, month);
+
+                if (monthlyStats.TryGetValue(monthKey, out var stats))
+                {
+                    chartData.Add(new
+                    {
+                        date = currentMonth.Ticks,
+                        displayDate = $"{year}/{month:00}",
+                        success = stats.Success,
+                        fail = stats.Fail
+                    });
+                }
+                else
+                {
+                    chartData.Add(new
+                    {
+                        date = currentMonth.Ticks,
+                        displayDate = $"{year}/{month:00}",
+                        success = 0,
+                        fail = 0
+                    });
+                }
+
+                currentMonth = _persianCalendar.AddMonths(currentMonth, 1);
+            }
+
+            return chartData;
+        }
+
+        // --- DTO Classes ---
         public class TypeBreakdownDto
         {
             public int TypeID { get; set; }
@@ -329,11 +495,65 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             public int TotalCount { get; set; }
             public int SuccessCount { get; set; }
             public int FailCount { get; set; }
+            public List<CityBreakdownDto> Cities { get; set; }
         }
 
-        // ------------------------------
-        // Helper Methods
-        // ------------------------------
+        public class CityBreakdownDto
+        {
+            public int CityID { get; set; }
+            public string CityName { get; set; }
+            public int TotalCount { get; set; }
+            public int SuccessCount { get; set; }
+            public int FailCount { get; set; }
+            public List<OperatorBreakdownDto> Operators { get; set; }
+        }
+
+        public class OperatorBreakdownDto
+        {
+            public int OperatorID { get; set; }
+            public string OperatorName { get; set; }
+            public int TotalCount { get; set; }
+            public int SuccessCount { get; set; }
+            public int FailCount { get; set; }
+        }
+
+        // Helper classes برای کوئری‌ها
+        private class TypeInfo
+        {
+            public int TypeID { get; set; }
+            public string TypeName { get; set; }
+            public int TotalCount { get; set; }
+            public int SuccessCount { get; set; }
+            public int FailCount { get; set; }
+        }
+
+        private class CountryInfo
+        {
+            public int CountryID { get; set; }
+            public string CountryName { get; set; }
+            public int TotalCount { get; set; }
+            public int SuccessCount { get; set; }
+            public int FailCount { get; set; }
+        }
+
+        private class CityInfo
+        {
+            public int CityID { get; set; }
+            public string CityName { get; set; }
+            public int TotalCount { get; set; }
+            public int SuccessCount { get; set; }
+            public int FailCount { get; set; }
+        }
+
+        private class OperatorInfo
+        {
+            public int OperatorID { get; set; }
+            public string OperatorName { get; set; }
+            public int TotalCount { get; set; }
+            public int SuccessCount { get; set; }
+            public int FailCount { get; set; }
+        }
+
         private (DateTime Start, DateTime End) GetPersianMonthDateRange(int year, int month)
         {
             int daysInMonth = _persianCalendar.GetDaysInMonth(year, month);
