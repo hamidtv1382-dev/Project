@@ -4,7 +4,6 @@
 
 @{
     ViewData["Title"] = "جستجوی وزنی تماس‌ها";
-    Layout = "_Layout";
 }
 @functions {
     private string FormatTime(int seconds)
@@ -14,831 +13,852 @@
         return $"{seconds / 3600} ساعت و {(seconds % 3600) / 60} دقیقه";
     }
 }
-<style>
-    :root {
-        /* پالت رنگی مینیمال */
-        --primary-color: #5e6ad2;
-        --primary-light: #eef0ff;
-        --primary-hover: #4a55b5;
-        --bg-body: #f4f6f9;
-        --bg-card: #ffffff;
-        --text-dark: #2d3748;
-        --text-light: #718096;
-        --border-color: #e2e8f0;
-        --success-color: #38a169;
-        --danger-color: #e53e3e;
-    }
 
-    body {
-        background-color: var(--bg-body);
-        color: var(--text-dark);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+    <link href="~/lib/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="~/css/fontawesome/all.css" rel="stylesheet" />
 
-    .weighted-search-container {
-        padding: 40px 0;
-        min-height: calc(100vh - 100px);
-    }
+    <style>
+        /* --- تنظیمات کلی --- */
+        :root {
+            --primary-color: #5e6ad2;
+            --primary-light: #eef0ff;
+            --primary-hover: #4a55b5;
+            --bg-body: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-dark: #2d3748;
+            --text-light: #718096;
+            --border-color: #e2e8f0;
+            --success-color: #38a169;
+            --danger-color: #e53e3e;
+        }
 
-    /* کارت‌های مینیمال */
-    .glass-card {
-        background: var(--bg-card);
-        border-radius: 12px;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-        margin-bottom: 25px;
-        overflow: hidden;
-    }
-
-    .section-header {
-        background-color: var(--bg-card);
-        border-bottom: 1px solid var(--border-color);
-        padding: 20px 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-        .section-header h3 {
+        html, body {
+            height: 100%;
             margin: 0;
-            font-size: 18px;
-            font-weight: 600;
+            padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-body);
             color: var(--text-dark);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .weighted-search-wrapper {
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            background-color: var(--bg-body);
+        }
+
+        .glass-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .section-header h3 {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--text-dark);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+        .form-container {
+            padding: 30px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-control {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background-color: #fff;
+            color: var(--text-dark);
+        }
+
+            .form-control:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px var(--primary-light);
+                outline: none;
+            }
+
+        .textarea-large {
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* --- استایل آپلود فایل جدید (بدون کادر نقطه چین) --- */
+        .file-upload-wrapper {
+            margin-top: 10px;
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
-    .form-container {
-        padding: 30px;
-    }
-
-    .form-group label {
-        font-weight: 500;
-        font-size: 13px;
-        color: var(--text-dark);
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .form-control {
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 10px 14px;
-        font-size: 14px;
-        transition: all 0.2s ease;
-        background-color: #fff;
-        color: var(--text-dark);
-    }
-
-        .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px var(--primary-light);
-            outline: none;
-        }
-
-    .textarea-large {
-        min-height: 120px;
-        resize: vertical;
-        font-family: 'Courier New', monospace;
-        font-size: 13px;
-        line-height: 1.6;
-    }
-
-    /* استایل آپلود فایل بهبود یافته */
-    .file-upload-area {
-        border: 2px dashed var(--border-color);
-        border-radius: 8px;
-        padding: 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        background-color: #fafafa;
-        margin-top: 10px;
-        position: relative;
-    }
-
-        .file-upload-area:hover {
-            border-color: var(--primary-color);
-            background-color: var(--primary-light);
-        }
-
-        .file-upload-area.dragover {
-            border-color: var(--primary-color);
-            background-color: var(--primary-light);
-        }
-
-    .file-info {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        margin-top: 10px;
-        color: var(--text-light);
-        font-size: 12px;
-        background: white;
-        padding: 8px 12px;
-        border-radius: 6px;
-        border: 1px solid var(--border-color);
-        max-width: 100%;
-    }
-
-    .file-remove-btn {
-        color: var(--danger-color);
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        padding: 2px 6px;
-        border-radius: 4px;
-        transition: background 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-        .file-remove-btn:hover {
-            background: #fed7d7;
-        }
-
-    .file-name {
-        font-family: 'Courier New', monospace;
-        font-size: 12px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        flex-grow: 1;
-        text-align: right;
-    }
-
-    .file-icon {
-        color: var(--primary-color);
-        font-size: 14px;
-    }
-
-    /* آمار */
-    .stats-card {
-        background: var(--bg-card);
-        border-radius: 12px;
-        padding: 20px;
-        border: 1px solid var(--border-color);
-        text-align: center;
-        height: 100%;
-    }
-
-    .stats-number {
-        font-size: 26px;
-        font-weight: 700;
-        color: var(--primary-color);
-        margin-bottom: 5px;
-    }
-
-    .stats-label {
-        font-size: 13px;
-        color: var(--text-light);
-        font-weight: 500;
-    }
-
-    /* جدول */
-    .results-table {
-        background: white;
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .table thead {
-        background-color: #f8fafc;
-    }
-
-        .table thead th {
-            border-bottom: 2px solid var(--border-color);
-            padding: 16px;
-            font-weight: 600;
-            font-size: 13px;
-            text-align: right;
-            color: var(--text-light);
-        }
-
-    .table tbody tr {
-        border-bottom: 1px solid var(--border-color);
-        transition: background-color 0.1s;
-    }
-
-        .table tbody tr:hover {
-            background-color: #f8fafc;
-        }
-
-    .table tbody td {
-        padding: 14px 16px;
-        font-size: 14px;
-        color: var(--text-dark);
-        vertical-align: middle;
-    }
-
-    /* بج‌های وزن */
-    .weight-badge {
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 600;
-        display: inline-block;
-    }
-
-    .weight-low {
-        background-color: #f0fff4;
-        color: var(--success-color);
-    }
-
-    .weight-medium {
-        background-color: #fffff0;
-        color: #d69e2e;
-    }
-
-    .weight-high {
-        background-color: #fff5f5;
-        color: var(--danger-color);
-    }
-
-    .weight-very-high {
-        background-color: #fed7d7;
-        color: #9b2c2c;
-    }
-
-    /* دکمه‌ها */
-    .btn-primary-custom {
-        background-color: var(--primary-color);
-        border: none;
-        border-radius: 6px;
-        padding: 10px 24px;
-        font-weight: 600;
-        color: white;
-        font-size: 14px;
-        transition: background-color 0.2s;
-        cursor: pointer;
-    }
-
-        .btn-primary-custom:hover {
-            background-color: var(--primary-hover);
+        .btn-upload {
+            background-color: var(--primary-color);
             color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
         }
 
-    .btn-outline-primary-custom {
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        padding: 9px 20px;
-        font-weight: 500;
-        color: var(--text-dark);
-        background: white;
-        font-size: 14px;
-        transition: all 0.2s;
-        cursor: pointer;
-    }
+            .btn-upload:hover {
+                background-color: var(--primary-hover);
+            }
 
-        .btn-outline-primary-custom:hover {
-            border-color: var(--text-dark);
+        /* باکس نمایش نام فایل و دکمه حذف */
+        .file-info-bar {
+            display: none; /* پیش‌فرض مخفی */
+            align-items: center;
+            background-color: #f8faff;
+            border: 1px solid var(--primary-color);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 13px;
+            color: var(--text-dark);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+            .file-info-bar.active {
+                display: flex;
+            }
+
+        .file-name-text {
+            font-weight: 600;
+            margin-left: 10px; /* فاصله تا دکمه حذف */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .file-remove-btn {
+            background-color: #fff0f0;
+            border: 1px solid #feb2b2;
+            color: var(--danger-color);
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+            .file-remove-btn:hover {
+                background-color: var(--danger-color);
+                border-color: var(--danger-color);
+                color: white;
+            }
+
+        /* --- سایر استایل‌ها --- */
+        .results-table {
+            background: white;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+            .results-table thead th {
+                background-color: #f8fafc;
+                border-bottom: 2px solid var(--border-color);
+                padding: 14px 16px;
+                font-weight: 600;
+                text-align: right;
+                color: var(--text-light);
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .results-table tbody tr {
+                border-bottom: 1px solid var(--border-color);
+                transition: background-color 0.1s;
+            }
+
+                .results-table tbody tr:hover {
+                    background-color: #f8fafc;
+                }
+
+            .results-table tbody td {
+                padding: 12px 16px;
+                color: var(--text-dark);
+                vertical-align: middle;
+            }
+
+        .weight-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .weight-low {
+            background-color: #f0fff4;
+            color: var(--success-color);
+        }
+
+        .weight-medium {
+            background-color: #fffff0;
+            color: #d69e2e;
+        }
+
+        .weight-high {
+            background-color: #fff5f5;
+            color: var(--danger-color);
+        }
+
+        .weight-very-high {
+            background-color: #fed7d7;
+            color: #9b2c2c;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 6px;
+            padding: 10px 24px;
+            font-weight: 600;
+            color: white;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .btn-primary-custom:hover {
+                background-color: var(--primary-hover);
+                color: white;
+            }
+
+        .btn-outline-primary-custom {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 9px 20px;
+            font-weight: 500;
+            color: var(--text-dark);
+            background: white;
+            font-size: 14px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+            .btn-outline-primary-custom:hover {
+                border-color: var(--text-dark);
+                background-color: #f8fafc;
+            }
+
+        .stats-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            height: 100%;
+        }
+
+        .stats-number {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .stats-label {
+            font-size: 13px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255, 0.85);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(94, 106, 210, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+
+        .search-info {
             background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-right: 3px solid var(--primary-color);
+            font-size: 13px;
+            color: var(--text-dark);
         }
 
-    .btn-icon {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    /* لودینگ */
-    .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(2px);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
-
-    .loading-spinner {
-        border: 3px solid rgba(94, 106, 210, 0.1);
-        border-radius: 50%;
-        border-top: 3px solid var(--primary-color);
-        width: 40px;
-        height: 40px;
-        animation: spin 0.8s linear infinite;
-    }
-
-    @@keyframes spin {
-        0% {
-            transform: rotate(0deg);
+        .number-preview {
+            max-height: 100px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 8px;
         }
 
-        100% {
-            transform: rotate(360deg);
+        .search-mode-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 8px;
         }
-    }
 
-    /* المان‌های کمکی */
-    .search-info {
-        background-color: #f8fafc;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 20px;
-        border-right: 3px solid var(--primary-color);
-        font-size: 13px;
-        color: var(--text-dark);
-    }
-
-    .number-preview {
-        max-height: 100px;
-        overflow-y: auto;
-        background: #fff;
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        padding: 10px;
-        font-family: 'Courier New', monospace;
-        font-size: 12px;
-        color: var(--text-light);
-        margin-top: 8px;
-    }
-
-    .search-mode-badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 600;
-        margin-right: 8px;
-    }
-
-    .mode-source {
-        background-color: var(--primary-light);
-        color: var(--primary-color);
-    }
-
-    .mode-dest {
-        background-color: #fff5f5;
-        color: #c53030;
-    }
-
-    .mode-both {
-        background-color: #f0fff4;
-        color: var(--success-color);
-    }
-
-    .call-length-info {
-        font-size: 11px;
-        color: var(--text-light);
-        margin-top: 2px;
-        display: block;
-    }
-
-    .progress {
-        height: 4px;
-        background-color: #edf2f7;
-        border-radius: 2px;
-        overflow: hidden;
-        width: 100%;
-        margin-top: 6px;
-    }
-
-    .progress-bar {
-        background-color: var(--primary-color);
-        transition: width 0.3s ease;
-    }
-
-    .search-type-indicator {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        padding: 3px 8px;
-        border-radius: 12px;
-        background: #edf2f7;
-        color: var(--text-dark);
-    }
-
-    .form-check-input:checked {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-
-    /* اسکرول خودکار برای نتایج */
-    .results-section {
-        scroll-margin-top: 20px;
-    }
-</style>
-
-<div class="weighted-search-container">
-    <div class="container">
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="glass-card">
-                    <div class="section-header">
-                        <h3>
-                            <i class="fas fa-chart-pie" style="color: var(--primary-color);"></i>
-                            تحلیل وزنی تماس‌ها
-                        </h3>
-                    </div>
-
-                    <div class="form-container">
-                        <form id="weightedSearchForm" method="post" enctype="multipart/form-data">
-                            @Html.AntiForgeryToken()
-
-                            <div class="search-info">
-                                <i class="fas fa-info-circle" style="color: var(--primary-color); margin-left: 8px;"></i>
-                                <span>
-                                    <strong>نحوه کار:</strong>
-                                    <ul class="mb-0 mt-2" style="padding-right: 20px;">
-                                        <li>فقط مبدأ وارد شود → جستجو در کل دیتابیس برای تمام ارتباطات مبدأ</li>
-                                        <li>فقط مقصد وارد شود → جستجو در کل دیتابیس برای تمام ارتباطات مقصد</li>
-                                        <li>هر دو وارد شوند → جستجو فقط بین جفت‌های وارد شده</li>
-                                    </ul>
-                                </span>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="StartDate">
-                                            تاریخ شروع
-                                        </label>
-                                        <input type="text" class="form-control persian-date"
-                                               id="StartDate" name="Filter.StartDate"
-                                               value="@Model.Filter.StartDate"
-                                               placeholder="مثال: 1402/01/01">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="EndDate">
-                                            تاریخ پایان
-                                        </label>
-                                        <input type="text" class="form-control persian-date"
-                                               id="EndDate" name="Filter.EndDate"
-                                               value="@Model.Filter.EndDate"
-                                               placeholder="مثال: 1402/12/29">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row mt-3">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="SourceNumbersText">
-                                            شماره‌های مبدأ
-                                            <span class="search-mode-badge mode-source">مبدأ</span>
-                                        </label>
-                                        <textarea class="form-control textarea-large"
-                                                  id="SourceNumbersText"
-                                                  name="Filter.SourceNumbersText"
-                                                  rows="6"
-                                                  placeholder="هر شماره در یک خط جدا&#10;مثال:&#10;09123456789&#10;09121111111">@Model.Filter.SourceNumbersText</textarea>
-                                        <small class="form-text text-muted" style="font-size: 11px;">حداکثر 500 شماره در هر بار پردازش</small>
-
-                                        <!-- ناحیه آپلود فایل مبدأ -->
-                                        <div class="file-upload-area" id="sourceFileUploadArea">
-                                            <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: var(--primary-color);"></i>
-                                            <p class="mb-1" style="font-size: 13px;">فایل شماره‌های مبدأ را اینجا رها کنید</p>
-                                            <p class="text-muted small mb-2" style="font-size: 11px;">فرمت‌های قابل قبول: .txt, .csv</p>
-                                            <input type="file" id="sourceNumbersFile" name="sourceNumbersFile"
-                                                   class="d-none" accept=".txt,.csv">
-                                            <button type="button" class="btn btn-sm btn-outline-primary-custom" onclick="document.getElementById('sourceNumbersFile').click()">
-                                                <i class="fas fa-folder-open"></i> انتخاب فایل
-                                            </button>
-
-                                            <!-- ناحیه نمایش اطلاعات فایل (با محتوای پیش‌فرض خالی) -->
-                                            <div id="sourceFileInfo" class="file-info d-none">
-                                                <div class="d-flex align-items-center">
-                                                    <i class="fas fa-file-alt file-icon"></i>
-                                                    <span id="sourceFileName" class="file-name"></span>
-                                                </div>
-                                                <button type="button" class="file-remove-btn" onclick="removeSourceFile()">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        @if (!string.IsNullOrEmpty(Model.Filter.SourceNumbersText))
-                                        {
-                                            <div class="mt-3">
-                                                <label class="small">پیش نمایش شماره‌های مبدأ:</label>
-                                                <div class="number-preview">
-                                                    @{
-                                                        var sourcePreviewLines = Model.Filter.SourceNumbersText.Split('\n')
-                                                        .Where(l => !string.IsNullOrWhiteSpace(l))
-                                                        .Take(3)
-                                                        .Select(l => l.Trim());
-                                                    }
-                                                    @foreach (var line in sourcePreviewLines)
-                                                    {
-                                                        <div>@line</div>
-                                                    }
-                                                    @if (Model.Filter.SourceNumbersText.Split('\n').Count(l => !string.IsNullOrWhiteSpace(l)) > 3)
-                                                    {
-                                                        <div>...</div>
-                                                    }
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="DestNumbersText">
-                                            شماره‌های مقصد
-                                            <span class="search-mode-badge mode-dest">مقصد</span>
-                                        </label>
-                                        <textarea class="form-control textarea-large"
-                                                  id="DestNumbersText"
-                                                  name="Filter.DestNumbersText"
-                                                  rows="6"
-                                                  placeholder="هر شماره در یک خط جدا&#10;مثال:&#10;09351234567&#10;09222222222">@Model.Filter.DestNumbersText</textarea>
-                                        <small class="form-text text-muted" style="font-size: 11px;">حداکثر 500 شماره در هر بار پردازش</small>
-
-                                        <!-- ناحیه آپلود فایل مقصد -->
-                                        <div class="file-upload-area" id="destFileUploadArea">
-                                            <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: var(--text-light);"></i>
-                                            <p class="mb-1" style="font-size: 13px;">فایل شماره‌های مقصد را اینجا رها کنید</p>
-                                            <p class="text-muted small mb-2" style="font-size: 11px;">فرمت‌های قابل قبول: .txt, .csv</p>
-                                            <input type="file" id="destNumbersFile" name="destNumbersFile"
-                                                   class="d-none" accept=".txt,.csv">
-                                            <button type="button" class="btn btn-sm btn-outline-primary-custom" onclick="document.getElementById('destNumbersFile').click()">
-                                                <i class="fas fa-folder-open"></i> انتخاب فایل
-                                            </button>
-
-                                            <!-- ناحیه نمایش اطلاعات فایل (با محتوای پیش‌فرض خالی) -->
-                                            <div id="destFileInfo" class="file-info d-none">
-                                                <div class="d-flex align-items-center">
-                                                    <i class="fas fa-file-alt file-icon"></i>
-                                                    <span id="destFileName" class="file-name"></span>
-                                                </div>
-                                                <button type="button" class="file-remove-btn" onclick="removeDestFile()">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        @if (!string.IsNullOrEmpty(Model.Filter.DestNumbersText))
-                                        {
-                                            <div class="mt-3">
-                                                <label class="small">پیش نمایش شماره‌های مقصد:</label>
-                                                <div class="number-preview">
-                                                    @{
-                                                        var destPreviewLines = Model.Filter.DestNumbersText.Split('\n')
-                                                        .Where(l => !string.IsNullOrWhiteSpace(l))
-                                                        .Take(3)
-                                                        .Select(l => l.Trim());
-                                                    }
-                                                    @foreach (var line in destPreviewLines)
-                                                    {
-                                                        <div>@line</div>
-                                                    }
-                                                    @if (Model.Filter.DestNumbersText.Split('\n').Count(l => !string.IsNullOrWhiteSpace(l)) > 3)
-                                                    {
-                                                        <div>...</div>
-                                                    }
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row mt-4">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="MinWeight">
-                                            حداقل تعداد تماس
-                                        </label>
-                                        <input type="number" class="form-control"
-                                               id="MinWeight" name="Filter.MinWeight"
-                                               value="@Model.Filter.MinWeight" min="1" max="1000">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row mt-4">
-                                <div class="col-12">
-                                    <div class="d-flex justify-content-center gap-3">
-                                        <button type="submit" class="btn btn-primary-custom btn-icon">
-                                            <i class="fas fa-search"></i>
-                                            تحلیل وزنی
-                                        </button>
-                                        <button type="button" class="btn btn-outline-primary-custom"
-                                                onclick="resetForm()">
-                                            <i class="fas fa-redo"></i>
-                                            بازنشانی
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Anchor برای اسکرول دقیق به نتایج -->
-        <div id="resultsAnchor"></div>
-
-        @if (Model.WeightedResults != null && Model.WeightedResults.Any())
-        {
-            <div id="resultsSection" class="results-section">
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="stats-card">
-                            <div class="stats-number">@Model.TotalPairs</div>
-                            <div class="stats-label">تعداد جفت‌های منحصربفرد</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stats-card">
-                            <div class="stats-number">@Model.TotalCalls</div>
-                            <div class="stats-label">تعداد کل تماس‌ها</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stats-card">
-                            <div class="stats-number">@FormatTime(Model.WeightedResults.Sum(w => w.TotalLength))</div>
-                            <div class="stats-label">مجموع طول تماس‌ها</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stats-card">
-                            <div class="stats-number">@Model.WeightedResults.Max(w => w.Weight)</div>
-                            <div class="stats-label">بیشترین تماس</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-12">
-                        <div class="glass-card">
-                            <div class="section-header">
-                                <h3>
-                                    <i class="fas fa-list" style="color: var(--primary-color);"></i>
-                                    نتایج تحلیل وزنی
-                                    <span class="search-mode-badge mode-both">
-                                        @Model.WeightedResults.Count نتیجه
-                                    </span>
-                                </h3>
-                                <div>
-                                    <button type="button" class="btn btn-primary-custom btn-icon" onclick="exportAllToCsv()">
-                                        <i class="fas fa-download"></i>
-                                        خروجی CSV کل نتایج
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="table-responsive">
-                                <table class="table table-hover results-table">
-                                    <thead>
-                                        <tr>
-                                            <th>ردیف</th>
-                                            <th>شماره مبدا</th>
-                                            <th>شماره مقصد</th>
-                                            <th>وزن تماس</th>
-                                            <th>طول کل مکالمه</th>
-                                            <th>نوع جستجو</th>
-                                            <th>عملیات</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @for (int i = 0; i < Model.WeightedResults.Count; i++)
-                                        {
-                                            var result = Model.WeightedResults[i];
-                                            var weightClass = "";
-                                            var description = "";
-
-                                            if (result.Weight < 5)
-                                            {
-                                                weightClass = "weight-low";
-                                                description = "کم";
-                                            }
-                                            else if (result.Weight < 20)
-                                            {
-                                                weightClass = "weight-medium";
-                                                description = "متوسط";
-                                            }
-                                            else if (result.Weight < 50)
-                                            {
-                                                weightClass = "weight-high";
-                                                description = "زیاد";
-                                            }
-                                            else
-                                            {
-                                                weightClass = "weight-very-high";
-                                                description = "خیلی زیاد";
-                                            }
-
-                                            var maxWeight = Model.WeightedResults.Max(w => w.Weight);
-                                            var percentage = maxWeight > 0 ? (result.Weight * 100.0) / maxWeight : 0;
-
-                                            <tr data-row-index="@i">
-                                                <td>@(i + 1)</td>
-                                                <td class="font-weight-bold" style="font-family: 'Courier New', monospace;">
-                                                    @result.ANumber
-                                                </td>
-                                                <td style="font-family: 'Courier New', monospace;">
-                                                    @result.BNumber
-                                                </td>
-                                                <td>
-                                                    <div class="d-flex flex-column gap-1">
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <div class="weight-badge @weightClass">
-                                                                @result.Weight تماس
-                                                            </div>
-                                                            <span class="small text-muted">@description</span>
-                                                        </div>
-                                                        <div class="progress">
-                                                            <div class="progress-bar"
-                                                                 style="width: @percentage%;">
-                                                            </div>
-                                                        </div>
-                                                        @if (result.DirectCalls > 0 || result.ReverseCalls > 0)
-                                                        {
-                                                            <div class="small text-muted">
-                                                                @if (result.DirectCalls > 0 && result.ReverseCalls > 0)
-                                                                {
-                                                                    <span>@result.DirectCalls مستقیم، @result.ReverseCalls معکوس</span>
-                                                                }
-                                                                else if (result.DirectCalls > 0)
-                                                                {
-                                                                    <span>@result.DirectCalls مستقیم</span>
-                                                                }
-                                                                else if (result.ReverseCalls > 0)
-                                                                {
-                                                                    <span>@result.ReverseCalls معکوس</span>
-                                                                }
-                                                            </div>
-                                                        }
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="d-flex flex-column">
-                                                        <span class="small">@FormatTime(result.TotalLength)</span>
-                                                        <span class="call-length-info">میانگین: @FormatTime((int)result.AverageLength)</span>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <span class="search-type-indicator">
-                                                        @result.SearchType
-                                                        @if (!string.IsNullOrEmpty(result.DirectionInfo) && result.DirectionInfo != "-")
-                                                        {
-                                                            <span class="badge bg-light text-dark ms-1">@result.DirectionInfo</span>
-                                                        }
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <button type="button" class="btn btn-primary btn-sm"
-                                                            onclick="exportSingleRow(@i, '@result.ANumber', '@result.BNumber', @result.Weight, @result.TotalLength, @result.AverageLength, @result.DirectCalls, @result.ReverseCalls, '@result.SearchType', '@result.DirectionInfo')"
-                                                            title="دانلود این ردیف">
-                                                        <i class="fas fa-download"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        .mode-source {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
         }
-        else if (ViewContext.HttpContext.Request.Method == "POST")
-        {
-            <div id="noResultsSection" class="row">
+
+        .mode-dest {
+            background-color: #fff5f5;
+            color: #c53030;
+        }
+
+        .mode-both {
+            background-color: #f0fff4;
+            color: var(--success-color);
+        }
+
+        .call-length-info {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 2px;
+            display: block;
+        }
+
+        .file-info-bar {
+            display: none; /* پیش‌فرض مخفی */
+            align-items: center;
+            background: rgba(102, 51, 153, 0.15); /* شیشه‌ای بنفش */
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(102, 51, 153, 0.5);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 13px;
+            color: #660066;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+            .file-info-bar.active {
+                display: flex;
+            }
+
+        .file-name-text {
+            font-weight: 600;
+            margin-left: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .file-remove-btn {
+            background-color: rgba(255,255,255,0.5);
+            border: 1px solid #990099;
+            color: #660066;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+            .file-remove-btn:hover {
+                background-color: #990099;
+                border-color: #990099;
+                color: white;
+            }
+
+        .progress {
+            height: 4px;
+            background-color: #edf2f7;
+            border-radius: 2px;
+            overflow: hidden;
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .progress-bar {
+            background-color: var(--primary-color);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .search-type-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #edf2f7;
+            color: var(--text-dark);
+        }
+
+        .results-section {
+            scroll-margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="weighted-search-wrapper">
+        <div class="container">
+            <div id="topAnchor"></div>
+
+            <div class="row mb-4">
                 <div class="col-12">
-                    <div class="alert alert-info text-center" style="border-radius: 8px; border: 1px solid var(--border-color); background: #f8fafc; color: var(--text-dark);">
-                        <i class="fas fa-info-circle fa-2x mb-3" style="color: var(--text-light);"></i>
-                        <h5>نتیجه‌ای یافت نشد</h5>
-                        <p>هیچ تماسی با مشخصات وارد شده یافت نشد.</p>
+                    <div class="glass-card">
+                        <div class="section-header">
+                            <h3>
+                                <i class="bi bi-pie-chart-fill" style="color: var(--primary-color);"></i>
+                                تحلیل وزنی تماس‌ها
+                            </h3>
+                        </div>
+
+                        <div class="form-container">
+                            <form id="weightedSearchForm" method="post" enctype="multipart/form-data">
+                                @Html.AntiForgeryToken()
+
+                                <div class="search-info">
+                                    <i class="bi bi-info-circle-fill" style="color: var(--primary-color); margin-left: 8px;"></i>
+                                    <span>
+                                        <strong>نحوه کار:</strong>
+                                        <ul class="mb-0 mt-2" style="padding-right: 20px;">
+                                            <li>فقط مبدأ وارد شود → جستجو در کل دیتابیس برای تمام ارتباطات مبدأ</li>
+                                            <li>فقط مقصد وارد شود → جستجو در کل دیتابیس برای تمام ارتباطات مقصد</li>
+                                            <li>هر دو وارد شوند → جستجو فقط بین جفت‌های وارد شده</li>
+                                        </ul>
+                                    </span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="StartDate">تاریخ شروع</label>
+                                            <input type="text" class="form-control persian-date" id="StartDate" name="Filter.StartDate" value="@Model.Filter.StartDate" placeholder="مثال: 1402/01/01">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="EndDate">تاریخ پایان</label>
+                                            <input type="text" class="form-control persian-date" id="EndDate" name="Filter.EndDate" value="@Model.Filter.EndDate" placeholder="مثال: 1402/12/29">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <!-- مبدأ -->
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="SourceNumbersText">
+                                                شماره‌های مبدأ
+                                                <span class="search-mode-badge mode-source">مبدأ</span>
+                                            </label>
+                                            <textarea class="form-control textarea-large" id="SourceNumbersText" name="Filter.SourceNumbersText" rows="6" placeholder="هر شماره در یک خط جدا&#10;مثال:&#10;09123456789&#10;09121111111">@Model.Filter.SourceNumbersText</textarea>
+                                            <small class="form-text text-muted" style="font-size: 11px;">حداکثر 500 شماره در هر بار پردازش</small>
+
+                                            <div class="file-upload-wrapper">
+                                                <!-- اینپوت مخفی فایل -->
+                                                <input type="file" id="sourceNumbersFile" name="sourceNumbersFile" class="d-none" accept=".txt,.csv">
+
+                                                <!-- دکمه انتخاب فایل -->
+                                                <button type="button" class="btn-upload" onclick="document.getElementById('sourceNumbersFile').click()">
+                                                    <i class="bi bi-upload"></i> انتخاب فایل
+                                                </button>
+
+                                                <!-- پیش‌نمایش فایل انتخاب شده -->
+                                                <div id="sourceFileInfo" class="file-info-bar">
+                                                    <i class="bi bi-file-earmark-text-fill" style="margin-left: 5px;"></i>
+                                                    <span id="sourceFileName" class="file-name-text">filename.txt</span>
+                                                    <button type="button" class="file-remove-btn" onclick="removeSourceFile()" title="حذف فایل">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+
+                                            @if (!string.IsNullOrEmpty(Model.Filter.SourceNumbersText))
+                                            {
+                                                <div class="mt-3">
+                                                    <label class="small">پیش نمایش محتویات فایل:</label>
+                                                    <div class="number-preview">
+                                                        @{
+                                                            var sourcePreviewLines = Model.Filter.SourceNumbersText.Split('\n')
+                                                            .Where(l => !string.IsNullOrWhiteSpace(l))
+                                                            .Take(3)
+                                                            .Select(l => l.Trim());
+                                                        }
+                                                        @foreach (var line in sourcePreviewLines)
+                                                        {
+                                                            <div>@line</div>
+                                                        }
+                                                        @if (Model.Filter.SourceNumbersText.Split('\n').Count(l => !string.IsNullOrWhiteSpace(l)) > 3)
+                                                        {
+                                                            <div>...</div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <!-- مقصد -->
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="DestNumbersText">
+                                                شماره‌های مقصد
+                                                <span class="search-mode-badge mode-dest">مقصد</span>
+                                            </label>
+                                            <textarea class="form-control textarea-large" id="DestNumbersText" name="Filter.DestNumbersText" rows="6" placeholder="هر شماره در یک خط جدا&#10;مثال:&#10;09351234567&#10;09222222222">@Model.Filter.DestNumbersText</textarea>
+                                            <small class="form-text text-muted" style="font-size: 11px;">حداکثر 500 شماره در هر بار پردازش</small>
+
+                                            <div class="file-upload-wrapper">
+                                                <!-- اینپوت مخفی فایل -->
+                                                <input type="file" id="destNumbersFile" name="destNumbersFile" class="d-none" accept=".txt,.csv">
+
+                                                <!-- دکمه انتخاب فایل -->
+                                                <button type="button" class="btn-upload" onclick="document.getElementById('destNumbersFile').click()">
+                                                    <i class="bi bi-upload"></i> انتخاب فایل
+                                                </button>
+
+                                                <!-- نوار نمایش نام فایل و دکمه حذف -->
+                                                <div id="destFileInfo" class="file-info-bar">
+                                                    <i class="bi bi-file-earmark-text-fill" style="color: var(--primary-color); margin-left: 5px;"></i>
+                                                    <span id="destFileName" class="file-name-text">filename.txt</span>
+                                                    <button type="button" class="file-remove-btn" onclick="removeDestFile()" title="حذف فایل">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            @if (!string.IsNullOrEmpty(Model.Filter.DestNumbersText))
+                                            {
+                                                <div class="mt-3">
+                                                    <label class="small">پیش نمایش محتویات فایل:</label>
+                                                    <div class="number-preview">
+                                                        @{
+                                                            var destPreviewLines = Model.Filter.DestNumbersText.Split('\n')
+                                                            .Where(l => !string.IsNullOrWhiteSpace(l))
+                                                            .Take(3)
+                                                            .Select(l => l.Trim());
+                                                        }
+                                                        @foreach (var line in destPreviewLines)
+                                                        {
+                                                            <div>@line</div>
+                                                        }
+                                                        @if (Model.Filter.DestNumbersText.Split('\n').Count(l => !string.IsNullOrWhiteSpace(l)) > 3)
+                                                        {
+                                                            <div>...</div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-4">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="MinWeight">حداقل تعداد تماس</label>
+                                            <input type="number" class="form-control" id="MinWeight" name="Filter.MinWeight" value="@Model.Filter.MinWeight" min="1" max="1000">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-center gap-3">
+                                            <button type="submit" class="btn btn-primary-custom">
+                                                <i class="bi bi-search"></i>
+                                                تحلیل وزنی
+                                            </button>
+                                            <button type="button" class="btn btn-outline-primary-custom" onclick="resetForm()">
+                                                <i class="bi bi-arrow-counterclockwise"></i>
+                                                بازنشانی
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
-        }
+
+            <div id="resultsAnchor"></div>
+
+            @if (Model.WeightedResults != null && Model.WeightedResults.Any())
+            {
+                <div id="resultsSection" class="results-section">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-number">@Model.TotalPairs</div>
+                                <div class="stats-label">تعداد جفت‌های منحصربفرد</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-number">@Model.TotalCalls</div>
+                                <div class="stats-label">تعداد کل تماس‌ها</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-number">@FormatTime(Model.WeightedResults.Sum(w => w.TotalLength))</div>
+                                <div class="stats-label">مجموع طول تماس‌ها</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-number">@Model.WeightedResults.Max(w => w.Weight)</div>
+                                <div class="stats-label">بیشترین تماس</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="glass-card">
+                                <div class="section-header">
+                                    <h3>
+                                        <i class="bi bi-list-ul" style="color: var(--primary-color);"></i>
+                                        نتایج تحلیل وزنی
+                                        <span class="search-mode-badge mode-both">@Model.WeightedResults.Count نتیجه</span>
+                                    </h3>
+                                    <div>
+                                        <button type="button" class="btn btn-primary-custom btn-sm" onclick="exportAllToCsv()">
+                                            <i class="bi bi-download"></i>
+                                            خروجی CSV کل نتایج
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-hover results-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ردیف</th>
+                                                <th>شماره مبدأ</th>
+                                                <th>شماره مقصد</th>
+                                                <th>وزن تماس</th>
+                                                <th>طول کل مکالمه</th>
+                                                <th>نوع جستجو</th>
+                                                <th>عملیات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for (int i = 0; i < Model.WeightedResults.Count; i++)
+                                            {
+                                                var result = Model.WeightedResults[i];
+                                                var weightClass = "";
+                                                var description = "";
+
+                                                if (result.Weight < 5) { weightClass = "weight-low"; description = "کم"; }
+                                                else if (result.Weight < 20) { weightClass = "weight-medium"; description = "متوسط"; }
+                                                else if (result.Weight < 50) { weightClass = "weight-high"; description = "زیاد"; }
+                                                else { weightClass = "weight-very-high"; description = "خیلی زیاد"; }
+
+                                                var maxWeight = Model.WeightedResults.Max(w => w.Weight);
+                                                var percentage = maxWeight > 0 ? (result.Weight * 100.0) / maxWeight : 0;
+
+                                                <tr data-row-index="@i">
+                                                    <td>@(i + 1)</td>
+                                                    <td class="font-weight-bold" style="font-family: 'Courier New', monospace;">@result.ANumber</td>
+                                                    <td style="font-family: 'Courier New', monospace;">@result.BNumber</td>
+                                                    <td>
+                                                        <div class="d-flex flex-column gap-1">
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <div class="weight-badge @weightClass">@result.Weight تماس</div>
+                                                                <span class="small text-muted">@description</span>
+                                                            </div>
+                                                            <div class="progress">
+                                                                <div class="progress-bar" style="width: @percentage%;"></div>
+                                                            </div>
+                                                            @if (result.DirectCalls > 0 || result.ReverseCalls > 0)
+                                                            {
+                                                                <div class="small text-muted">
+                                                                    @if (result.DirectCalls > 0 && result.ReverseCalls > 0)
+                                                                    {
+                                                                        <span>@result.DirectCalls مستقیم، @result.ReverseCalls معکوس</span>
+                                                                    }
+                                                                    else if (result.DirectCalls > 0)
+                                                                    {
+                                                                        <span>@result.DirectCalls مستقیم</span>
+                                                                    }
+                                                                    else if (result.ReverseCalls > 0)
+                                                                    {
+                                                                        <span>@result.ReverseCalls معکوس</span>
+                                                                    }
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex flex-column">
+                                                            <span class="small">@FormatTime(result.TotalLength)</span>
+                                                            <span class="call-length-info">میانگین: @FormatTime((int)result.AverageLength)</span>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="search-type-indicator">
+                                                            @result.SearchType
+                                                            @if (!string.IsNullOrEmpty(result.DirectionInfo) && result.DirectionInfo != "-")
+                                                            {
+                                                                <span class="badge bg-light text-dark ms-1">@result.DirectionInfo</span>
+                                                            }
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <button type="button" class="btn-download-table" onclick="exportSingleRow(@i, '@result.ANumber', '@result.BNumber', @result.Weight, @result.TotalLength, @result.AverageLength, @result.DirectCalls, @result.ReverseCalls, '@result.SearchType', '@result.DirectionInfo')" title="دانلود این ردیف">
+                                                            <span class="btn-download-symbol">&#8595;</span>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (ViewContext.HttpContext.Request.Method == "POST")
+            {
+                <div id="noResultsSection">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info text-center" style="border-radius: 8px; border: 1px solid var(--border-color); background: #f8fafc; color: var(--text-dark);">
+                                <i class="bi bi-info-circle" style="font-size: 24px; margin-bottom: 10px; color: var(--text-light);"></i>
+                                <h5>نتیجه‌ای یافت نشد</h5>
+                                <p>هیچ تماسی با مشخصات وارد شده یافت نشد.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     </div>
-</div>
 
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-spinner"></div>
-</div>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div style="text-align: center;">
+            <div class="loading-spinner"></div>
+            <p class="mt-3 text-muted font-weight-bold">در حال پردازش...</p>
+        </div>
+    </div>
 
-@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@0.4.5/dist/css/persian-datepicker.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@0.4.5/dist/js/persian-datepicker.min.js"></script>
+
     <script>
-        // جلوگیری از Scroll Restoration مرورگر
-        if ('scrollRestoration' in history) {
-            history.scrollRestoration = 'manual';
-        }
+        // --- مدیریت اسکرول به نتایج ---
+        (function() {
+            if ('scrollRestoration' in history) {
+                history.scrollRestoration = 'manual';
+            }
+        })();
+
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const resultsSection = document.getElementById('resultsSection');
+                const noResultsSection = document.getElementById('noResultsSection');
+
+                if (resultsSection || noResultsSection) {
+                    const anchor = document.getElementById('resultsAnchor');
+                    if (anchor) {
+                        anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            }, 100);
+        });
 
         $(document).ready(function() {
-            // فعال کردن Datepicker
+            // --- 1. تنظیم تقویم شمسی ---
             $('.persian-date').persianDatepicker({
                 format: 'YYYY/MM/DD',
                 autoClose: true,
@@ -846,275 +866,180 @@
                 persianDigit: false
             });
 
-            // تنظیم آپلود فایل‌ها
-            setupFileUpload('sourceFileUploadArea', 'sourceNumbersFile', 'SourceNumbersText', 'sourceFileInfo', 'sourceFileName');
-            setupFileUpload('destFileUploadArea', 'destNumbersFile', 'DestNumbersText', 'destFileInfo', 'destFileName');
+            // --- 2. تنظیم آپلود فایل (ساختار جدید) ---
+            setupFileUpload('sourceNumbersFile', 'SourceNumbersText', 'sourceFileInfo', 'sourceFileName');
+            setupFileUpload('destNumbersFile', 'DestNumbersText', 'destFileInfo', 'destFileName');
 
-            // بازگردانی وضعیت فایل‌ها از sessionStorage
+            // --- 3. بازگردانی وضعیت ---
             restoreFileInfo();
 
-            // مدیریت ارسال فرم
+            // --- 4. ارسال فرم ---
             $('#weightedSearchForm').submit(function(e) {
                 if (!validateForm()) {
                     e.preventDefault();
                     return false;
                 }
-
-                // ذخیره وضعیت فایل‌ها
-                saveFormState();
                 showLoading();
             });
-
-            // اسکرول خودکار به نتایج بعد از بارگذاری صفحه
-            @if (Model.WeightedResults != null && Model.WeightedResults.Any())
-            {
-                    <text>
-                    setTimeout(function() {
-                        scrollToResults();
-                    }, 100);
-                    </text>
-            }
-            else if (ViewContext.HttpContext.Request.Method == "POST")
-            {
-                    <text>
-                    setTimeout(function() {
-                        scrollToNoResults();
-                    }, 100);
-                    </text>
-            }
         });
 
-        // تنظیم آپلود فایل با Drag & Drop
-        function setupFileUpload(uploadAreaId, fileInputId, textAreaId, fileInfoId, fileNameId) {
-            const fileUploadArea = document.getElementById(uploadAreaId);
+        // --- منطق آپلود فایل جدید ---
+              function setupFileUpload(fileInputId, textAreaId, fileInfoId, fileNameId) {
             const fileInput = document.getElementById(fileInputId);
             const textArea = document.getElementById(textAreaId);
             const fileInfo = document.getElementById(fileInfoId);
-            const fileName = document.getElementById(fileNameId);
+            const fileNameSpan = document.getElementById(fileNameId);
 
-            if (!fileUploadArea) return;
+            if (!fileInput || !fileInfo || !fileNameSpan) return;
 
-            // Drag & Drop events
-            ['dragover', 'dragenter'].forEach(eventName => {
-                fileUploadArea.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    fileUploadArea.classList.add('dragover');
-                });
-            });
-
-            ['dragleave', 'dragend', 'drop'].forEach(eventName => {
-                fileUploadArea.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    fileUploadArea.classList.remove('dragover');
-                });
-            });
-
-            fileUploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const files = e.dataTransfer.files;
-                if (files.length) {
-                    handleFileUpload(files[0], fileInput, textArea, fileInfo, fileName);
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files.length > 0) {
+                    handleFile(e.target.files[0]);
                 }
             });
 
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length) {
-                    handleFileUpload(e.target.files[0], fileInput, textArea, fileInfo, fileName);
-                }
-            });
-
-            function handleFileUpload(file, inputElement, textAreaElement, fileInfoElement, fileNameElement) {
-                // بررسی نوع فایل
-                const validTypes = ['text/plain', 'text/csv', 'application/csv'];
+            function handleFile(file) {
                 const validExtensions = ['.txt', '.csv'];
                 const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
 
-                if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
-                    alert('لطفاً فقط فایل‌های متنی (.txt, .csv) آپلود کنید.');
-                    inputElement.value = '';
+                if (!validExtensions.includes(fileExtension)) {
+                    alert('فرمت فایل نامعتبر است. فقط .txt و .csv مجاز هستند.');
+                    fileInput.value = '';
                     return;
                 }
 
-                // خواندن فایل
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    textAreaElement.value = e.target.result;
-                    // نمایش اطلاعات فایل
-                    showFileInfo(file, fileInfoElement, fileNameElement);
-                    // ذخیره در sessionStorage
-                    saveFileState(inputElement.id, file);
-                };
-                reader.onerror = function() {
-                    alert('خطا در خواندن فایل');
-                    inputElement.value = '';
+                    textArea.value = e.target.result; // پر کردن textarea
+                    fileNameSpan.textContent = file.name; // نمایش نام فایل
+                    fileInfo.classList.add('active'); // نمایش پیش‌نمایش
                 };
                 reader.readAsText(file);
             }
-
-            function showFileInfo(file, fileInfoElement, fileNameElement) {
-                fileNameElement.textContent = file.name;
-                fileInfoElement.classList.remove('d-none');
-            }
         }
 
-        // حذف فایل مبدأ
         function removeSourceFile() {
-            document.getElementById('sourceNumbersFile').value = '';
-            document.getElementById('SourceNumbersText').value = '';
-            document.getElementById('sourceFileInfo').classList.add('d-none');
-            sessionStorage.removeItem('sourceFile');
+            removeFileLogic('sourceNumbersFile', 'SourceNumbersText', 'sourceFileInfo', 'sourceFileName');
         }
 
-        // حذف فایل مقصد
         function removeDestFile() {
-            document.getElementById('destNumbersFile').value = '';
-            document.getElementById('DestNumbersText').value = '';
-            document.getElementById('destFileInfo').classList.add('d-none');
-            sessionStorage.removeItem('destFile');
+            removeFileLogic('destNumbersFile', 'DestNumbersText', 'destFileInfo', 'destFileName');
         }
 
-        // ذخیره وضعیت فایل در sessionStorage
+        function removeFileLogic(inputId, textAreaId, fileInfoId, fileNameId) {
+            const fileInput = document.getElementById(inputId);
+            if (fileInput) fileInput.value = '';
+
+            const textArea = document.getElementById(textAreaId);
+            if (textArea) textArea.value = '';
+
+            const fileInfo = document.getElementById(fileInfoId);
+            if (fileInfo) fileInfo.classList.remove('active');
+
+            const fileNameSpan = document.getElementById(fileNameId);
+            if (fileNameSpan) fileNameSpan.textContent = '';
+        }
+
+        // مقداردهی اولیه
+        setupFileUpload('sourceNumbersFile', 'SourceNumbersText', 'sourceFileInfo', 'sourceFileName');
+        setupFileUpload('destNumbersFile', 'DestNumbersText', 'destFileInfo', 'destFileName');
+
+
+        window.removeSourceFile = function() {
+            removeFileLogic('sourceNumbersFile', 'SourceNumbersText', 'sourceFileInfo');
+        };
+
+        window.removeDestFile = function() {
+            removeFileLogic('destNumbersFile', 'DestNumbersText', 'destFileInfo');
+        };
+
+        function removeFileLogic(inputId, textAreaId, fileInfoId) {
+            const fileInput = document.getElementById(inputId);
+            if (fileInput) fileInput.value = '';
+
+            const textArea = document.getElementById(textAreaId);
+            if (textArea) textArea.value = '';
+
+            const fileInfo = document.getElementById(fileInfoId);
+            if (fileInfo) fileInfo.classList.remove('active');
+
+            sessionStorage.removeItem(inputId + 'State');
+        }
+
         function saveFileState(inputId, file) {
-            const fileData = {
-                name: file.name,
-                size: file.size,
-                type: file.type
-            };
+            const fileData = { name: file.name };
             sessionStorage.setItem(inputId + 'State', JSON.stringify(fileData));
         }
 
-        // ذخیره وضعیت کلی فرم
-        function saveFormState() {
-            // ذخیره فقط اطلاعات فایل‌ها
-            const sourceFile = document.getElementById('sourceNumbersFile').files[0];
-            const destFile = document.getElementById('destNumbersFile').files[0];
-
-            if (sourceFile) {
-                saveFileState('sourceNumbersFile', sourceFile);
-            }
-
-            if (destFile) {
-                saveFileState('destNumbersFile', destFile);
-            }
-        }
-
-        // بازگردانی اطلاعات فایل
         function restoreFileInfo() {
-            // مبدأ
-            const sourceState = sessionStorage.getItem('sourceNumbersFileState');
-            if (sourceState) {
-                const fileData = JSON.parse(sourceState);
-                document.getElementById('sourceFileName').textContent = fileData.name;
-                document.getElementById('sourceFileInfo').classList.remove('d-none');
-            }
+            ['sourceNumbersFile', 'destNumbersFile'].forEach(function(id) {
+                const state = sessionStorage.getItem(id + 'State');
+                if (state) {
+                    try {
+                        const data = JSON.parse(state);
+                        const infoId = id.replace('NumbersFile', 'FileInfo');
+                        const nameId = id.replace('NumbersFile', 'FileName');
 
-            // مقصد
-            const destState = sessionStorage.getItem('destNumbersFileState');
-            if (destState) {
-                const fileData = JSON.parse(destState);
-                document.getElementById('destFileName').textContent = fileData.name;
-                document.getElementById('destFileInfo').classList.remove('d-none');
-            }
-        }
+                        const infoEl = document.getElementById(infoId);
+                        const nameEl = document.getElementById(nameId);
 
-        // اعتبارسنجی فرم
-        function validateForm() {
-            const sourceNumbersText = document.getElementById('SourceNumbersText').value.trim();
-            const destNumbersText = document.getElementById('DestNumbersText').value.trim();
-            const startDate = document.getElementById('StartDate').value.trim();
-            const endDate = document.getElementById('EndDate').value.trim();
-
-            if (!sourceNumbersText && !destNumbersText) {
-                alert('لطفاً حداقل یکی از فیلدهای شماره مبدأ یا مقصد را پر کنید.');
-                return false;
-            }
-
-            const sourceLines = sourceNumbersText.split('\n').filter(line => line.trim().length > 0);
-            const destLines = destNumbersText.split('\n').filter(line => line.trim().length > 0);
-
-            if (sourceLines.length > 500 || destLines.length > 500) {
-                const totalLines = sourceLines.length + destLines.length;
-                if (!confirm(`تعداد ${totalLines} شماره وارد شده است. ادامه عملیات ممکن است زمان‌بر باشد. آیا ادامه می‌دهید؟`)) {
-                    return false;
-                }
-            }
-
-            if (startDate && endDate) {
-                const startParts = startDate.split('/');
-                const endParts = endDate.split('/');
-
-                if (startParts.length === 3 && endParts.length === 3) {
-                    const startYear = parseInt(startParts[0]);
-                    const endYear = parseInt(endParts[0]);
-
-                    if (endYear < startYear) {
-                        alert('تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.');
-                        return false;
+                        if (infoEl && nameEl) {
+                            nameEl.textContent = data.name;
+                            infoEl.classList.add('active');
+                        }
+                    } catch (e) {
+                        console.error('Error restoring file info', e);
                     }
                 }
-            }
+            });
+        }
 
+        function validateForm() {
+            const sourceText = document.getElementById('SourceNumbersText').value.trim();
+            const destText = document.getElementById('DestNumbersText').value.trim();
+            if (!sourceText && !destText) {
+                showToast('error', 'لطفاً حداقل یکی از فیلدهای شماره مبدأ یا مقصد را پر کنید.');
+                return false;
+            }
             return true;
         }
 
-        // بازنشانی فرم
         function resetForm() {
-            if (confirm('آیا مطمئن هستید که می‌خواهید فرم را بازنشانی کنید؟ تمام اطلاعات وارد شده پاک خواهد شد.')) {
+            if (confirm('آیا مطمئن هستید؟')) {
                 document.getElementById('weightedSearchForm').reset();
-
-                // پاک کردن فایل‌ها
-                document.getElementById('sourceNumbersFile').value = '';
-                document.getElementById('destNumbersFile').value = '';
-
-                // مخفی کردن اطلاعات فایل
-                document.getElementById('sourceFileInfo').classList.add('d-none');
-                document.getElementById('destFileInfo').classList.add('d-none');
-
-                // پاک کردن sessionStorage
-                sessionStorage.removeItem('sourceNumbersFileState');
-                sessionStorage.removeItem('destNumbersFileState');
+                removeSourceFile();
+                removeDestFile();
             }
         }
 
-        // اسکرول به نتایج
-        function scrollToResults() {
-            const resultsSection = document.getElementById('resultsSection');
-            if (resultsSection) {
-                resultsSection.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start',
-                    inline: 'nearest'
-                });
-            }
-        }
-
-        // اسکرول به پیغام عدم یافتن نتیجه
-        function scrollToNoResults() {
-            const noResultsSection = document.getElementById('noResultsSection');
-            if (noResultsSection) {
-                noResultsSection.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start',
-                    inline: 'nearest'
-                });
-            }
-        }
-
-        // نمایش لودینگ
         function showLoading() {
             document.getElementById('loadingOverlay').style.display = 'flex';
         }
 
-        // مخفی کردن لودینگ
-        function hideLoading() {
-            document.getElementById('loadingOverlay').style.display = 'none';
+        function showToast(type, message) {
+            const toast = document.createElement('div');
+            toast.className = `custom-toast ${type}`;
+            const bg = type === 'success' ? '#38a169' : '#e53e3e';
+
+            toast.style.cssText = `
+                position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+                background-color: ${bg}; color: white; padding: 12px 24px;
+                border-radius: 8px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                font-size: 14px; opacity: 0; transition: opacity 0.3s; display: flex; gap: 10px; align-items: center;
+            `;
+            toast.innerHTML = `<span>${message}</span>`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.style.opacity = '1', 10);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
-        // اکسپورت تمام نتایج
         async function exportAllToCsv() {
             try {
                 showLoading();
-
                 const response = await fetch('@Url.Action("ExportWeightedResults", "Call")', {
                     method: 'POST',
                     headers: {
@@ -1123,49 +1048,35 @@
                     },
                     body: JSON.stringify({})
                 });
-
                 if (response.ok) {
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `WeightedCallAnalysis_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
+                    a.download = `Export_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
+                    document.body.appendChild(a); a.click(); a.remove();
                     window.URL.revokeObjectURL(url);
-
-                    showToast('success', 'فایل با موفقیت دانلود شد.');
+                    showToast('success', 'دانلود با موفقیت انجام شد');
                 } else {
-                    const errorText = await response.text();
-                    showToast('error', 'خطا در سرور: ' + errorText);
+                    showToast('error', 'خطا در ارتباط با سرور');
                 }
-            } catch (error) {
-                showToast('error', 'خطا در دانلود فایل: ' + error.message);
+            } catch (err) {
+                showToast('error', err.message);
             } finally {
-                hideLoading();
+                document.getElementById('loadingOverlay').style.display = 'none';
             }
         }
 
-        // اکسپورت تک ردیف
-        async function exportSingleRow(index, aNumber, bNumber, weight, totalLength, averageLength, directCalls, reverseCalls, searchType, directionInfo) {
+        async function exportSingleRow(index, aNumber, bNumber, weight, totalLength, avg, direct, reverse, type, dir) {
             try {
                 showLoading();
-
                 const singleResult = {
                     WeightedResults: [{
-                        ANumber: aNumber,
-                        BNumber: bNumber,
-                        Weight: weight,
-                        TotalLength: totalLength,
-                        AverageLength: averageLength,
-                        DirectCalls: directCalls,
-                        ReverseCalls: reverseCalls,
-                        SearchType: searchType,
-                        DirectionInfo: directionInfo
+                        ANumber: aNumber, BNumber: bNumber, Weight: weight, TotalLength: totalLength,
+                        AverageLength: avg, DirectCalls: direct, ReverseCalls: reverse,
+                        SearchType: type, DirectionInfo: dir
                     }]
                 };
-
                 const response = await fetch('@Url.Action("ExportWeightedResults", "Call")', {
                     method: 'POST',
                     headers: {
@@ -1174,55 +1085,24 @@
                     },
                     body: JSON.stringify(singleResult)
                 });
-
                 if (response.ok) {
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `Call_${aNumber}_to_${bNumber}.csv`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
+                    a.download = `Call_${aNumber}_${bNumber}.csv`;
+                    document.body.appendChild(a); a.click(); a.remove();
                     window.URL.revokeObjectURL(url);
-
-                    showToast('success', 'فایل با موفقیت دانلود شد.');
+                    showToast('success', 'دانلود با موفقیت انجام شد');
                 } else {
-                    const errorText = await response.text();
-                    showToast('error', 'خطا در سرور: ' + errorText);
+                    showToast('error', 'خطا در ارتباط با سرور');
                 }
-            } catch (error) {
-                showToast('error', 'خطا در دانلود فایل: ' + error.message);
+            } catch (err) {
+                showToast('error', err.message);
             } finally {
-                hideLoading();
+                document.getElementById('loadingOverlay').style.display = 'none';
             }
         }
-
-        // نمایش نوتیفیکیشن
-        function showToast(type, message) {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            toast.style.cssText = `
-                position: fixed;
-                top: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: ${type === 'success' ? 'var(--success-color)' : 'var(--danger-color)'};
-                color: white;
-                padding: 12px 24px;
-                border-radius: 6px;
-                z-index: 10000;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                font-size: 14px;
-            `;
-
-            document.body.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
     </script>
-}
+</body>
+</html>
