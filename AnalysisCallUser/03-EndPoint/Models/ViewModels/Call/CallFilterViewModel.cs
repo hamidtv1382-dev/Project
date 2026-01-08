@@ -11,8 +11,10 @@ namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Call
 
     public class CallFilterViewModel
     {
+        // --- پراپرتی‌های قبلی ---
         public string? ANumber { get; set; }
         public string? BNumber { get; set; }
+
         [Display(Name = "تاریخ شروع")]
         public string? StartDate { get; set; }
 
@@ -58,6 +60,14 @@ namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Call
         public int PageSize { get; set; } = 50;
 
         public int Page { get; set; } = 1;
+
+        // --- پراپرتی‌های جدید (برای جستجوی تک شماره و لیست فایل) ---
+        [Display(Name = "تک شماره")]
+        public string? SingleNumberText { get; set; } = null; // مقداردهی اولیه با null
+        [Display(Name = "لیست عمومی شماره‌ها")]
+        public List<string>? GeneralNumbers { get; set; } = new List<string>();
+        // ------------------------------------------------------------
+
         public bool HasFilters()
         {
             return !string.IsNullOrEmpty(StartDate) ||

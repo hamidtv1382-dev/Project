@@ -156,6 +156,17 @@
         color: #721c24;
         font-size: 0.875rem;
     }
+
+    .file-error-alert {
+        display: none;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        font-size: 0.875rem;
+    }
 </style>
 
 <!-- Scripts Externos -->
@@ -208,6 +219,46 @@
                             </div>
                         </div>
 
+                        <!-- --- افزودن شده: جستجوی شماره‌ها (لیست/تک) --- -->
+                        <div class="filter-section">
+                            <div class="filter-section-title">
+                                <i class="fas fa-phone-square"></i> جستجوی شماره‌ها (لیست/تک)
+                                <span style="font-size: 0.75rem; color: #6c757d; font-weight: normal; margin-right: 10px;">
+                                    (جستجو در مبدا یا مقصد)
+                                </span>
+                            </div>
+
+                            <div class="filter-row">
+                                <div class="filter-field w-100">
+                                    <label class="form-label">تک شماره</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="شماره تکی را وارد کنید..." name="Filter.SingleNumberText" id="Filter_SingleNumberText" value="" />
+                                        <span class="input-group-text text-muted">یا</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-row mt-2">
+                                <div class="filter-field w-100">
+                                    <label class="form-label">لیست شماره‌ها (فایل متنی یا CSV)</label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" name="numberListFile" id="numberListFile" accept=".txt, .csv" />
+                                        <span class="input-group-text" style="font-size: 0.8rem; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            حداکثر 50 شماره (هر خط یک شماره)
+                                        </span>
+                                    </div>
+                                    <!-- خطای اعتبارسنجی فایل -->
+                                    <div class="file-error-alert alert alert-danger mt-2" id="fileErrorAlert" style="display: none; font-size: 0.85rem;">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        <span id="fileErrorMessage"></span>
+                                    </div>
+                                    <div class="form-text text-muted mt-1" style="font-size: 0.8rem;">
+                                        فایل باید شامل شماره‌ها باشد که در هر خط یک شماره قرار دارد. فاصله یا کاما نادیده گرفته می‌شود.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ---------------------------------------------- -->
                         <!-- شماره‌های مبدأ -->
                         <div class="filter-section">
                             <div class="filter-section-title">
@@ -525,6 +576,11 @@
             const allResultsSection = document.getElementById('allResultsSection');
             const currentResultsSection = document.getElementById('currentResultsSection');
 
+            // عناصر اعتبارسنجی فایل
+            const fileErrorAlert = document.getElementById('fileErrorAlert');
+            const fileErrorMessage = document.getElementById('fileErrorMessage');
+            const numberListFileInput = document.getElementById('numberListFile');
+
             // --- Helpers ---
             function toEnglishDigits(s) { return s.toString().replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)); }
             function showToast(message, type = 'info') {
@@ -593,6 +649,99 @@
                 if (startMonth < endMonth) { return { isValid: true, message: '' }; }
                 if (startDay > endDay) { return { isValid: false, message: 'روز شروع نباید از روز پایان بزرگتر باشد.' }; }
                 return { isValid: true, message: '' };
+            }
+
+            // --- اعتبارسنجی فایل شماره‌ها ---
+            async function validateNumberListFile(file) {
+                // مخفی کردن خطاهای قبلی
+                hideFileError();
+
+                // بررسی وجود فایل
+                if (!file) {
+                    return { isValid: true, numbers: [] };
+                }
+
+                // بررسی نوع فایل
+                const validTypes = ['text/plain', 'text/csv', 'application/vnd.ms-excel'];
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+
+                if (!validTypes.includes(file.type) && !['txt', 'csv'].includes(fileExtension)) {
+                    showFileError('فقط فایل‌های متنی (txt) و CSV مجاز هستند.');
+                    return { isValid: false, numbers: [] };
+                }
+
+                // بررسی اندازه فایل (حداکثر 500KB)
+                const maxSize = 500 * 1024; // 500KB
+                if (file.size > maxSize) {
+                    showFileError('حجم فایل نباید بیشتر از 500KB باشد.');
+                    return { isValid: false, numbers: [] };
+                }
+
+                try {
+                    const text = await file.text();
+                    const lines = text.split(/\r?\n/);
+                    const numbers = [];
+
+                    for (let line of lines) {
+                        // حذف فضای خالی و کاراکترهای خاص
+                        line = line.trim();
+                        if (!line) continue;
+
+                        // جدا کردن با کاما یا فاصله
+                        const lineNumbers = line.split(/[,،\s]+/);
+
+                        for (let num of lineNumbers) {
+                            num = num.trim();
+                            if (!num) continue;
+
+                            // حذف کاراکترهای غیرعددی (فقط اعداد و +)
+                            const cleanNum = num.replace(/[^\d+]/g, '');
+                            if (cleanNum.length >= 3) { // حداقل 3 رقم
+                                numbers.push(cleanNum);
+                            }
+                        }
+                    }
+
+                    // بررسی تعداد شماره‌ها
+                    if (numbers.length === 0) {
+                        showFileError('فایل انتخاب شده حاوی شماره معتبر نیست.');
+                        return { isValid: false, numbers: [] };
+                    }
+
+                    if (numbers.length > 50) {
+                        showFileError('تعداد شماره‌های فایل نباید بیشتر از 50 مورد باشد.');
+                        return { isValid: false, numbers: [] };
+                    }
+
+                    // بررسی شماره‌های تکراری
+                    const uniqueNumbers = [...new Set(numbers)];
+                    if (uniqueNumbers.length !== numbers.length) {
+                        showToast('توجه: شماره‌های تکراری در فایل شناسایی شدند و حذف می‌شوند.', 'warning');
+                    }
+
+                    return {
+                        isValid: true,
+                        numbers: uniqueNumbers,
+                        rawText: text
+                    };
+
+                } catch (error) {
+                    console.error('Error reading file:', error);
+                    showFileError('خطا در خواندن فایل. لطفاً فایل معتبری انتخاب کنید.');
+                    return { isValid: false, numbers: [] };
+                }
+            }
+
+            function showFileError(message) {
+                fileErrorMessage.textContent = message;
+                fileErrorAlert.style.display = 'block';
+                numberListFileInput.classList.add('is-invalid');
+            }
+
+            function hideFileError() {
+                fileErrorAlert.style.display = 'none';
+                fileErrorMessage.textContent = '';
+                numberListFileInput.classList.remove('is-invalid');
             }
 
             // --- Filters & Storage ---
@@ -928,57 +1077,112 @@
             }
 
             // --- Search & Results ---
-            function collectFormData() { return new FormData(filterForm); }
+            async function collectFormDataWithValidation() {
+                const formData = new FormData(filterForm);
+
+                // اعتبارسنجی فایل شماره‌ها
+                const fileInput = document.getElementById('numberListFile');
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const validationResult = await validateNumberListFile(file);
+
+                    if (!validationResult.isValid) {
+                        throw new Error('اعتبارسنجی فایل ناموفق بود');
+                    }
+
+                    // اگر اعتبارسنجی موفق بود، محتوای فایل را اضافه کن
+                    if (validationResult.numbers.length > 0) {
+                        formData.set('Filter.NumberList', validationResult.numbers.join(','));
+                    }
+                }
+
+                return formData;
+            }
+
             async function performSearch(page = 1, pushHistory = true, isDeepSearch = false) {
-                if (!validateRequiredDates()) { showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error'); return; }
-                stopGlobalAnimation();
-                document.getElementById('Filter_Page').value = page;
-                const formData = collectFormData();
-                if (isDeepSearch) formData.append('deepSearch', 'true');
-                searchResultsContainer.innerHTML = `<div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">در حال بارگذاری...</span></div><p class="mt-2">در حال جستجو...</p></div>`;
+                // اعتبارسنجی تاریخ
+                if (!validateRequiredDates()) {
+                    showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error');
+                    return;
+                }
+
                 try {
-                    const response = await fetch(`/Call/Search?deepSearch=${isDeepSearch}`, {
-                        method: 'POST',
-                        headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value, 'X-Requested-With': 'XMLHttpRequest' },
-                        body: formData
-                    });
-                    if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
-                    const html = await response.text();
-                    if (html.includes('<html') || html.includes('<!DOCTYPE')) {
-                        console.error("Error: Received full page HTML instead of partial view.");
-                        searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطا در سرور. (Full page received)</div>`;
-                        showToast('خطا در جستجو', 'error');
-                        return;
-                    }
-                    searchResultsContainer.innerHTML = html;
-                    exportBtn.disabled = false;
-                    convertDatesToPersian();
-                    const totalCountMatch = html.match(/نتایج جستجو \((\d+) رکورد\)/);
-                    if (totalCountMatch) totalResultsCount = parseInt(totalCountMatch[1]);
-                    setupPaginationListeners();
-                    updateClientNumberPairSelects();
-                    setupClientFilterEvents();
-                    // Initialize Checkbox Logic Here!
-                    initializeCheckboxLogic();
-                    if (pushHistory) {
-                        const params = new URLSearchParams();
-                        const formElements = filterForm.elements;
-                        for (let i = 0; i < formElements.length; i++) {
-                            const element = formElements[i];
-                            if (element.name && element.value) {
-                                if (element.name === 'Filter.ANumbers' || element.name === 'Filter.BNumbers') params.append(element.name, element.value);
-                                else params.set(element.name, element.value);
-                            }
+                    // اعتبارسنجی فایل
+                    const fileInput = document.getElementById('numberListFile');
+                    if (fileInput.files.length > 0) {
+                        const file = fileInput.files[0];
+                        const validationResult = await validateNumberListFile(file);
+
+                        if (!validationResult.isValid) {
+                            // خطای اعتبارسنجی فایل قبلاً نمایش داده شده
+                            return;
                         }
-                        if (isDeepSearch) params.set('deepSearch', 'true');
-                        const newUrl = `${window.location.pathname}?${params.toString()}`;
-                        window.history.pushState({ path: newUrl }, '', newUrl);
-                        saveFiltersToLocalStorage();
                     }
+
+                    stopGlobalAnimation();
+                    document.getElementById('Filter_Page').value = page;
+                    const formData = await collectFormDataWithValidation();
+
+                    if (isDeepSearch) formData.append('deepSearch', 'true');
+
+                    searchResultsContainer.innerHTML = `<div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">در حال بارگذاری...</span></div><p class="mt-2">در حال جستجو...</p></div>`;
+
+                    try {
+                        const response = await fetch(`/Call/Search?deepSearch=${isDeepSearch}`, {
+                            method: 'POST',
+                            headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value, 'X-Requested-With': 'XMLHttpRequest' },
+                            body: formData
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || 'خطا در سرور');
+                        }
+
+                        const html = await response.text();
+
+                        if (html.includes('<html') || html.includes('<!DOCTYPE')) {
+                            console.error("Error: Received full page HTML instead of partial view.");
+                            searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطا در سرور. (Full page received)</div>`;
+                            showToast('خطا در جستجو', 'error');
+                            return;
+                        }
+
+                        searchResultsContainer.innerHTML = html;
+                        exportBtn.disabled = false;
+                        convertDatesToPersian();
+                        const totalCountMatch = html.match(/نتایج جستجو \((\d+) رکورد\)/);
+                        if (totalCountMatch) totalResultsCount = parseInt(totalCountMatch[1]);
+                        setupPaginationListeners();
+                        updateClientNumberPairSelects();
+                        setupClientFilterEvents();
+                        initializeCheckboxLogic();
+
+                        if (pushHistory) {
+                            const params = new URLSearchParams();
+                            const formElements = filterForm.elements;
+                            for (let i = 0; i < formElements.length; i++) {
+                                const element = formElements[i];
+                                if (element.name && element.value) {
+                                    if (element.name === 'Filter.ANumbers' || element.name === 'Filter.BNumbers') params.append(element.name, element.value);
+                                    else params.set(element.name, element.value);
+                                }
+                            }
+                            if (isDeepSearch) params.set('deepSearch', 'true');
+                            const newUrl = `${window.location.pathname}?${params.toString()}`;
+                            window.history.pushState({ path: newUrl }, '', newUrl);
+                            saveFiltersToLocalStorage();
+                        }
+
+                    } catch (error) {
+                        console.error('Error during search fetch:', error);
+                        searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">${error.message || 'خطا در دریافت نتایج جستجو'}</div>`;
+                        showToast(error.message || 'خطا در جستجو', 'error');
+                    }
+
                 } catch (error) {
-                    console.error('Error during search fetch:', error);
-                    searchResultsContainer.innerHTML = `<div class="alert alert-danger" role="alert">خطا در دریافت نتایج جستجو. (${error.message})</div>`;
-                    showToast('خطا در جستجو', 'error');
+                    console.error('Error in form validation:', error);
+                    // خطای اعتبارسنجی فایل قبلاً نمایش داده شده
                 }
             }
 
@@ -1086,11 +1290,10 @@
                     if (firstBInput) firstBInput.value = selectedB;
                 }
                 const pageInput = document.getElementById('Filter_Page');
-                if (pageInput) pageInput.value = 1;
+                if (pageInput) pageInput.value =1;
                 performSearch(1, true, true);
                 return;
             }
-            // Quick Filter Logic
             const allRows = document.querySelectorAll('tbody tr');
             const aSelect = document.querySelector('.client-anumber-select');
             const bSelect = document.querySelector('.client-bnumber-select');
@@ -1111,10 +1314,10 @@
                 const selectAllCb = document.getElementById('selectAllCurrentPage');
                 if (selectAllCb) {
                     const visibleCheckboxes = Array.from(document.querySelectorAll('tbody .call-checkbox')).filter(cb => cb.offsetParent !== null);
-                    if (visibleCheckboxes.length === 0) { selectAllCb.checked = false; selectAllCb.indeterminate = false; }
+                    if (visibleCheckboxes.length ===0) { selectAllCb.checked = false; selectAllCb.indeterminate = false; }
                     else {
                         const checkedCount = visibleCheckboxes.filter(cb => cb.checked).length;
-                        if (checkedCount === 0) { selectAllCb.checked = false; selectAllCb.indeterminate = false; }
+                        if (checkedCount ===0) { selectAllCb.checked = false; selectAllCb.indeterminate = false; }
                         else if (checkedCount === visibleCheckboxes.length) { selectAllCb.checked = true; selectAllCb.indeterminate = false; }
                         else { selectAllCb.checked = false; selectAllCb.indeterminate = true; }
                     }
@@ -1158,12 +1361,18 @@
                 document.querySelector('.bnumber-row .remove-bnumber').addEventListener('click', function() { removeBNumber(this); });
                 document.querySelector('.bnumber-row .bnumber-input').addEventListener('input', handlePhoneInput);
                 document.querySelector('.bnumber-row .phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
+
+                // ریست کردن فیلدهای جدید
+                document.getElementById('Filter_SingleNumberText').value = '';
+                document.getElementById('numberListFile').value = '';
+                hideFileError();
+
                 searchResultsContainer.innerHTML = `<div class="text-center p-4"><i class="fas fa-search fa-3x text-muted mb-3"></i><p class="text-muted">برای جستجوی تماس‌ها، فیلترهای مورد نظر را اعمال کنید.</p><div class="global-animation-container" id="globalAnimation"><div class="animation-text" id="animationText">در انتظار برای انجام جستجو</div><div class="signal-pulse-container" id="signalPulse"><div class="signal-pulse-point"><div class="signal-pulse-ring"></div><div class="signal-pulse-ring"></div><div class="signal-pulse-ring"></div></div></div></div></div>`;
                 window.history.pushState({}, document.title, window.location.pathname);
                 setTimeout(() => { startGlobalAnimation(); }, 100);
                 showToast('فیلترها با موفقیت بازنشانی شدند', 'success');
                 updateLocationFieldsState();
-                setTimeout(() => { isResetting = false; }, 2000);
+                setTimeout(() => { isResetting = false; },2000);
             }
 
             // --- Export Options ---
@@ -1191,7 +1400,7 @@
                 else { allResultsSection.style.display = 'none'; currentResultsSection.style.display = 'block'; }
             }
             async function performExportWithOptions() {
-                const formData = collectFormData();
+                const formData = await collectFormDataWithValidation();
                 const exportType = document.querySelector('input[name="exportType"]:checked').value;
                 formData.append('exportType', exportType);
                 if (exportType === 'all') formData.append('limit', exportLimitInput.value);
@@ -1308,21 +1517,55 @@
             });
             exportBtn.addEventListener('click', () => {
                 totalRecordsSpan.textContent = totalResultsCount;
-                exportLimitInput.value = totalResultsCount > 0 ? Math.min(totalResultsCount, 1000) : 100;
+                exportLimitInput.value = totalResultsCount > 0 ? Math.min(totalResultsCount, 1000) :100;
                 updateEstimatedSize();
                 exportModal.show();
             });
-            filterForm.addEventListener('submit', function(e) {
+
+            // رویداد اعتبارسنجی فایل هنگام تغییر
+            numberListFileInput.addEventListener('change', async function() {
+                if (this.files.length > 0) {
+                    await validateNumberListFile(this.files[0]);
+                } else {
+                    hideFileError();
+                }
+            });
+
+            filterForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                if (!validateRequiredDates()) { showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error'); return false; }
+
+                // اعتبارسنجی تاریخ
+                if (!validateRequiredDates()) {
+                    showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error');
+                    return false;
+                }
+
                 const hasStartDateError = startDateError.textContent.trim() !== '';
                 const hasEndDateError = endDateError.textContent.trim() !== '';
                 const rangeValidation = validateDateRangeStepByStep();
-                if (hasStartDateError || hasEndDateError || !rangeValidation.isValid) { showToast('لطفاً تاریخ‌ها را به درستی وارد کنید', 'error'); return false; }
+
+                if (hasStartDateError || hasEndDateError || !rangeValidation.isValid) {
+                    showToast('لطفاً تاریخ‌ها را به درستی وارد کنید', 'error');
+                    return false;
+                }
+
+                // اعتبارسنجی فایل (اگر انتخاب شده)
+                const fileInput = document.getElementById('numberListFile');
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const validationResult = await validateNumberListFile(file);
+
+                    if (!validationResult.isValid) {
+                        // خطای اعتبارسنجی فایل قبلاً نمایش داده شده
+                        return false;
+                    }
+                }
+
                 document.getElementById('Filter_Page').value = 1;
-                performSearch(1);
+                await performSearch(1);
                 return true;
             });
+
             document.querySelector('[data-bs-toggle="collapse"]').addEventListener('click', function() {
                 document.getElementById('filterToggleIcon').classList.toggle('fa-chevron-up');
                 document.getElementById('filterToggleIcon').classList.toggle('fa-chevron-down');
@@ -1340,15 +1583,38 @@
             document.querySelector('.bnumber-row .remove-bnumber').addEventListener('click', function() { removeBNumber(this); });
             document.querySelector('.bnumber-row .bnumber-input').addEventListener('input', handlePhoneInput);
             document.querySelector('.bnumber-row .phone-info-trigger').addEventListener('click', handlePhoneInfoClick);
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', async function(e) {
                 if (e.ctrlKey && e.key === 'Enter') {
                     e.preventDefault();
-                    if (!validateRequiredDates()) { showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error'); return; }
+
+                    // اعتبارسنجی تاریخ
+                    if (!validateRequiredDates()) {
+                        showToast('لطفاً تاریخ شروع و پایان را انتخاب کنید', 'error');
+                        return;
+                    }
+
                     const hasStartDateError = startDateError.textContent.trim() !== '';
                     const hasEndDateError = endDateError.textContent.trim() !== '';
                     const rangeValidation = validateDateRangeStepByStep();
-                    if (!hasStartDateError && !hasEndDateError && rangeValidation.isValid) { document.getElementById('Filter_Page').value = 1; performSearch(1); }
-                    else { showToast('لطفاً تاریخ‌ها را به درستی وارد کنید', 'error'); }
+
+                    if (!hasStartDateError && !hasEndDateError && rangeValidation.isValid) {
+                        // اعتبارسنجی فایل (اگر انتخاب شده)
+                        const fileInput = document.getElementById('numberListFile');
+                        if (fileInput.files.length > 0) {
+                            const file = fileInput.files[0];
+                            const validationResult = await validateNumberListFile(file);
+
+                            if (!validationResult.isValid) {
+                                return;
+                            }
+                        }
+
+                        document.getElementById('Filter_Page').value = 1;
+                        await performSearch(1);
+                    }
+                    else {
+                        showToast('لطفاً تاریخ‌ها را به درستی وارد کنید', 'error');
+                    }
                 }
                 if (e.ctrlKey && e.key === 'r') { e.preventDefault(); resetForm(e); }
             });
@@ -1377,7 +1643,7 @@
                 const currentYear = new persianDate().year();
                 if (year < 1390) { errorElement.textContent = 'سال نباید کمتر از 1390 باشد'; return; }
                 if (year > currentYear) { errorElement.textContent = 'سال نباید از سال جاری بیشتر باشد'; return; }
-                if (month < 1 || month > 12) { errorElement.textContent = 'ماه باید بین 1 تا 12 باشد'; return; }
+                if (month <1 || month > 12) { errorElement.textContent = 'ماه باید بین 1 تا 12 باشد'; return; }
                 if (day < 1 || day > 31) { errorElement.textContent = 'روز باید بین 1 تا 31 باشد'; return; }
                 if (month >= 7 && month <= 11 && day > 30) { errorElement.textContent = 'این ماه حداکثر 30 روز دارد'; return; }
                 if (month === 12) {
@@ -1439,20 +1705,20 @@
             }
             @if (Model.Results != null)
             {
-                            <text>
-                                exportBtn.disabled = false;
-                                totalResultsCount = @Model.Results.TotalCount;
-                                setupPaginationListeners();
-                                updateClientNumberPairSelects();
-                                setupClientFilterEvents();
-                                initializeCheckboxLogic();
-                            </text>
+                    <text>
+                        exportBtn.disabled = false;
+                        totalResultsCount = @Model.Results.TotalCount;
+                        setupPaginationListeners();
+                        updateClientNumberPairSelects();
+                        setupClientFilterEvents();
+                        initializeCheckboxLogic();
+                    </text>
             }
             else
             {
-                            <text>
-                                setTimeout(() => { startGlobalAnimation(); }, 100);
-                            </text>
+                    <text>
+                        setTimeout(() => { startGlobalAnimation(); }, 100);
+                    </text>
             }
             if (typeof $ !== 'undefined' && $.fn.persianDatepicker) {
                 $(startDateInput).persianDatepicker({
@@ -1467,7 +1733,6 @@
             convertDatesToPersian();
             if (startDateInput.value || endDateInput.value) updateSearchButtonState();
             updateLocationFieldsState();
-            setTimeout(() => { loadSavedFilters(); }, 500);
         });
     </script>
 }

@@ -37,6 +37,7 @@ namespace AnalysisCallUser._01_Domain.Core.DTOs
 
         // ✅ تغییر جدید: فیلتر حداقل طول تماس (برای تماس‌های موفق)
         public int? MinLength { get; set; }
+        public List<string> GeneralNumbers { get; set; } // پراپرتی جدید
 
         public List<string> SearchNumbers { get; set; } = new List<string>();
     }

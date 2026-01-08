@@ -5,18 +5,20 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace AnalysisCallUser._03_EndPoint.Controllers
 {
-    public class AnalysisOverViewController : Controller
+    public class AnalysisOverviewController : Controller
     {
         private readonly ICallDetailRepository _callDetailRepository;
         private readonly IServiceProvider _serviceProvider;
         private readonly PersianCalendar _persianCalendar = new();
 
-        public AnalysisOverViewController(
+        public AnalysisOverviewController(
             ICallDetailRepository callDetailRepository,
             IServiceProvider serviceProvider)
         {
@@ -86,8 +88,41 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             }
         }
 
-        // --- Helper Methods ---
+        // --- Action جدید برای خروجی CSV عمومی ---
+        [HttpPost]
+        public IActionResult ExportToCSV([FromBody] List<object> data)
+        {
+            if (data == null || !data.Any()) return BadRequest("داده‌ای برای خروجی وجود ندارد.");
 
+            var csv = new StringBuilder();
+            var properties = data[0].GetType().GetProperties();
+
+            // هدر (نام ستون‌ها)
+            csv.AppendLine(string.Join(",", properties.Select(p => p.Name)));
+
+            // ردیف‌ها
+            foreach (var item in data)
+            {
+                var values = properties.Select(p =>
+                {
+                    var val = p.GetValue(item, null);
+                    // مدیریت کاما در متن
+                    var strVal = val?.ToString().Replace(",", " ") ?? "";
+                    return $"\"{strVal}\"";
+                });
+                csv.AppendLine(string.Join(",", values));
+            }
+
+            // UTF-8 با BOM برای پشتیبانی از فارسی در اکسل
+            byte[] buffer = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
+
+            return File(buffer, "text/csv", "export_data.csv");
+        }
+
+        // --- Helper Methods (بدون تغییر) ---
+
+        // متد GetDateRange باید public باشد تا از بیرون قابل دسترسی باشد یا اینجا کپی شود
+        // در اینجا فرض بر این است که همان متد private وجود دارد و ما یک نسخه استفاده می‌کنیم.
         private void GetDateRange(string startDateStr, string endDateStr, int? year, int? month, out DateTime start, out DateTime end)
         {
             if (year.HasValue && month.HasValue && month.Value >= 1 && month.Value <= 12)
@@ -115,16 +150,10 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         {
             var repository = serviceProvider.GetRequiredService<ICallDetailRepository>();
 
-            // کوئری بهینه‌شده با استفاده از GroupBy در دیتابیس
             var query = repository.GetAll()
                 .Where(x => x.AccountingTime >= start && x.AccountingTime <= end)
                 .GroupBy(x => new { Date = x.AccountingTime.Date, IsSuccess = x.Answer == CallAnswerStatus.Answered })
-                .Select(g => new
-                {
-                    g.Key.Date,
-                    g.Key.IsSuccess,
-                    Count = g.Count()
-                });
+                .Select(g => new { g.Key.Date, g.Key.IsSuccess, Count = g.Count() });
 
             var data = await query.AsNoTracking().ToListAsync();
 
@@ -133,67 +162,42 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
             foreach (var item in data)
             {
-                if (item.IsSuccess)
-                    totalSuccess += item.Count;
-                else
-                    totalFail += item.Count;
+                if (item.IsSuccess) totalSuccess += item.Count; else totalFail += item.Count;
 
-                if (!dailyStats.ContainsKey(item.Date))
-                {
-                    dailyStats[item.Date] = (0, 0);
-                }
+                if (!dailyStats.ContainsKey(item.Date)) dailyStats[item.Date] = (0, 0);
 
                 var current = dailyStats[item.Date];
-                if (item.IsSuccess)
-                    dailyStats[item.Date] = (current.Success + item.Count, current.Fail);
-                else
-                    dailyStats[item.Date] = (current.Success, current.Fail + item.Count);
+                if (item.IsSuccess) dailyStats[item.Date] = (current.Success + item.Count, current.Fail);
+                else dailyStats[item.Date] = (current.Success, current.Fail + item.Count);
             }
 
             return (dailyStats, totalSuccess, totalFail);
         }
 
-        private async Task<(List<TypeBreakdownDto> typeBreakdown, int totalSuccess, int totalFail)>
-            GetAggregatedStatisticsAsync(IServiceProvider serviceProvider, DateTime start, DateTime end, int maxItems)
+        private async Task<(List<TypeBreakdownDto> typeBreakdown, int totalSuccess, int totalFail)> GetAggregatedStatisticsAsync(IServiceProvider serviceProvider, DateTime start, DateTime end, int maxItems)
         {
             var repository = serviceProvider.GetRequiredService<ICallDetailRepository>();
 
-            // استراتژی اول: دریافت آمار کلی با یک کوئری بهینه
             var summaryQuery = repository.GetAll()
                 .Where(x => x.AccountingTime >= start && x.AccountingTime <= end)
                 .GroupBy(x => 1)
-                .Select(g => new
-                {
-                    TotalCount = g.Count(),
-                    SuccessCount = g.Count(x => x.Answer == CallAnswerStatus.Answered),
-                    FailCount = g.Count(x => x.Answer != CallAnswerStatus.Answered)
-                });
+                .Select(g => new { TotalCount = g.Count(), SuccessCount = g.Count(x => x.Answer == CallAnswerStatus.Answered), FailCount = g.Count(x => x.Answer != CallAnswerStatus.Answered) });
 
             var summary = await summaryQuery.AsNoTracking().FirstOrDefaultAsync();
-            if (summary == null)
-                return (new List<TypeBreakdownDto>(), 0, 0);
+            if (summary == null) return (new List<TypeBreakdownDto>(), 0, 0);
 
-            // استراتژی دوم: استفاده از کوئری‌های مجزا برای هر سطح
-            var typeBreakdown = await GetHierarchicalStatisticsAsync(
-                start, end, maxItems);
-
+            var typeBreakdown = await GetHierarchicalStatisticsAsync(start, end, maxItems);
             return (typeBreakdown, summary.SuccessCount, summary.FailCount);
         }
 
-        private async Task<List<TypeBreakdownDto>> GetHierarchicalStatisticsAsync(
-            DateTime start, DateTime end, int maxItems)
+        private async Task<List<TypeBreakdownDto>> GetHierarchicalStatisticsAsync(DateTime start, DateTime end, int maxItems)
         {
-            // 1. دریافت Typeها
             var typeData = await GetTypeDataAsync(start, end, maxItems * 2);
-
             var typeBreakdown = new List<TypeBreakdownDto>();
 
-            // پردازش متوالی (نه موازی) برای جلوگیری از خطای DbContext
             foreach (var typeInfo in typeData)
             {
-                var countryData = await GetCountryDataForTypeAsync(
-                    start, end, typeInfo.TypeID, maxItems);
-
+                var countryData = await GetCountryDataForTypeAsync(start, end, typeInfo.TypeID, maxItems);
                 typeBreakdown.Add(new TypeBreakdownDto
                 {
                     TypeID = typeInfo.TypeID,
@@ -204,8 +208,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                     Countries = countryData
                 });
             }
-
-            // مرتب‌سازی نهایی
             return typeBreakdown.OrderByDescending(x => x.TotalCount).ToList();
         }
 
@@ -231,8 +233,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 .ToListAsync();
         }
 
-        private async Task<List<CountryBreakdownDto>> GetCountryDataForTypeAsync(
-            DateTime start, DateTime end, int typeId, int maxItems)
+        private async Task<List<CountryBreakdownDto>> GetCountryDataForTypeAsync(DateTime start, DateTime end, int typeId, int maxItems)
         {
             using var scope = _serviceProvider.CreateScope();
             var repository = scope.ServiceProvider.GetRequiredService<ICallDetailRepository>();
@@ -255,12 +256,9 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
             var countryBreakdown = new List<CountryBreakdownDto>();
 
-            // پردازش متوالی برای هر Country
             foreach (var countryInfo in countryData)
             {
-                var cityData = await GetCityDataForCountryAsync(
-                    start, end, typeId, countryInfo.CountryID, maxItems);
-
+                var cityData = await GetCityDataForCountryAsync(start, end, typeId, countryInfo.CountryID, maxItems);
                 countryBreakdown.Add(new CountryBreakdownDto
                 {
                     CountryID = countryInfo.CountryID,
@@ -275,8 +273,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             return countryBreakdown.OrderByDescending(x => x.TotalCount).ToList();
         }
 
-        private async Task<List<CityBreakdownDto>> GetCityDataForCountryAsync(
-            DateTime start, DateTime end, int typeId, int countryId, int maxItems)
+        private async Task<List<CityBreakdownDto>> GetCityDataForCountryAsync(DateTime start, DateTime end, int typeId, int countryId, int maxItems)
         {
             using var scope = _serviceProvider.CreateScope();
             var repository = scope.ServiceProvider.GetRequiredService<ICallDetailRepository>();
@@ -300,12 +297,9 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
             var cityBreakdown = new List<CityBreakdownDto>();
 
-            // پردازش متوالی برای هر City
             foreach (var cityInfo in cityData)
             {
-                var operatorData = await GetOperatorDataForCityAsync(
-                    start, end, typeId, countryId, cityInfo.CityID, maxItems);
-
+                var operatorData = await GetOperatorDataForCityAsync(start, end, typeId, countryId, cityInfo.CityID, maxItems);
                 cityBreakdown.Add(new CityBreakdownDto
                 {
                     CityID = cityInfo.CityID,
@@ -320,8 +314,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             return cityBreakdown.OrderByDescending(x => x.TotalCount).ToList();
         }
 
-        private async Task<List<OperatorBreakdownDto>> GetOperatorDataForCityAsync(
-            DateTime start, DateTime end, int typeId, int countryId, int cityId, int maxItems)
+        private async Task<List<OperatorBreakdownDto>> GetOperatorDataForCityAsync(DateTime start, DateTime end, int typeId, int countryId, int cityId, int maxItems)
         {
             using var scope = _serviceProvider.CreateScope();
             var repository = scope.ServiceProvider.GetRequiredService<ICallDetailRepository>();
@@ -357,28 +350,16 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         private List<object> GenerateChartData(DateTime start, DateTime end, Dictionary<DateTime, (int Success, int Fail)> dailyData)
         {
             var chartData = new List<object>();
-
-            // محدود کردن تعداد روزها برای جلوگیری از حجم زیاد داده
-            int maxDays = 365; // حداکثر یک سال
+            int maxDays = 365;
             var totalDays = (int)(end.Date - start.Date).TotalDays + 1;
 
-            if (totalDays > maxDays)
-            {
-                // اگر تعداد روزها زیاد است، گروه‌بندی ماهانه انجام دهید
-                return GenerateMonthlyChartData(start, end, dailyData);
-            }
+            if (totalDays > maxDays) return GenerateMonthlyChartData(start, end, dailyData);
 
             if (dailyData == null || dailyData.Count == 0)
             {
                 for (DateTime day = start.Date; day <= end.Date && day <= DateTime.Today; day = day.AddDays(1))
                 {
-                    chartData.Add(new
-                    {
-                        date = day.Ticks,
-                        displayDate = ConvertToPersianDate(day),
-                        success = 0,
-                        fail = 0
-                    });
+                    chartData.Add(new { date = day.Ticks, displayDate = ConvertToPersianDate(day), success = 0, fail = 0 });
                 }
                 return chartData;
             }
@@ -390,23 +371,11 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             {
                 if (dailyData.TryGetValue(current, out var stats))
                 {
-                    chartData.Add(new
-                    {
-                        date = current.Ticks,
-                        displayDate = ConvertToPersianDate(current),
-                        success = stats.Success,
-                        fail = stats.Fail
-                    });
+                    chartData.Add(new { date = current.Ticks, displayDate = ConvertToPersianDate(current), success = stats.Success, fail = stats.Fail });
                 }
                 else
                 {
-                    chartData.Add(new
-                    {
-                        date = current.Ticks,
-                        displayDate = ConvertToPersianDate(current),
-                        success = 0,
-                        fail = 0
-                    });
+                    chartData.Add(new { date = current.Ticks, displayDate = ConvertToPersianDate(current), success = 0, fail = 0 });
                 }
                 current = current.AddDays(1);
             }
@@ -419,28 +388,18 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             var chartData = new List<object>();
             var monthlyStats = new Dictionary<(int Year, int Month), (int Success, int Fail)>();
 
-            // گروه‌بندی داده‌های روزانه بر اساس ماه
             if (dailyData != null)
             {
                 foreach (var kvp in dailyData)
                 {
                     var date = kvp.Key;
                     var monthKey = (_persianCalendar.GetYear(date), _persianCalendar.GetMonth(date));
-
-                    if (!monthlyStats.ContainsKey(monthKey))
-                    {
-                        monthlyStats[monthKey] = (0, 0);
-                    }
-
+                    if (!monthlyStats.ContainsKey(monthKey)) monthlyStats[monthKey] = (0, 0);
                     var current = monthlyStats[monthKey];
-                    monthlyStats[monthKey] = (
-                        current.Success + kvp.Value.Success,
-                        current.Fail + kvp.Value.Fail
-                    );
+                    monthlyStats[monthKey] = (current.Success + kvp.Value.Success, current.Fail + kvp.Value.Fail);
                 }
             }
 
-            // تولید داده‌های ماهانه
             DateTime currentMonth = new DateTime(_persianCalendar.GetYear(start), _persianCalendar.GetMonth(start), 1);
             DateTime lastMonth = new DateTime(_persianCalendar.GetYear(end), _persianCalendar.GetMonth(end), 1);
 
@@ -452,23 +411,11 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
                 if (monthlyStats.TryGetValue(monthKey, out var stats))
                 {
-                    chartData.Add(new
-                    {
-                        date = currentMonth.Ticks,
-                        displayDate = $"{year}/{month:00}",
-                        success = stats.Success,
-                        fail = stats.Fail
-                    });
+                    chartData.Add(new { date = currentMonth.Ticks, displayDate = $"{year}/{month:00}", success = stats.Success, fail = stats.Fail });
                 }
                 else
                 {
-                    chartData.Add(new
-                    {
-                        date = currentMonth.Ticks,
-                        displayDate = $"{year}/{month:00}",
-                        success = 0,
-                        fail = 0
-                    });
+                    chartData.Add(new { date = currentMonth.Ticks, displayDate = $"{year}/{month:00}", success = 0, fail = 0 });
                 }
 
                 currentMonth = _persianCalendar.AddMonths(currentMonth, 1);
@@ -517,7 +464,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             public int FailCount { get; set; }
         }
 
-        // Helper classes برای کوئری‌ها
         private class TypeInfo
         {
             public int TypeID { get; set; }

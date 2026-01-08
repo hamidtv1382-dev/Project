@@ -114,6 +114,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             if (string.IsNullOrWhiteSpace(numbersText))
                 return numbers;
 
+            // تغییر جدید: فقط خط به خط جدا می‌کند بدون توجه به کاما یا فاصله (طبق درخواست)
             var lines = numbersText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var line in lines)
@@ -121,16 +122,10 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 var trimmedLine = line.Trim();
                 if (!string.IsNullOrWhiteSpace(trimmedLine))
                 {
-                    // جدا کردن با کاما، فاصله، یا tab
-                    var parts = trimmedLine.Split(new[] { ',', ' ', '\t', ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-                    foreach (var part in parts)
+                    // اضافه کردن اگر تکراری نباشد
+                    if (!numbers.Contains(trimmedLine))
                     {
-                        var number = part.Trim();
-                        if (!string.IsNullOrWhiteSpace(number) && !numbers.Contains(number))
-                        {
-                            numbers.Add(number);
-                        }
+                        numbers.Add(trimmedLine);
                     }
                 }
             }
@@ -219,6 +214,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
             return filter != null && (
                 !string.IsNullOrEmpty(filter.StartDate) ||
                 !string.IsNullOrEmpty(filter.EndDate) ||
+                filter.GeneralNumbers?.Any(n => !string.IsNullOrWhiteSpace(n)) == true || // اضافه شده
                 filter.ANumbers?.Any(n => !string.IsNullOrWhiteSpace(n)) == true ||
                 filter.BNumbers?.Any(n => !string.IsNullOrWhiteSpace(n)) == true ||
                 filter.OriginCountryID.HasValue ||
@@ -237,6 +233,9 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
 
             var callFilterDto = new CallFilterDto
             {
+                // لیست عمومی جستجو (شماره‌های لیست/تک جدید)
+                GeneralNumbers = model.Filter.GeneralNumbers,
+
                 ANumbers = model.Filter.ANumbers,
                 BNumbers = model.Filter.BNumbers,
                 Answer = model.Filter.Answer,
@@ -290,11 +289,52 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                     return Json(new { success = false, message = "ModelState is invalid.", errors = errors });
                 }
 
+                // پردازش لیست شماره‌های عمومی (تک شماره یا فایل)
+                var generalNumbersList = new List<string>();
+
+                // 1. دریافت از تکست باکس
+                if (!string.IsNullOrEmpty(model.Filter.SingleNumberText))
+                {
+                    generalNumbersList.Add(model.Filter.SingleNumberText.Trim());
+                }
+
+                // 2. دریافت از فایل آپلودی
+                if (form.Files.Count > 0 && form.Files[0].Length > 0)
+                {
+                    var file = form.Files[0];
+                    using (var reader = new StreamReader(file.OpenReadStream()))
+                    {
+                        var fileContent = await reader.ReadToEndAsync();
+                        var lines = fileContent.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        // --- محدودیت 50 شماره (با بررسی دقیق) ---
+                        if (lines.Length > 50)
+                        {
+                            // ارسال پیام خطا و متوقف کردن عملیات جستجو
+                            return Json(new { success = false, message = "تعداد شماره‌های فایل نباید بیشتر از 50 مورد باشد." });
+                        }
+                        // -------------------------------------------------
+
+                        foreach (var line in lines)
+                        {
+                            var num = line.Trim();
+                            if (!string.IsNullOrEmpty(num) && !generalNumbersList.Contains(num))
+                            {
+                                generalNumbersList.Add(num);
+                            }
+                        }
+                    }
+                }
+
+                // این خط فقط زمانی اجرا می‌شود که خطای بالای رخ نداده باشد
+                model.Filter.GeneralNumbers = generalNumbersList;
+
                 model.Filter.ANumbers = form["Filter.ANumbers"].ToList();
                 model.Filter.BNumbers = form["Filter.BNumbers"].ToList();
 
                 var callFilterDto = new CallFilterDto
                 {
+                    GeneralNumbers = model.Filter.GeneralNumbers, // ارسال لیست جدید
                     ANumbers = model.Filter.ANumbers,
                     BNumbers = model.Filter.BNumbers,
                     Answer = model.Filter.Answer,
@@ -379,7 +419,6 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 _context.Database.SetCommandTimeout(originalTimeout);
             }
         }
-
         public async Task<IActionResult> Details(int id)
         {
             var call = await _callDetailRepository.GetByIdAsync(id);
@@ -448,8 +487,22 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 model.Filter.ANumbers = form["Filter.ANumbers"].ToList();
                 model.Filter.BNumbers = form["Filter.BNumbers"].ToList();
 
+                // --- منطق GeneralNumbers برای اکسپورت کامل ---
+                var generalNumbersList = new List<string>();
+                if (!string.IsNullOrEmpty(model.Filter.SingleNumberText))
+                {
+                    generalNumbersList.Add(model.Filter.SingleNumberText.Trim());
+                }
+                // نکته: در اکسپورت معمولا فایل دوباره آپلود نمی‌شود، اما اگر سشن ذخیره شده باشد از آن استفاده می‌کنیم
+                // در اینجا از مدل که در سشن است یا پراپرتی‌های پر شده استفاده می‌کنیم
+                if (model.Filter.GeneralNumbers != null)
+                {
+                    generalNumbersList.AddRange(model.Filter.GeneralNumbers);
+                }
+
                 var callFilterDto = new CallFilterDto
                 {
+                    GeneralNumbers = generalNumbersList,
                     ANumbers = model.Filter.ANumbers,
                     BNumbers = model.Filter.BNumbers,
                     Answer = model.Filter.Answer,
@@ -557,8 +610,20 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 model.Filter.ANumbers = form["Filter.ANumbers"].ToList();
                 model.Filter.BNumbers = form["Filter.BNumbers"].ToList();
 
+                // --- منطق GeneralNumbers برای ExportWithOptions ---
+                var generalNumbersList = new List<string>();
+                if (!string.IsNullOrEmpty(model.Filter.SingleNumberText))
+                {
+                    generalNumbersList.Add(model.Filter.SingleNumberText.Trim());
+                }
+                if (model.Filter.GeneralNumbers != null)
+                {
+                    generalNumbersList.AddRange(model.Filter.GeneralNumbers);
+                }
+
                 var callFilterDto = new CallFilterDto
                 {
+                    GeneralNumbers = generalNumbersList,
                     ANumbers = model.Filter.ANumbers,
                     BNumbers = model.Filter.BNumbers,
                     Answer = model.Filter.Answer,
@@ -703,103 +768,189 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> WeightedSearch(WeightedSearchViewModel model, IFormFile sourceNumbersFile, IFormFile destNumbersFile)
+        public async Task<IActionResult> WeightedSearch(WeightedSearchViewModel model, IFormFile sourceNumbersFile, IFormFile destNumbersFile, IFormFile bulkNumbersFile)
         {
             var originalTimeout = _context.Database.GetCommandTimeout();
             _context.Database.SetCommandTimeout(300);
 
             try
             {
-                // دریافت شماره‌های مبدأ از فایل
-                if (sourceNumbersFile != null && sourceNumbersFile.Length > 0)
+                List<WeightedCallResultViewModel> allResults = new List<WeightedCallResultViewModel>();
+
+                // --- منطق جدید: جستجو بر اساس فایل انبوه ---
+                if (bulkNumbersFile != null && bulkNumbersFile.Length > 0)
                 {
-                    using var reader = new StreamReader(sourceNumbersFile.OpenReadStream());
+                    using var reader = new StreamReader(bulkNumbersFile.OpenReadStream());
                     var content = await reader.ReadToEndAsync();
-                    model.Filter.SourceNumbersText = content;
+                    var numbers = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                       .Select(n => n.Trim())
+                                       .Where(n => !string.IsNullOrWhiteSpace(n))
+                                       .Distinct()
+                                       .ToList();
+
+                    if (!numbers.Any())
+                    {
+                        ModelState.AddModelError("", "فایل آپلود شده خالی است.");
+                        return View(model);
+                    }
+
+                    var (startDateGregorian, endDateGregorian) = ConvertPersianDates(model.Filter.StartDate, model.Filter.EndDate);
+
+                    // 1. جستجو به عنوان مبدأ
+                    var sourceSearchDto = new WeightedSearchDto
+                    {
+                        ANumbers = numbers,
+                        StartDate = startDateGregorian,
+                        EndDate = endDateGregorian,
+                        MinWeight = model.Filter.MinWeight,
+                        SearchMode = WeightedSearchMode.SourceOnly,
+                        BidirectionalSearch = model.Filter.IncludeReversePairs,
+                        IncludeAnsweredCallsOnly = model.Filter.IncludeAnsweredCallsOnly
+                    };
+                    var sourceResults = await _callDetailRepository.GetWeightedSearchAsync(sourceSearchDto);
+                    allResults.AddRange(sourceResults.Select(r => new WeightedCallResultViewModel
+                    {
+                        ANumber = r.ANumber,
+                        BNumber = r.BNumber,
+                        Weight = r.Weight,
+                        TotalLength = r.TotalLength,
+                        AverageLength = r.AverageLength,
+                        DirectCalls = r.DirectCalls,
+                        ReverseCalls = r.ReverseCalls,
+                        SearchType = r.SearchType,
+                        DirectionInfo = r.DirectionInfo,
+                        TotalLengthFormatted = FormatTime(r.TotalLength),
+                        AverageLengthFormatted = FormatTime((int)r.AverageLength)
+                    }));
+
+                    // 2. جستجو به عنوان مقصد
+                    var destSearchDto = new WeightedSearchDto
+                    {
+                        BNumbers = numbers,
+                        StartDate = startDateGregorian,
+                        EndDate = endDateGregorian,
+                        MinWeight = model.Filter.MinWeight,
+                        SearchMode = WeightedSearchMode.DestinationOnly,
+                        BidirectionalSearch = model.Filter.IncludeReversePairs,
+                        IncludeAnsweredCallsOnly = model.Filter.IncludeAnsweredCallsOnly
+                    };
+                    var destResults = await _callDetailRepository.GetWeightedSearchAsync(destSearchDto);
+                    allResults.AddRange(destResults.Select(r => new WeightedCallResultViewModel
+                    {
+                        ANumber = r.ANumber,
+                        BNumber = r.BNumber,
+                        Weight = r.Weight,
+                        TotalLength = r.TotalLength,
+                        AverageLength = r.AverageLength,
+                        DirectCalls = r.DirectCalls,
+                        ReverseCalls = r.ReverseCalls,
+                        SearchType = r.SearchType,
+                        DirectionInfo = r.DirectionInfo,
+                        TotalLengthFormatted = FormatTime(r.TotalLength),
+                        AverageLengthFormatted = FormatTime((int)r.AverageLength)
+                    }));
                 }
-
-                // دریافت شماره‌های مقصد از فایل
-                if (destNumbersFile != null && destNumbersFile.Length > 0)
-                {
-                    using var reader = new StreamReader(destNumbersFile.OpenReadStream());
-                    var content = await reader.ReadToEndAsync();
-                    model.Filter.DestNumbersText = content;
-                }
-
-                // --- اصلاح شده: استخراج شماره‌ها به صورت خط به خط (Split) ---
-                var sourceNumbers = new List<string>();
-                var destNumbers = new List<string>();
-
-                if (!string.IsNullOrWhiteSpace(model.Filter.SourceNumbersText))
-                {
-                    var lines = model.Filter.SourceNumbersText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                    sourceNumbers = lines.Select(l => l.Trim()).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().ToList();
-                }
-
-                if (!string.IsNullOrWhiteSpace(model.Filter.DestNumbersText))
-                {
-                    var lines = model.Filter.DestNumbersText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                    destNumbers = lines.Select(l => l.Trim()).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().ToList();
-                }
-                // ----------------------------------------------
-
-                // بررسی که حداقل یکی از فیلدها پر باشد
-                if (!sourceNumbers.Any() && !destNumbers.Any())
-                {
-                    ModelState.AddModelError("", "لطفاً حداقل یک شماره در مبدأ یا مقصد وارد کنید.");
-                    return View(model);
-                }
-
-                var (startDateGregorian, endDateGregorian) =
-                    ConvertPersianDates(model.Filter.StartDate, model.Filter.EndDate);
-
-                // تعیین حالت جستجو بر اساس ورودی کاربر
-                WeightedSearchMode searchMode;
-
-                if (sourceNumbers.Any() && destNumbers.Any())
-                {
-                    searchMode = WeightedSearchMode.SourceDestinationPairs;
-                }
-                else if (sourceNumbers.Any())
-                {
-                    searchMode = WeightedSearchMode.SourceOnly;
-                }
+                // --- منطق موجود: جستجو بر اساس فایل‌های جداگانه مبدأ و مقصد ---
                 else
                 {
-                    searchMode = WeightedSearchMode.DestinationOnly;
+                    // دریافت شماره‌های مبدأ از فایل
+                    if (sourceNumbersFile != null && sourceNumbersFile.Length > 0)
+                    {
+                        using var reader = new StreamReader(sourceNumbersFile.OpenReadStream());
+                        var content = await reader.ReadToEndAsync();
+                        model.Filter.SourceNumbersText = content;
+                    }
+
+                    // دریافت شماره‌های مقصد از فایل
+                    if (destNumbersFile != null && destNumbersFile.Length > 0)
+                    {
+                        using var reader = new StreamReader(destNumbersFile.OpenReadStream());
+                        var content = await reader.ReadToEndAsync();
+                        model.Filter.DestNumbersText = content;
+                    }
+
+                    // --- اصلاح شده: استخراج شماره‌ها به صورت خط به خط (Split) ---
+                    var sourceNumbers = new List<string>();
+                    var destNumbers = new List<string>();
+
+                    if (!string.IsNullOrWhiteSpace(model.Filter.SourceNumbersText))
+                    {
+                        var lines = model.Filter.SourceNumbersText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        sourceNumbers = lines.Select(l => l.Trim()).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().ToList();
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(model.Filter.DestNumbersText))
+                    {
+                        var lines = model.Filter.DestNumbersText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        destNumbers = lines.Select(l => l.Trim()).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().ToList();
+                    }
+                    // ----------------------------------------------
+
+                    // بررسی که حداقل یکی از فیلدها پر باشد
+                    if (!sourceNumbers.Any() && !destNumbers.Any())
+                    {
+                        ModelState.AddModelError("", "لطفاً حداقل یک شماره در مبدأ یا مقصد وارد کنید.");
+                        return View(model);
+                    }
+
+                    var (startDateGregorian, endDateGregorian) =
+                        ConvertPersianDates(model.Filter.StartDate, model.Filter.EndDate);
+
+                    // تعیین حالت جستجو بر اساس ورودی کاربر
+                    WeightedSearchMode searchMode;
+
+                    if (sourceNumbers.Any() && destNumbers.Any())
+                    {
+                        searchMode = WeightedSearchMode.SourceDestinationPairs;
+                    }
+                    else if (sourceNumbers.Any())
+                    {
+                        searchMode = WeightedSearchMode.SourceOnly;
+                    }
+                    else
+                    {
+                        searchMode = WeightedSearchMode.DestinationOnly;
+                    }
+
+                    // ایجاد DTO برای جستجوی وزنی
+                    var weightedSearchDto = new WeightedSearchDto
+                    {
+                        ANumbers = sourceNumbers,
+                        BNumbers = destNumbers,
+                        StartDate = startDateGregorian,
+                        EndDate = endDateGregorian,
+                        MinWeight = model.Filter.MinWeight,
+                        BidirectionalSearch = model.Filter.IncludeReversePairs,
+                        SearchMode = searchMode,
+                        IncludeAnsweredCallsOnly = model.Filter.IncludeAnsweredCallsOnly
+                    };
+
+                    // فراخوانی متد جدید ریپازیتوری
+                    var weightedResults = await _callDetailRepository.GetWeightedSearchAsync(weightedSearchDto);
+
+                    // تبدیل به ViewModel
+                    allResults = weightedResults.Select(r => new WeightedCallResultViewModel
+                    {
+                        ANumber = r.ANumber,
+                        BNumber = r.BNumber,
+                        Weight = r.Weight,
+                        TotalLength = r.TotalLength,
+                        AverageLength = r.AverageLength,
+                        DirectCalls = r.DirectCalls,
+                        ReverseCalls = r.ReverseCalls,
+                        SearchType = r.SearchType,
+                        DirectionInfo = r.DirectionInfo,
+                        TotalLengthFormatted = FormatTime(r.TotalLength),
+                        AverageLengthFormatted = FormatTime((int)r.AverageLength)
+                    }).ToList();
                 }
 
-                // ایجاد DTO برای جستجوی وزنی
-                var weightedSearchDto = new WeightedSearchDto
-                {
-                    ANumbers = sourceNumbers,
-                    BNumbers = destNumbers,
-                    StartDate = startDateGregorian,
-                    EndDate = endDateGregorian,
-                    MinWeight = model.Filter.MinWeight,
-                    BidirectionalSearch = model.Filter.IncludeReversePairs,
-                    SearchMode = searchMode,
-                    IncludeAnsweredCallsOnly = model.Filter.IncludeAnsweredCallsOnly
-                };
-
-                // فراخوانی متد جدید ریپازیتوری
-                var weightedResults = await _callDetailRepository.GetWeightedSearchAsync(weightedSearchDto);
-
-                // تبدیل به ViewModel
-                model.WeightedResults = weightedResults.Select(r => new WeightedCallResultViewModel
-                {
-                    ANumber = r.ANumber,
-                    BNumber = r.BNumber,
-                    Weight = r.Weight,
-                    TotalLength = r.TotalLength,
-                    AverageLength = r.AverageLength,
-                    DirectCalls = r.DirectCalls,
-                    ReverseCalls = r.ReverseCalls,
-                    SearchType = r.SearchType,
-                    DirectionInfo = r.DirectionInfo,
-                    TotalLengthFormatted = FormatTime(r.TotalLength),
-                    AverageLengthFormatted = FormatTime((int)r.AverageLength)
-                }).ToList();
+                // حذف نتایج تکراری (در صورت وجود) و مرتب‌سازی نهایی
+                model.WeightedResults = allResults
+                    .GroupBy(r => new { r.ANumber, r.BNumber })
+                    .Select(g => g.First()) // یا می‌توانید منطق ترکیب وزن‌ها را پیاده‌سازی کنید
+                    .OrderByDescending(r => r.Weight)
+                    .ToList();
 
                 model.TotalPairs = model.WeightedResults.Count;
                 model.TotalCalls = model.WeightedResults.Sum(w => w.Weight);

@@ -46,6 +46,48 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                     query = query.Where(x => x.AccountingTime <= endDateTime);
                 }
 
+                // --- منطق جدید: جستجوی لیست عمومی (شماره‌ها در مبدا یا مقصد) ---
+                if (filter.GeneralNumbers != null && filter.GeneralNumbers.Any(n => !string.IsNullOrWhiteSpace(n)))
+                {
+                    var parameter = Expression.Parameter(typeof(CallDetail), "x");
+                    Expression finalGeneralFilter = null;
+
+                    var aProp = Expression.Property(parameter, nameof(CallDetail.ANumber));
+                    var bProp = Expression.Property(parameter, nameof(CallDetail.BNumber));
+
+                    foreach (var number in filter.GeneralNumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
+                    {
+                        // شرط: شماره در A باشد
+                        var equalsA = Expression.Call(
+                            aProp,
+                            typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                            Expression.Constant(number)
+                        );
+
+                        // شرط: شماره در B باشد
+                        var equalsB = Expression.Call(
+                            bProp,
+                            typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                            Expression.Constant(number)
+                        );
+
+                        // ترکیب: A یا B (OR) برای هر شماره
+                        var orCondition = Expression.OrElse(equalsA, equalsB);
+
+                        // ترکیب با شماره‌های قبلی (OR)
+                        finalGeneralFilter = finalGeneralFilter == null
+                            ? orCondition
+                            : Expression.OrElse(finalGeneralFilter, orCondition);
+                    }
+
+                    if (finalGeneralFilter != null)
+                    {
+                        var lambda = Expression.Lambda<Func<CallDetail, bool>>(finalGeneralFilter, parameter);
+                        query = query.Where(lambda);
+                    }
+                }
+                // ----------------------------------------------------
+
                 // منطق جدید برای جستجوی عمیق
                 if (filter.IsDeepSearch &&
                     ((filter.ANumbers != null && filter.ANumbers.Any(n => !string.IsNullOrWhiteSpace(n))) ||
@@ -270,6 +312,48 @@ namespace AnalysisCallUser._02_Infrastructure.Repository.Repositories
                     var endDateTime = filter.EndDate.Value.Date + (filter.EndTime ?? new TimeSpan(23, 59, 59));
                     query = query.Where(x => x.AccountingTime <= endDateTime);
                 }
+
+                // --- منطق جدید برای Count: جستجوی لیست عمومی (شماره‌ها در مبدا یا مقصد) ---
+                if (filter.GeneralNumbers != null && filter.GeneralNumbers.Any(n => !string.IsNullOrWhiteSpace(n)))
+                {
+                    var parameter = Expression.Parameter(typeof(CallDetail), "x");
+                    Expression finalGeneralFilter = null;
+
+                    var aProp = Expression.Property(parameter, nameof(CallDetail.ANumber));
+                    var bProp = Expression.Property(parameter, nameof(CallDetail.BNumber));
+
+                    foreach (var number in filter.GeneralNumbers.Where(n => !string.IsNullOrWhiteSpace(n)))
+                    {
+                        // شرط: شماره در A باشد
+                        var equalsA = Expression.Call(
+                            aProp,
+                            typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                            Expression.Constant(number)
+                        );
+
+                        // شرط: شماره در B باشد
+                        var equalsB = Expression.Call(
+                            bProp,
+                            typeof(string).GetMethod("Equals", new[] { typeof(string) }),
+                            Expression.Constant(number)
+                        );
+
+                        // ترکیب: A یا B (OR)
+                        var orCondition = Expression.OrElse(equalsA, equalsB);
+
+                        // ترکیب با شماره‌های قبلی (OR)
+                        finalGeneralFilter = finalGeneralFilter == null
+                            ? orCondition
+                            : Expression.OrElse(finalGeneralFilter, orCondition);
+                    }
+
+                    if (finalGeneralFilter != null)
+                    {
+                        var lambda = Expression.Lambda<Func<CallDetail, bool>>(finalGeneralFilter, parameter);
+                        query = query.Where(lambda);
+                    }
+                }
+                // -------------------------------------------------------
 
                 // منطق جدید برای جستجوی عمیق
                 if (filter.IsDeepSearch &&

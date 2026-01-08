@@ -118,6 +118,11 @@
                 outline: none;
             }
 
+            .form-control:disabled {
+                background-color: #e9ecef;
+                cursor: not-allowed;
+            }
+
         .textarea-large {
             min-height: 120px;
             resize: vertical;
@@ -199,6 +204,74 @@
                 background-color: var(--danger-color);
                 border-color: var(--danger-color);
                 color: white;
+            }
+
+        /* --- استایل‌های اصلاح شده برای حالت جستجوی فایل (دقیقا مشابه بقیه) --- */
+        .file-search-section {
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px 0; /* پدینگ بالا و پایین */
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+            .file-search-section.active {
+                background-color: #f8fafc;
+                border-color: var(--primary-color);
+            }
+
+            .file-search-section h4 {
+                color: var(--text-dark);
+                margin-bottom: 10px;
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .file-search-section p {
+                color: var(--text-light);
+                margin-bottom: 10px;
+                font-size: 12px;
+            }
+
+        .btn-file-search {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px; /* مشابه btn-upload */
+            padding: 8px 16px; /* مشابه btn-upload */
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+            .btn-file-search:hover {
+                background-color: var(--primary-hover);
+            }
+
+        .btn-exit-file-mode {
+            background-color: #fff0f0;
+            color: var(--danger-color);
+            border: 1px solid #feb2b2;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+            .btn-exit-file-mode:hover {
+                background-color: var(--danger-color);
+                color: white;
+                border-color: var(--danger-color);
             }
 
         /* --- سایر استایل‌ها --- */
@@ -401,16 +474,16 @@
             display: block;
         }
 
+        /* --- نوار اطلاعات فایل (مشابه برای همه استفاده میشود) --- */
         .file-info-bar {
             display: none; /* پیش‌فرض مخفی */
             align-items: center;
-            background: rgba(102, 51, 153, 0.15); /* شیشه‌ای بنفش */
-            backdrop-filter: blur(6px);
-            border: 1px solid rgba(102, 51, 153, 0.5);
-            border-radius: 8px;
+            background-color: #f8faff;
+            border: 1px solid var(--primary-color);
+            border-radius: 6px;
             padding: 6px 12px;
             font-size: 13px;
-            color: #660066;
+            color: var(--text-dark);
             animation: fadeIn 0.3s ease-out;
         }
 
@@ -428,12 +501,12 @@
         }
 
         .file-remove-btn {
-            background-color: rgba(255,255,255,0.5);
-            border: 1px solid #990099;
-            color: #660066;
+            background-color: #fff0f0;
+            border: 1px solid #feb2b2;
+            color: var(--danger-color);
             width: 24px;
             height: 24px;
-            border-radius: 6px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -443,8 +516,8 @@
         }
 
             .file-remove-btn:hover {
-                background-color: #990099;
-                border-color: #990099;
+                background-color: var(--danger-color);
+                border-color: var(--danger-color);
                 color: white;
             }
 
@@ -496,8 +569,30 @@
                         </div>
 
                         <div class="form-container">
+                           
                             <form id="weightedSearchForm" method="post" enctype="multipart/form-data">
                                 @Html.AntiForgeryToken()
+                                <!-- بخش جدید: جستجوی بر اساس فایل -->
+                                <div id="fileSearchSection" class="file-search-section">
+                                    <h4><i class="bi bi-file-earmark-arrow-up"></i> جستجوی وزنی بر اساس فایل</h4>
+                                    <p>یک فایل متنی (.txt یا .csv) حاوی لیست شماره‌ها را آپلود کنید. سیستم به صورت خودکار این شماره‌ها را به عنوان مبدأ و مقصد جستجو خواهد کرد.</p>
+                                    <input type="file" id="bulkNumbersFile" name="bulkNumbersFile" class="d-none" accept=".txt,.csv">
+                                    <button type="button" class="btn-file-search" onclick="document.getElementById('bulkNumbersFile').click()">
+                                        <i class="bi bi-cloud-upload"></i> انتخاب و آپلود فایل شماره‌ها
+                                    </button>
+                                    <div id="bulkFileInfo" class="file-info-bar mt-3">
+                                        <i class="bi bi-file-earmark-text-fill"></i>
+                                        <span id="bulkFileName" class="file-name-text">filename.txt</span>
+                                        <button type="button" class="file-remove-btn" onclick="removeBulkFile()" title="حذف فایل">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                    <button type="button" class="btn-exit-file-mode" id="exitFileModeBtn" onclick="exitFileMode()" style="display: none;">
+                                        <i class="bi bi-arrow-left-circle"></i> بازگشت به حالت عادی
+                                    </button>
+                                </div>
+
+                                <hr id="fileModeSeparator" style="margin: 30px 0; border-top: 2px solid var(--border-color); display: none;">
 
                                 <div class="search-info">
                                     <i class="bi bi-info-circle-fill" style="color: var(--primary-color); margin-left: 8px;"></i>
@@ -870,10 +965,13 @@
             setupFileUpload('sourceNumbersFile', 'SourceNumbersText', 'sourceFileInfo', 'sourceFileName');
             setupFileUpload('destNumbersFile', 'DestNumbersText', 'destFileInfo', 'destFileName');
 
-            // --- 3. بازگردانی وضعیت ---
+            // --- 3. تنظیم آپلود فایل جدید (حالت فایل) ---
+            setupBulkFileUpload();
+
+            // --- 4. بازگردانی وضعیت ---
             restoreFileInfo();
 
-            // --- 4. ارسال فرم ---
+            // --- 5. ارسال فرم ---
             $('#weightedSearchForm').submit(function(e) {
                 if (!validateForm()) {
                     e.preventDefault();
@@ -884,7 +982,90 @@
         });
 
         // --- منطق آپلود فایل جدید ---
-              function setupFileUpload(fileInputId, textAreaId, fileInfoId, fileNameId) {
+               // --- منطق آپلود فایل جدید (دقیقا مشابه مبدأ و مقصد) ---
+        function setupBulkFileUpload() {
+            const bulkFileInput = document.getElementById('bulkNumbersFile');
+            const bulkFileInfo = document.getElementById('bulkFileInfo');
+            const bulkFileName = document.getElementById('bulkFileName');
+            const exitFileModeBtn = document.getElementById('exitFileModeBtn');
+            const fileSearchSection = document.getElementById('fileSearchSection');
+            const fileModeSeparator = document.getElementById('fileModeSeparator');
+            const btnFileSearch = document.querySelector('.btn-file-search');
+
+            bulkFileInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    const validExtensions = ['.txt', '.csv'];
+                    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+
+                    if (!validExtensions.includes(fileExtension)) {
+                        alert('فرمت فایل نامعتبر است. فقط .txt و .csv مجاز هستند.');
+                        bulkFileInput.value = '';
+                        return;
+                    }
+
+                    // شبیه‌سازی دقیق رفتار مبدأ و مقصد: نمایش نام فایل و آیکون
+                    bulkFileName.textContent = file.name;
+                    bulkFileInfo.classList.add('active');
+
+                    // تغییر وضعیت ظاهری بخش
+                    fileSearchSection.classList.add('active');
+
+                    // مخفی کردن دکمه انتخاب فایل و نمایش دکمه خروج
+                    if (btnFileSearch) btnFileSearch.style.display = 'none';
+                    exitFileModeBtn.style.display = 'inline-flex';
+
+                    // نمایش جداکننده
+                    fileModeSeparator.style.display = 'block';
+
+                    // غیرفعال کردن سایر فیلدها
+                    disableOtherFields(true);
+                }
+            });
+        }
+
+        function removeBulkFile() {
+            const bulkFileInput = document.getElementById('bulkNumbersFile');
+            const bulkFileInfo = document.getElementById('bulkFileInfo');
+            const fileSearchSection = document.getElementById('fileSearchSection');
+            const exitFileModeBtn = document.getElementById('exitFileModeBtn');
+            const fileModeSeparator = document.getElementById('fileModeSeparator');
+
+            bulkFileInput.value = '';
+            bulkFileInfo.classList.remove('active');
+            fileSearchSection.classList.remove('active');
+            exitFileModeBtn.style.display = 'none';
+            fileModeSeparator.style.display = 'none';
+
+            // فعال کردن مجدد سایر فیلدها
+            disableOtherFields(false);
+        }
+
+        function exitFileMode() {
+            removeBulkFile();
+        }
+
+        function disableOtherFields(disable) {
+            const fieldsToDisable = [
+                'StartDate', 'EndDate', 'SourceNumbersText', 'DestNumbersText',
+                'MinWeight', 'sourceNumbersFile', 'destNumbersFile'
+            ];
+
+            fieldsToDisable.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.disabled = disable;
+                }
+            });
+
+            // غیرفعال کردن دکمه‌های آپلود فایل کوچک
+            const uploadButtons = document.querySelectorAll('.btn-upload');
+            uploadButtons.forEach(btn => {
+                btn.disabled = disable;
+            });
+        }
+
+        function setupFileUpload(fileInputId, textAreaId, fileInfoId, fileNameId) {
             const fileInput = document.getElementById(fileInputId);
             const textArea = document.getElementById(textAreaId);
             const fileInfo = document.getElementById(fileInfoId);
@@ -995,10 +1176,12 @@
         }
 
         function validateForm() {
+            const bulkFile = document.getElementById('bulkNumbersFile').files.length > 0;
             const sourceText = document.getElementById('SourceNumbersText').value.trim();
             const destText = document.getElementById('DestNumbersText').value.trim();
-            if (!sourceText && !destText) {
-                showToast('error', 'لطفاً حداقل یکی از فیلدهای شماره مبدأ یا مقصد را پر کنید.');
+
+            if (!bulkFile && !sourceText && !destText) {
+                showToast('error', 'لطفاً حداقل یکی از فیلدهای شماره مبدأ یا مقصد را پر کنید یا یک فایل آپلود کنید.');
                 return false;
             }
             return true;
@@ -1009,6 +1192,7 @@
                 document.getElementById('weightedSearchForm').reset();
                 removeSourceFile();
                 removeDestFile();
+                removeBulkFile();
             }
         }
 

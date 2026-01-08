@@ -1,6 +1,12 @@
 ﻿@using AnalysisCallUser._01_Domain.Core.Enums
 @model AnalysisCallUser._02_Infrastructure.Helpers.PagedResult<AnalysisCallUser._01_Domain.Core.DTOs.CallDetailDto>
 
+@* اضافه شده: محل نمایش پیام خطا *@
+<div id="searchErrorContainer" class="alert alert-danger mt-3" style="display: none;">
+    <i class="fas fa-exclamation-triangle me-2"></i> <span id="searchErrorMessage">خطا در جستجو</span>
+</div>
+@* ------------------------------------ *@
+
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div class="d-flex align-items-center">
         <div class="me-3">
@@ -13,19 +19,7 @@
                 <span class="text-muted">هیچ رکوردی یافت نشد</span>
             }
         </div>
-        @if (Model.TotalItems > 0)
-        {
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-download"></i> خروجی
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#" id="exportCurrentPage"><i class="fas fa-file-export me-2"></i>خروجی صفحه فعلی</a></li>
-                    <li><a class="dropdown-item" href="#" id="exportAllResults"><i class="fas fa-file-export me-2"></i>خروجی تمام نتایج</a></li>
-                    <li><a class="dropdown-item" href="#" id="exportCustom"><i class="fas fa-cog me-2"></i>خروجی با گزینه‌های دلخواه</a></li>
-                </ul>
-            </div>
-        }
+       
     </div>
 
     <!-- بخش اکسپورت انتخابی -->
@@ -257,4 +251,4 @@
             }
         </ul>
     </nav>
-} 
+}
