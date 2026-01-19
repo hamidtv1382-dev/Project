@@ -535,9 +535,13 @@
                     <div class="col-md-2">
                         <label class="form-label">سال:</label>
                         <select id="selectYear" class="form-select">
+                            <option value="1406">1406</option>
+                            <option value="1405" selected>1405</option>
+                            <option value="1404">1404</option>
                             <option value="1403">1403</option>
-                            <option value="1402" selected>1402</option>
+                            <option value="1402">1402</option>
                             <option value="1401">1401</option>
+                            <option value="1400">1400</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -788,9 +792,26 @@
         <!-- ربع خالی دوم: نمودار Word Cloud (با عرض کامل این گرید) -->
         <div class="quadrant cloud-quadrant">
             <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
-                <h6 class="fw-bold text-muted mb-0">ابر کلمات پرتردد (کشور/شهر/اپراتور)</h6>
+                <h6 class="fw-bold text-muted mb-0">ابر کلمات پرتردد (کشور/اپراتور)</h6>
                 <button class="btn-export-csv" onclick="exportWordCloudToCsv()"><i class="bi bi-download"></i> CSV</button>
             </div>
+
+            <!-- --- فیلتر جدید برای ابر کلمات --- -->
+            <div class="row g-2 mb-3 align-items-end">
+                <div class="col-md-10">
+                    <label class="form-label small fw-bold">فیلتر کشور:</label>
+                    <select id="wordCloudCountryFilter" class="form-select form-select-sm">
+                        <option value="">همه کشورها</option>
+                        <!-- گزینه‌ها توسط JS پر می‌شوند -->
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button id="btnResetWordCloud" class="btn btn-sm btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-counterclockwise"></i> ریست
+                    </button>
+                </div>
+            </div>
+
             <!-- کانتینر جداگانه برای Word Cloud -->
             <div id="wordCloudChartDiv"></div>
         </div>
@@ -801,6 +822,22 @@
                 <h6 class="fw-bold text-muted mb-0">تحلیل درختی (کشور-شهر-اپراتور)</h6>
                 <button class="btn-export-csv" onclick="exportAmchartsToCsv()"><i class="bi bi-download"></i> CSV</button>
             </div>
+
+            <!-- فیلتر جدید برای نمودار درختی -->
+            <div class="row g-2 mb-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">فیلتر نمودار درختی (انتخاب چند کشور):</label>
+                    <select id="forceGraphCountryFilter" class="form-select form-select-sm" multiple size="1">
+                        <!-- گزینه‌ها توسط JS پر می‌شوند -->
+                        <option value="" disabled selected>انتخاب کشور...</option>
+                    </select>
+                    <small class="text-muted" style="font-size: 0.75rem;">برای انتخاب چندگانه Ctrl (یا Cmd) را نگه دارید. حداکثر ۳ کشور.</small>
+                </div>
+                <div class="col-md-8 d-flex align-items-end pb-2">
+                    <span id="forceGraphStatus" class="text-muted small">لطفاً حداقل یک کشور را برای نمایش نمودار انتخاب کنید.</span>
+                </div>
+            </div>
+
             <div id="chartdiv"></div>
         </div>
     </div>
@@ -941,35 +978,68 @@
 
         // اکسپورت Word Cloud
         window.exportWordCloudToCsv = function() {
-            // داده‌های اصلی از globalTypeBreakdown
             let csv = "Tag,Weight\n";
+
+            // --- استفاده از داده‌های فیلتر شده فعلی برای اکسپورت ---
+            const wordCloudCountryFilter = document.getElementById('wordCloudCountryFilter');
+            const selectedCountryId = wordCloudCountryFilter.value;
+
             const wordCloudData = [];
 
             globalTypeBreakdown.forEach(t => {
-                if (t.totalCount > 0) wordCloudData.push({ tag: t.typeName, weight: t.totalCount });
                 if (t.countries) {
                     t.countries.forEach(c => {
-                        if (c.totalCount > 0) wordCloudData.push({ tag: c.countryName, weight: c.totalCount });
+                        // اگر کشور فیلتر شده و این کشور نیست، رد شو
+                        if (selectedCountryId && c.countryID != selectedCountryId) return;
+
                         if (c.cities) {
                             c.cities.forEach(city => {
-                                if (city.totalCount > 0) wordCloudData.push({ tag: city.cityName, weight: city.totalCount });
                                 if (city.operators) {
                                     city.operators.forEach(op => {
-                                        if (op.totalCount > 0) wordCloudData.push({ tag: op.operatorName, weight: op.totalCount });
+                                        // اگر به اینجا رسیدیم، یعنی آیتم معتبر است
+
+                                        // لاجیک نمایش: اگر کشور فیلتر شده، فقط اپراتورها را اکسپورت کن
+                                        if (selectedCountryId) {
+                                            if (op.totalCount > 0) wordCloudData.push({ tag: op.operatorName, weight: op.totalCount });
+                                        }
+                                        // اگر هیچ فیلتری نیست، فقط کشورها را اکسپورت کن
+                                        else {
+                                            // (لاجیک زیر فقط برای اکسپورت است، چون در نمایش از Map استفاده شده)
+                                            // برای سادگی در اکسپورت هم از روش تکراری استفاده می‌کنیم و بعدا اگر خواستید مرتبش کنید.
+                                        }
                                     });
                                 }
                             });
+                        }
+
+                        // لاجیک نمایش: اگر هیچ فیلتری نیست، فقط کشورها را اکسپورت کن
+                        if (!selectedCountryId) {
+                            if (c.totalCount > 0) wordCloudData.push({ tag: c.countryName, weight: c.totalCount });
                         }
                     });
                 }
             });
 
+            // اگر هیچ فیلتری نیست، باید از داده تکراری جلوگیری کنیم (کشورها تکراری هستند چون در تایپ‌ها هستند)
+            if (!selectedCountryId) {
+                const countryMap = new Map();
+                wordCloudData.forEach(item => {
+                    const current = countryMap.get(item.tag) || 0;
+                    countryMap.set(item.tag, current + item.weight);
+                });
+                wordCloudData.length = 0; // خالی کردن آرایه
+                countryMap.forEach((weight, tag) => {
+                    wordCloudData.push({ tag: tag, weight: weight });
+                });
+            }
+
+            // مرتب‌سازی و برش
             wordCloudData.sort((a, b) => b.weight - a.weight);
             wordCloudData.slice(0, 100).forEach(w => {
                 csv += `"${w.tag}",${w.weight}\n`;
             });
 
-            downloadCSV(csv, "WordCloud_Top100");
+            downloadCSV(csv, "WordCloud_Filtered");
         };
 
         // اکسپورت نمودار درختی amCharts
@@ -977,30 +1047,41 @@
             let csv = "Parent,Name,Value,Type\n";
             let currentData = amchartsDataGlobal; // باید تعریف شده باشد در بخش لود
 
-            function traverse(items, parentName) {
+            // اگر فیلتر اعمال شده، از داده فیلتر شده استفاده کن
+            if(!currentData || (Array.isArray(currentData) && currentData.length === 0) || (currentData.children && currentData.children.length === 0)) {
+                alert("داده‌ای برای اکسپورت وجود ندارد.");
+                return;
+            }
+
+            // ما اکنون داده را به صورت Root { children: [...] } پاس می‌دهیم
+            // پس currentData.children شامل کشورهاست.
+            const rootChildren = currentData.children || currentData;
+
+            traverseExport(rootChildren, "Root");
+
+            function traverseExport(items, parentName) {
                 items.forEach(item => {
-                    let type = "Type";
+                    let type = "Unknown";
                     // تشخیص سطح بر اساس عمق ساختار
-                    if (item.children && item.children.length > 0 && item.children[0].children) {
-                        // سطوح پایین (اپراتور) فرزندشان را ندارند
-                         if (item.children[0].children && item.children[0].children.length === 0) {
-                             // این سطح شهر است (چون فرزندش اپراتور و اپراتور فرزند ندارد)
+                    // فرض: Root -> Country (child has children) -> City (child has children) -> Operator (no children)
+                    if (item.children && item.children.length > 0) {
+                         // آیا فرزندان این آیتم فرزند دارند؟ (یعنی این آیتم شهر است)
+                         if (item.children[0].children && item.children[0].children.length > 0) {
                              type = "City";
                          } else {
                              type = "Country";
                          }
-                    } else if (!item.children || item.children.length === 0) {
+                    } else {
                         type = "Operator";
                     }
 
                     csv += `"${parentName}","${item.name}",${item.value},"${type}"\n`;
                     if (item.children) {
-                        traverse(item.children, item.name);
+                        traverseExport(item.children, item.name);
                     }
                 });
             }
 
-            traverse(currentData, "Root");
             downloadCSV(csv, "ForceDirected_Tree");
         };
 
@@ -1009,8 +1090,12 @@
             const typeSelect = document.getElementById('filterCallType');
             const countrySelect = document.getElementById('filterCountry');
             const citySelect = document.getElementById('filterCity');
+            // --- دراپ‌داون جدید برای نمودار درختی ---
+            const forceGraphCountrySelect = document.getElementById('forceGraphCountryFilter');
+            // --- دراپ‌داون جدید برای ابر کلمات ---
+            const wordCloudCountrySelect = document.getElementById('wordCloudCountryFilter');
 
-            // نگهداری انتخاب‌های فعلی
+            // نگهداری انتخاب‌های فعلی (برای فیلترهای اصلی، نه ابر کلمات چون ابر کلمات ریست جدا دارد)
             const currentType = typeSelect.value;
             const currentCountry = countrySelect.value;
             const currentCity = citySelect.value;
@@ -1019,6 +1104,12 @@
             countrySelect.innerHTML = '<option value="">همه کشورها</option>';
             citySelect.innerHTML = '<option value="">ابتدا کشور را انتخاب کنید</option>';
             citySelect.disabled = true;
+
+            // --- ریست دراپ‌داون نمودار درختی ---
+            forceGraphCountrySelect.innerHTML = '<option value="" disabled selected>انتخاب کشور...</option>';
+
+            // --- ریست دراپ‌داون ابر کلمات ---
+            wordCloudCountrySelect.innerHTML = '<option value="">همه کشورها</option>';
 
             // 1. تایپ‌ها
             typesData.forEach(t => {
@@ -1046,6 +1137,18 @@
                 opt.value = id;
                 opt.textContent = name;
                 countrySelect.appendChild(opt);
+
+                // --- اضافه کردن به دراپ‌داون نمودار درختی ---
+                const optForce = document.createElement('option');
+                optForce.value = id;
+                optForce.textContent = name;
+                forceGraphCountrySelect.appendChild(optForce);
+
+                // --- اضافه کردن به دراپ‌داون ابر کلمات ---
+                const optWC = document.createElement('option');
+                optWC.value = id;
+                optWC.textContent = name;
+                wordCloudCountrySelect.appendChild(optWC);
             });
 
             // بازیابی انتخاب کشور
@@ -1084,7 +1187,7 @@
             });
         }
 
-        // --- مدیریت تغییر کشور و شهر ---
+        // --- مدیریت تغییر کشور و شهر (برای فیلترهای مکانی اصلی) ---
         function updateCityDropdown(countryId, selectedCityIdToKeep = null) {
             const citySelect = document.getElementById('filterCity');
             if (!countryId) {
@@ -1788,26 +1891,94 @@
 
         // --- متغیر سراسری برای نگهداری داده‌های آم‌چارت ---
         let amchartsDataGlobal = null;
+        let amchartsRawCountriesMap = new Map(); // نگهداری داده خام کشورها برای فیلتر کردن سریع
+
+        // --- منطق جدید: مدیریت فیلتر چندگانه برای نمودار درختی ---
+        const forceGraphFilterSelect = document.getElementById('forceGraphCountryFilter');
+        const forceGraphStatus = document.getElementById('forceGraphStatus');
+
+        forceGraphFilterSelect.addEventListener('change', function() {
+            const selectedOptions = Array.from(this.selectedOptions);
+            const selectedCount = selectedOptions.length;
+
+            if (selectedCount > 3) {
+                alert('شما نمی‌توانید بیش از ۳ کشور را همزمان انتخاب کنید.');
+                this.selectedIndex = -1;
+                forceGraphStatus.innerText = `تعداد انتخاب: ${selectedCount} (حداکثر ۳ مجاز است)`;
+                forceGraphStatus.style.color = 'red';
+                return;
+            }
+
+            if (selectedCount === 0) {
+                forceGraphStatus.innerText = "لطفاً حداقل یک کشور را برای نمایش نمودار انتخاب کنید.";
+                forceGraphStatus.style.color = 'gray';
+                if (amchartsRoot) {
+                    amchartsRoot.dispose();
+                    amchartsRoot = null;
+                }
+                amchartsDataGlobal = null;
+                return;
+            }
+
+            forceGraphStatus.innerText = `نمایش تحلیل برای ${selectedCount} کشور انتخاب شده.`;
+            forceGraphStatus.style.color = 'green';
+
+            const selectedIds = selectedOptions.map(opt => opt.value);
+            const selectedNames = selectedOptions.map(opt => opt.text).join('، ');
+            forceGraphStatus.innerText = `کشورهای انتخاب شده: ${selectedNames}`;
+
+            renderFilteredAmcharts(selectedIds);
+        });
+
+        function renderFilteredAmcharts(countryIds) {
+            if (!amchartsRawCountriesMap || amchartsRawCountriesMap.size === 0) return;
+
+            // 1. ایجاد آبجکت ریشه (Root) برای نمایش ساختار درختی صحیح
+            // این ریشه "والد" کشورهای انتخاب شده خواهد بود
+            let rootValue = 0;
+            const rootChildren = [];
+
+            countryIds.forEach(id => {
+                if (amchartsRawCountriesMap.has(parseInt(id))) {
+                    const countryData = amchartsRawCountriesMap.get(parseInt(id));
+                    // کپی عمیق برای جلوگیری از تغییر داده اصلی
+                    const countryNode = JSON.parse(JSON.stringify(countryData));
+                    rootChildren.push(countryNode);
+                    rootValue += countryNode.value;
+                }
+            });
+
+            // مرتب‌سازی کشورها بر اساس حجم تماس
+            rootChildren.sort((a, b) => b.value - a.value);
+
+            // ساختار نهایی: ریشه شامل کشورها
+            const finalDataStructure = {
+                name: "Root", // یا می‌توانید نامی مثل "تحلیل انتخابی" بگذارید
+                value: rootValue,
+                children: rootChildren
+            };
+
+            // بروزرسانی متغیر سراسری برای اکسپورت
+            amchartsDataGlobal = finalDataStructure;
+
+            // رندر نمودار با داده جدید (که شامل ریشه است)
+            initAmchartsForceGraph(finalDataStructure);
+        }
+
 
         // --- منطق نمودار درختی amCharts (کشور-شهر-اپراتور) ---
-        function initAmchartsForceGraph(data) {
-            // ذخیره داده برای اکسپورت
-            amchartsDataGlobal = data;
+        function initAmchartsForceGraph(dataInput) {
+            if (!dataInput) return;
 
-            // Destroy previous instance if exists to save memory
             if (amchartsRoot) {
                 amchartsRoot.dispose();
             }
 
-            // Create root element
             amchartsRoot = am5.Root.new("chartdiv");
-
-            // Set themes
             amchartsRoot.setThemes([
                 am5themes_Animated.new(amchartsRoot)
             ]);
 
-            // Create zoomable container
             var zoomableContainer = amchartsRoot.container.children.push(
                 am5.ZoomableContainer.new(amchartsRoot, {
                     width: am5.p100,
@@ -1821,13 +1992,12 @@
                 target: zoomableContainer
             }));
 
-            // Create series
             var series = zoomableContainer.contents.children.push(am5hierarchy.ForceDirected.new(amchartsRoot, {
                 maskContent: false,
                 singleBranchOnly: false,
-                downDepth: 2,
-                topDepth: 1,
-                initialDepth: 3,
+                downDepth: 3, // عمق نمایش: 0=Root, 1=Country, 2=City, 3=Operator
+                topDepth: 1,  // شروع نمایش از سطح کشور (فرزندان ریشه)
+                initialDepth: 2,
                 valueField: "value",
                 categoryField: "name",
                 childDataField: "children",
@@ -1835,7 +2005,7 @@
                 linkWithField: "linkWith",
                 manyBodyStrength: -10,
                 centerStrength: 0.8,
-                minRadius: 20 // جلوگیری از پرش ناگهانی سایز در لحظه لود
+                minRadius: 20
             }));
 
             series.get("colors").setAll({
@@ -1844,56 +2014,55 @@
 
             series.links.template.set("strength", 0.5);
 
-            // --- تنظیمات جدید برای اصلاح رنگ و موقعیت لیبل‌ها ---
-            // 1. رنگ متن: مشکی
             series.labels.template.set("fill", am5.color(0x000000));
-
-            // 2. فونت فارسی
             series.labels.template.setAll({
                 fontSize: 12,
                 fontFamily: "Vazirmatn, sans-serif",
-                // 3. موقعیت: در مرکز و داخل دایره
                 textAlign: "center",
                 textValign: "middle",
                 centerX: am5.p50,
                 centerY: am5.p50,
-                // اطمینان از عدم پوشانده شدن توسط دایره (برای حاشیه امن)
                 dy: 0,
                 dx: 0,
-                // اجبار به نمایش لیبل
                 forceState: true
             });
 
-            // 4. تنظیمات Tooltip سفارشی (رنگ مشکی)
             series.nodes.template.tooltipText = "[bold]{name}[/]\n{value} تماس";
 
-            // رویداد آماده‌سازی داده برای اضافه کردن اطلاعات والد (کشور و شهر)
             series.nodes.template.events.on("datavalidated", function(ev) {
                 var dataItem = ev.target.dataItem;
-                // اگر اپراتور باشد (سطح سوم)، اطلاعات والدین را اضافه کن
-                if (dataItem.children.length === 0 && dataItem.parent && dataItem.parent.parent) {
+                // اصلاح منطق Tooltip برای تشخیص صحیح والدین
+                // سطح اپراتور (بدون فرزند)
+                if (dataItem.children.length === 0 && dataItem.parent) {
                     var city = dataItem.parent;
-                    var country = city.parent;
-                    // فرمت جدید tooltip
-                    ev.target.tooltipText = "[bold]اپراتور: {name}[/]\nکل تماس: {value}\n[fontSize:10px]شهر: " + city.get("name") + " | کشور: " + country.get("name") + "[/]";
+                    var country = city.parent ? city.parent : (city.dataContext && city.dataContext.name); // Handle Root parent implicitly if needed
+                    // اما چون ما یک Root داریم، ساختار همیشه Root -> Country -> City -> Operator است
+                    ev.target.tooltipText = "[bold]اپراتور: {name}[/]\nکل تماس: {value}\n[fontSize:10px]شهر: " + city.get("name") + " | کشور: " + (country ? country.get("name") : city.dataContext.name) + "[/]";
                 }
-                // اگر شهر باشد (سطح دوم)
-                else if (dataItem.children.length > 0 && dataItem.parent) {
+                // سطح شهر (دارد فرزند که اپراتور است)
+                else if (dataItem.children.length > 0 && dataItem.children[0].children.length === 0) {
                      var country = dataItem.parent;
                      ev.target.tooltipText = "[bold]شهر: {name}[/]\nکل تماس: {value}\n[fontSize:10px]کشور: " + country.get("name") + "[/]";
                 }
+                // سطح کشور (والد شهرها)
+                else if (dataItem.children.length > 0) {
+                     ev.target.tooltipText = "[bold]کشور: {name}[/]\nکل تماس: {value}";
+                }
             });
 
-            series.data.setAll([data]);
+            series.data.setAll([dataInput]);
 
-            series.set("selectedDataItem", series.dataItems[0]);
+            // انتخاب اولین کشور (فرزند ریشه) برای فوکوس اولیه
+            if(dataInput.children && dataInput.children.length > 0)
+                 series.set("selectedDataItem", series.dataItems[0].children[0]);
 
-            // Make stuff animate on load
             series.appear(1000, 100);
         }
 
-        // --- منطق نمودار Word Cloud (کشور/شهر/اپراتور) ---
+        // --- منطق نمودار Word Cloud (کشور/اپراتور) ---
+
         function initWordCloud(typesData) {
+            // ریسایز یا ساخت جدید
             if (wordCloudRoot) {
                 wordCloudRoot.dispose();
             }
@@ -1903,47 +2072,50 @@
                 am5themes_Animated.new(wordCloudRoot)
             ]);
 
-            // استخراج داده‌ها برای ابر کلمات
-            // ما می‌خواهیم همه کشورها، شهرها و اپراتورها را با توجه به حجم تماسشان نمایش دهیم.
             const wordCloudData = [];
 
-            typesData.forEach(t => {
-                // تایپ تماس (مثلاً تماس صوتی) - سطح بالاتر
-                if (t.totalCount > 0) {
-                    wordCloudData.push({ tag: t.typeName, weight: t.totalCount });
-                }
+            const selectedCountryId = document.getElementById('wordCloudCountryFilter').value;
 
-                if (t.countries) {
-                    t.countries.forEach(c => {
-                        // کشور
-                        if (c.totalCount > 0) {
-                            wordCloudData.push({ tag: c.countryName, weight: c.totalCount });
-                        }
-
-                        if (c.cities) {
-                            c.cities.forEach(city => {
-                                // شهر
-                                if (city.totalCount > 0) {
-                                    wordCloudData.push({ tag: city.cityName, weight: city.totalCount });
-                                }
-
-                                if (city.operators) {
-                                    city.operators.forEach(op => {
-                                        // اپراتور
-                                        if (op.totalCount > 0) {
-                                            wordCloudData.push({ tag: op.operatorName, weight: op.totalCount });
+            // اگر هیچ فیلتری نیست -> فقط نام کشورها
+            if (!selectedCountryId) {
+                const countryMap = new Map();
+                typesData.forEach(t => {
+                    if (t.countries) {
+                        t.countries.forEach(c => {
+                            const current = countryMap.get(c.countryName) || 0;
+                            countryMap.set(c.countryName, current + c.totalCount);
+                        });
+                    }
+                });
+                countryMap.forEach((weight, name) => {
+                    wordCloudData.push({ tag: name, weight: weight });
+                });
+            }
+            // اگر کشور انتخاب شده است -> تمام اپراتورهای آن کشور
+            else {
+                typesData.forEach(t => {
+                    if (t.countries) {
+                        t.countries.forEach(c => {
+                            if (c.countryID == selectedCountryId) {
+                                if (c.cities) {
+                                    c.cities.forEach(city => {
+                                        if (city.operators) {
+                                            city.operators.forEach(op => {
+                                                if (op.totalCount > 0) {
+                                                    wordCloudData.push({ tag: op.operatorName, weight: op.totalCount });
+                                                }
+                                            });
                                         }
                                     });
                                 }
-                            });
-                        }
-                    });
-                }
-            });
+                            }
+                        });
+                    }
+                });
+            }
 
-            // مرتب‌سازی داده‌ها بر اساس وزن (برای نمایش بهتر)
+            // مرتب‌سازی و برش
             wordCloudData.sort((a, b) => b.weight - a.weight);
-            // محدود کردن تعداد کلمات برای رندر سریع‌تر و تمیزی بیشتر (مثلاً 50 تا پرترددترین)
             const topWords = wordCloudData.slice(0, 100);
 
             var series = wordCloudRoot.container.children.push(am5wc.WordCloud.new(wordCloudRoot, {
@@ -1951,13 +2123,12 @@
                 valueField: "weight",
                 maxFontSize: am5.percent(18),
                 minFontSize: am5.percent(3),
-                calculateAggregates: true, // برای بهتر جاگیری
+                calculateAggregates: true,
                 randomness: 0.2,
-                excludeWords: ["همه", "نامشخص"], // کلمات ناخواسته
-                rotation: 0 // <-- تغییر انجام شده: چپ‌چین کردن ابر کلمات (حذف چرخش عمودی)
+                excludeWords: ["همه", "نامشخص"],
+                rotation: 0
             }));
 
-            // تنظیمات فونت و رنگ
             series.labels.template.setAll({
                 fontFamily: "Vazirmatn, Tahoma, Arial",
                 tooltipText: "[bold]{tag}[/]\n{weight} تماس",
@@ -1965,10 +2136,8 @@
             });
 
             series.labels.template.adapters.add("fill", function(fill, target) {
-                // استفاده از رنگ‌های متنوع و زیبا بر اساس وزن
                 if (target.dataItem) {
                     const weight = target.dataItem.get("value");
-                    // رنگ‌بندی از بنفش برای وزن‌های بالا تا آبی/خاکستری برای پایین
                     if (weight > 10000) return am5.color(0x6f42c1);
                     if (weight > 5000) return am5.color(0x0dcaf0);
                     if (weight > 2000) return am5.color(0x20c997);
@@ -1979,6 +2148,19 @@
 
             series.data.setAll(topWords);
         }
+
+        // --- مدیریت فیلترهای ابر کلمات ---
+        document.getElementById('wordCloudCountryFilter').addEventListener('change', function() {
+            // رفرش ابر کلمات
+            initWordCloud(globalTypeBreakdown);
+        });
+
+        document.getElementById('btnResetWordCloud').addEventListener('click', function() {
+            document.getElementById('wordCloudCountryFilter').value = "";
+
+            // رفرش نمودار به حالت پیش‌فرض (فقط کشورها)
+            initWordCloud(globalTypeBreakdown);
+        });
 
         // --- دریافت داده‌های اصلی و هندل کردن فیلترها ---
         async function loadData() {
@@ -2003,6 +2185,14 @@
             btnCancel.style.display = 'inline-block';
 
             document.getElementById('treemapLoading').style.display = 'flex';
+            document.getElementById('forceGraphCountryFilter').selectedIndex = -1;
+            document.getElementById('forceGraphStatus').innerText = "لطفاً حداقل یک کشور را برای نمایش نمودار انتخاب کنید.";
+            document.getElementById('forceGraphStatus').style.color = 'gray';
+            if(amchartsRoot) { amchartsRoot.dispose(); amchartsRoot = null; }
+
+            // ریست فیلترهای ابر کلمات در لود جدید
+            document.getElementById('wordCloudCountryFilter').value = "";
+            if(wordCloudRoot) { wordCloudRoot.dispose(); wordCloudRoot = null; }
 
             try {
                 const response = await fetch(`GetChartData?${params.toString()}`, { signal: abortController.signal });
@@ -2034,34 +2224,26 @@
                         initCountryCharts(globalTypeBreakdown);
                         initTreemap(globalTypeBreakdown);
 
-                        // اجرای اولیه فیلترها برای نمایش نمودار پیش‌فرض
                         applyLocationFilter();
                         applyCategoryFilter();
 
-                        // --- آماده‌سازی داده برای نمودار amCharts (سلسله مراتب صحیح) ---
-                        // ساختار: کشور (توپ بزرگ) -> شهر (متوسط) -> اپراتور (کوچک)
-
-                        const allCountriesMap = new Map();
+                        amchartsRawCountriesMap.clear();
 
                         globalTypeBreakdown.forEach(t => {
                             if (t.countries) {
                                 t.countries.forEach(c => {
-                                    if (!allCountriesMap.has(c.countryID)) {
-                                        allCountriesMap.set(c.countryID, {
+                                    if (!amchartsRawCountriesMap.has(c.countryID)) {
+                                        amchartsRawCountriesMap.set(c.countryID, {
                                             name: c.countryName,
                                             value: 0,
                                             children: []
                                         });
                                     }
-                                    const countryNode = allCountriesMap.get(c.countryID);
-
-                                    // اضافه کردن تماس‌های کلی به ارزش کشور (برای اندازه دایره بزرگ)
+                                    const countryNode = amchartsRawCountriesMap.get(c.countryID);
                                     countryNode.value += c.totalCount;
 
-                                    // پردازش شهرها
                                     if (c.cities) {
                                         c.cities.forEach(city => {
-                                            // چک کردن تکراری نبودن شهر در این کشور (از تایپ‌های مختلف ممکن است بیاید)
                                             let cityNode = countryNode.children.find(ch => ch.name === city.cityName);
                                             if (!cityNode) {
                                                 cityNode = {
@@ -2074,7 +2256,6 @@
                                                 cityNode.value += city.totalCount;
                                             }
 
-                                            // پردازش اپراتورها
                                             if (city.operators) {
                                                 city.operators.forEach(op => {
                                                     let opNode = cityNode.children.find(ch => ch.name === op.operatorName);
@@ -2096,29 +2277,9 @@
                             }
                         });
 
-                        // ساخت فینال آبجکت داده با ریشه نامرئی که کشورها مستقیم زیر آن باشند
-                        const amchartsData = {
-                            name: "Root",
-                            value: 0,
-                            children: Array.from(allCountriesMap.values())
-                                .sort((a, b) => b.value - a.value) // مرتب‌سازی بر اساس حجم
-                                .map(c => ({
-                                    name: c.name,
-                                    value: c.value,
-                                    children: c.children.map(city => ({
-                                        name: city.name,
-                                        value: city.value,
-                                        children: city.children
-                                    }))
-                                }))
-                        };
+                        amchartsDataGlobal = [];
 
-                        // مقدار Root را تنظیم می‌کنیم
-                        amchartsData.value = amchartsData.children.reduce((sum, item) => sum + item.value, 0);
-
-                        initAmchartsForceGraph(amchartsData);
-
-                        // --- لود نمودار ابر کلمات ---
+                        // مقداردهی اولیه ابر کلمات (حالت پیش‌فرض: فقط کشورها)
                         initWordCloud(globalTypeBreakdown);
                     }
 
@@ -2129,7 +2290,7 @@
             } catch (error) {
                 if (error.name !== 'AbortError') {
                     console.error('Error:', error);
-                    alert('ارتباط با سرور بربر نشد');
+                    alert('ارتباط با سرور برقرار نشد');
                     document.getElementById('treemapLoading').style.display = 'none';
                 }
             } finally {
@@ -2148,14 +2309,11 @@
             }
         }
 
-        // شروع کار
         loadData();
 
         document.getElementById('btnFilter').addEventListener('click', loadData);
         document.getElementById('btnCancel').addEventListener('click', cancelRequest);
 
-        // --- اتصال رویدادهای فیلتر دسته‌بندی ---
-        // این بخش بسیار مهم است. باید بعد از تعریف توابع append شود.
         document.getElementById('filterOperator').addEventListener('change', applyCategoryFilter);
         document.getElementById('filterCallType').addEventListener('change', applyCategoryFilter);
         document.getElementById('filterAnswerStatus').addEventListener('change', applyCategoryFilter);

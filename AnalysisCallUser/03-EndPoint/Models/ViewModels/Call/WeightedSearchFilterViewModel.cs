@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Call
 {
-  
     public class WeightedCallResultViewModel
     {
         public string ANumber { get; set; }
@@ -12,16 +11,11 @@ namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Call
         public int Weight { get; set; }
         public int TotalLength { get; set; }
         public double AverageLength { get; set; }
-        public int DirectCalls { get; set; }
-        public int ReverseCalls { get; set; }
         public string SearchType { get; set; }
-        public string DirectionInfo { get; set; }
+
         // فقط خواندنی
         public string TotalLengthFormatted { get; set; }
         public string AverageLengthFormatted { get; set; }
-    
-        // فرمت‌شده برای نمایش
- 
 
         private string FormatTime(int seconds)
         {
@@ -58,6 +52,4 @@ namespace AnalysisCallUser._03_EndPoint.Models.ViewModels.Call
         [Display(Name = "حالت جستجو")]
         public WeightedSearchMode SearchMode { get; set; } = WeightedSearchMode.Auto;
     }
-
-  
 }

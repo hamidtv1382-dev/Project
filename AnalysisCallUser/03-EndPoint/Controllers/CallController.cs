@@ -815,10 +815,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                         Weight = r.Weight,
                         TotalLength = r.TotalLength,
                         AverageLength = r.AverageLength,
-                        DirectCalls = r.DirectCalls,
-                        ReverseCalls = r.ReverseCalls,
-                        SearchType = r.SearchType,
-                        DirectionInfo = r.DirectionInfo,
+                        SearchType = "جستجوی گروهی", // تغییر درخواست شده
                         TotalLengthFormatted = FormatTime(r.TotalLength),
                         AverageLengthFormatted = FormatTime((int)r.AverageLength)
                     }));
@@ -842,10 +839,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                         Weight = r.Weight,
                         TotalLength = r.TotalLength,
                         AverageLength = r.AverageLength,
-                        DirectCalls = r.DirectCalls,
-                        ReverseCalls = r.ReverseCalls,
-                        SearchType = r.SearchType,
-                        DirectionInfo = r.DirectionInfo,
+                        SearchType = "جستجوی گروهی", // تغییر درخواست شده
                         TotalLengthFormatted = FormatTime(r.TotalLength),
                         AverageLengthFormatted = FormatTime((int)r.AverageLength)
                     }));
@@ -936,10 +930,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                         Weight = r.Weight,
                         TotalLength = r.TotalLength,
                         AverageLength = r.AverageLength,
-                        DirectCalls = r.DirectCalls,
-                        ReverseCalls = r.ReverseCalls,
-                        SearchType = r.SearchType,
-                        DirectionInfo = r.DirectionInfo,
+                        SearchType = "جستجوی تکی", // مقدار پیش‌فرض برای حالت عادی
                         TotalLengthFormatted = FormatTime(r.TotalLength),
                         AverageLengthFormatted = FormatTime((int)r.AverageLength)
                     }).ToList();
@@ -948,7 +939,7 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 // حذف نتایج تکراری (در صورت وجود) و مرتب‌سازی نهایی
                 model.WeightedResults = allResults
                     .GroupBy(r => new { r.ANumber, r.BNumber })
-                    .Select(g => g.First()) // یا می‌توانید منطق ترکیب وزن‌ها را پیاده‌سازی کنید
+                    .Select(g => g.First())
                     .OrderByDescending(r => r.Weight)
                     .ToList();
 
@@ -1005,13 +996,13 @@ namespace AnalysisCallUser._03_EndPoint.Controllers
                 using var memoryStream = new MemoryStream();
                 using var writer = new StreamWriter(memoryStream, System.Text.Encoding.UTF8);
 
-                // هدرها
-                writer.WriteLine("شماره مبدأ,شماره مقصد,تعداد تماس,طول کل مکالمه(ثانیه),میانگین طول مکالمه(ثانیه),تماس مستقیم,تماس معکوس,نوع جستجو,جهت تماس");
+                // هدرها (ستون‌های حذف شده قبلی حذف شده‌اند)
+                writer.WriteLine("شماره مبدأ,شماره مقصد,تعداد تماس,طول کل مکالمه(ثانیه),میانگین طول مکالمه(ثانیه),نوع جستجو");
 
                 // داده‌ها
                 foreach (var result in weightedResults)
                 {
-                    writer.WriteLine($"\"{result.ANumber}\",\"{result.BNumber}\",{result.Weight},{result.TotalLength},{result.AverageLength:F2},{result.DirectCalls},{result.ReverseCalls},{result.SearchType},{result.DirectionInfo}");
+                    writer.WriteLine($"\"{result.ANumber}\",\"{result.BNumber}\",{result.Weight},{result.TotalLength},{result.AverageLength:F2},{result.SearchType}");
                 }
 
                 writer.Flush();

@@ -419,7 +419,6 @@
             animation: spin 1s linear infinite;
         }
 
-
         .search-info {
             background-color: #f8fafc;
             border-radius: 8px;
@@ -474,53 +473,6 @@
             display: block;
         }
 
-        /* --- نوار اطلاعات فایل (مشابه برای همه استفاده میشود) --- */
-        .file-info-bar {
-            display: none; /* پیش‌فرض مخفی */
-            align-items: center;
-            background-color: #f8faff;
-            border: 1px solid var(--primary-color);
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 13px;
-            color: var(--text-dark);
-            animation: fadeIn 0.3s ease-out;
-        }
-
-            .file-info-bar.active {
-                display: flex;
-            }
-
-        .file-name-text {
-            font-weight: 600;
-            margin-left: 10px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
-        }
-
-        .file-remove-btn {
-            background-color: #fff0f0;
-            border: 1px solid #feb2b2;
-            color: var(--danger-color);
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 14px;
-        }
-
-            .file-remove-btn:hover {
-                background-color: var(--danger-color);
-                border-color: var(--danger-color);
-                color: white;
-            }
-
         .progress {
             height: 4px;
             background-color: #edf2f7;
@@ -569,7 +521,7 @@
                         </div>
 
                         <div class="form-container">
-                           
+
                             <form id="weightedSearchForm" method="post" enctype="multipart/form-data">
                                 @Html.AntiForgeryToken()
                                 <!-- بخش جدید: جستجوی بر اساس فایل -->
@@ -851,23 +803,6 @@
                                                             <div class="progress">
                                                                 <div class="progress-bar" style="width: @percentage%;"></div>
                                                             </div>
-                                                            @if (result.DirectCalls > 0 || result.ReverseCalls > 0)
-                                                            {
-                                                                <div class="small text-muted">
-                                                                    @if (result.DirectCalls > 0 && result.ReverseCalls > 0)
-                                                                    {
-                                                                        <span>@result.DirectCalls مستقیم، @result.ReverseCalls معکوس</span>
-                                                                    }
-                                                                    else if (result.DirectCalls > 0)
-                                                                    {
-                                                                        <span>@result.DirectCalls مستقیم</span>
-                                                                    }
-                                                                    else if (result.ReverseCalls > 0)
-                                                                    {
-                                                                        <span>@result.ReverseCalls معکوس</span>
-                                                                    }
-                                                                </div>
-                                                            }
                                                         </div>
                                                     </td>
                                                     <td>
@@ -879,14 +814,10 @@
                                                     <td>
                                                         <span class="search-type-indicator">
                                                             @result.SearchType
-                                                            @if (!string.IsNullOrEmpty(result.DirectionInfo) && result.DirectionInfo != "-")
-                                                            {
-                                                                <span class="badge bg-light text-dark ms-1">@result.DirectionInfo</span>
-                                                            }
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <button type="button" class="btn-download-table" onclick="exportSingleRow(@i, '@result.ANumber', '@result.BNumber', @result.Weight, @result.TotalLength, @result.AverageLength, @result.DirectCalls, @result.ReverseCalls, '@result.SearchType', '@result.DirectionInfo')" title="دانلود این ردیف">
+                                                        <button type="button" class="btn-download-table" onclick="exportSingleRow(@i, '@result.ANumber', '@result.BNumber', @result.Weight, @result.TotalLength, @result.AverageLength, '@result.SearchType')" title="دانلود این ردیف">
                                                             <span class="btn-download-symbol">&#8595;</span>
                                                         </button>
                                                     </td>
@@ -982,7 +913,6 @@
         });
 
         // --- منطق آپلود فایل جدید ---
-               // --- منطق آپلود فایل جدید (دقیقا مشابه مبدأ و مقصد) ---
         function setupBulkFileUpload() {
             const bulkFileInput = document.getElementById('bulkNumbersFile');
             const bulkFileInfo = document.getElementById('bulkFileInfo');
@@ -1004,21 +934,15 @@
                         return;
                     }
 
-                    // شبیه‌سازی دقیق رفتار مبدأ و مقصد: نمایش نام فایل و آیکون
                     bulkFileName.textContent = file.name;
                     bulkFileInfo.classList.add('active');
-
-                    // تغییر وضعیت ظاهری بخش
                     fileSearchSection.classList.add('active');
 
-                    // مخفی کردن دکمه انتخاب فایل و نمایش دکمه خروج
                     if (btnFileSearch) btnFileSearch.style.display = 'none';
                     exitFileModeBtn.style.display = 'inline-flex';
 
-                    // نمایش جداکننده
                     fileModeSeparator.style.display = 'block';
 
-                    // غیرفعال کردن سایر فیلدها
                     disableOtherFields(true);
                 }
             });
@@ -1037,7 +961,6 @@
             exitFileModeBtn.style.display = 'none';
             fileModeSeparator.style.display = 'none';
 
-            // فعال کردن مجدد سایر فیلدها
             disableOtherFields(false);
         }
 
@@ -1058,7 +981,6 @@
                 }
             });
 
-            // غیرفعال کردن دکمه‌های آپلود فایل کوچک
             const uploadButtons = document.querySelectorAll('.btn-upload');
             uploadButtons.forEach(btn => {
                 btn.disabled = disable;
@@ -1091,9 +1013,9 @@
 
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    textArea.value = e.target.result; // پر کردن textarea
-                    fileNameSpan.textContent = file.name; // نمایش نام فایل
-                    fileInfo.classList.add('active'); // نمایش پیش‌نمایش
+                    textArea.value = e.target.result;
+                    fileNameSpan.textContent = file.name;
+                    fileInfo.classList.add('active');
                 };
                 reader.readAsText(file);
             }
@@ -1121,10 +1043,8 @@
             if (fileNameSpan) fileNameSpan.textContent = '';
         }
 
-        // مقداردهی اولیه
         setupFileUpload('sourceNumbersFile', 'SourceNumbersText', 'sourceFileInfo', 'sourceFileName');
         setupFileUpload('destNumbersFile', 'DestNumbersText', 'destFileInfo', 'destFileName');
-
 
         window.removeSourceFile = function() {
             removeFileLogic('sourceNumbersFile', 'SourceNumbersText', 'sourceFileInfo');
@@ -1209,7 +1129,7 @@
                 position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
                 background-color: ${bg}; color: white; padding: 12px 24px;
                 border-radius: 8px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                font-size: 14px; opacity: 0; transition: opacity 0.3s; display: flex; gap: 10px; align-items: center;
+                font-size: 14px; opacity: 0; transition: opacity 0.3s; display: function; gap: 10px; align-items: center;
             `;
             toast.innerHTML = `<span>${message}</span>`;
             document.body.appendChild(toast);
@@ -1251,14 +1171,13 @@
             }
         }
 
-        async function exportSingleRow(index, aNumber, bNumber, weight, totalLength, avg, direct, reverse, type, dir) {
+        async function exportSingleRow(index, aNumber, bNumber, weight, totalLength, avg, searchType) {
             try {
                 showLoading();
                 const singleResult = {
                     WeightedResults: [{
                         ANumber: aNumber, BNumber: bNumber, Weight: weight, TotalLength: totalLength,
-                        AverageLength: avg, DirectCalls: direct, ReverseCalls: reverse,
-                        SearchType: type, DirectionInfo: dir
+                        AverageLength: avg, SearchType: searchType
                     }]
                 };
                 const response = await fetch('@Url.Action("ExportWeightedResults", "Call")', {
@@ -1271,7 +1190,7 @@
                 });
                 if (response.ok) {
                     const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
+                    url = window.URL.createObjectURL(blob); // Fix: const url
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = `Call_${aNumber}_${bNumber}.csv`;
